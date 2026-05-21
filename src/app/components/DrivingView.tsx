@@ -391,7 +391,7 @@ export function DrivingView() {
                 <path d="M0,420 Q300,360 600,400 T1000,390 L1000,800 L0,800 Z" fill="#15803d" opacity="0.72" />
               </svg>
 
-              <svg className="absolute inset-0 z-24 w-full h-full pointer-events-none" viewBox="0 0 1000 800" preserveAspectRatio="none">
+              <svg className="absolute inset-0 z-[24] w-full h-full pointer-events-none" viewBox="0 0 1000 800" preserveAspectRatio="none">
                 <path d="M0,418 Q280,365 560,398 T1000,390 L1000,800 L0,800 Z" fill="#166534" opacity="0.96" />
               </svg>
             </div>
@@ -401,7 +401,7 @@ export function DrivingView() {
             {currentDashboard === 'years' && <DashboardGauge onNext={() => setCurrentDashboard('members')} />}
             {currentDashboard === 'members' && <FuelGauge onNext={() => {}} />}
 
-            <div className="absolute inset-0 z-25">
+            <div className="absolute inset-0 z-[25]">
               <div className="absolute top-1/2 bottom-0 left-0 right-0">
                 <svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="none">
                   <path d={roadPath.surface} fill="#374151" />
