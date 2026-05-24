@@ -1,7 +1,7 @@
 
-  # Refine driving animation
+  # Engagement Tool Prototype 1
 
-  This is a code bundle for Refine driving animation. The original project is available at https://www.figma.com/design/iuOOFAZJ1u5vTsRYNlIM3N/Refine-driving-animation.
+  This is a code bundle for Engagement Tool Prototype 1. The original project is available at https://www.figma.com/design/iuOOFAZJ1u5vTsRYNlIM3N/Engagement-Tool-Prototype-1.
 
   ## Running the code
 

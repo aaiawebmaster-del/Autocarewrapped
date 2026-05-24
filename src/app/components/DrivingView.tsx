@@ -1,14 +1,46 @@
-import { useRef, useState, useEffect } from 'react';
-import { motion, useAnimationFrame, animate, useMotionValue, useTransform } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, animate, useMotionValue, useTransform } from 'motion/react';
+import Lottie from 'lottie-react';
 import imgMountainRoad from '../../imports/Screen1/061eac1a3db513915e4c53f4dae9a70e92d32dbb.png';
+import carOnTrackData from '../../imports/Car_on_track.json';
+import carDashData from '../../imports/Car_dashboard_HUD_UI.json';
+import slide1Data from '../../imports/slide_1.json';
+import slide1DashboardData from '../../imports/slide_1_dashboard_view.json';
 import MyAutocareOrgEngagementMobile from '../../imports/MyAutocareOrgEngagementMobile/MyAutocareOrgEngagementMobile';
 
 const BRAND_ORANGE = '#f3901d';
-const SIGN_DURATION = 8.5;
-const SIGN_GAP = 0.15;
-const SIGN_START = 0.9;
-const SIGN_COUNT = 4;
-const DASHBOARD_START = SIGN_START + SIGN_COUNT * (SIGN_DURATION + SIGN_GAP) + 0.6;
+
+// Patch the dashboard Lottie JSON at module load: move Group 3 & 4 left
+// (they sit between the chrome cluster and the info panel; shifting them
+//  clears space for the HTML slide-text overlay at the Groups 9/10 position)
+const patchedDashData = (() => {
+  const data = JSON.parse(JSON.stringify(carDashData));
+  const infoLayer = data.layers?.find((l: any) => l.nm === 'info');
+  if (infoLayer?.shapes) {
+    ['Group 3', 'Group 4'].forEach((name: string) => {
+      const grp = infoLayer.shapes.find((s: any) => s.nm === name);
+      if (grp?.it) {
+        const tr = grp.it[grp.it.length - 1]; // transform is last item
+        if (tr?.p?.k && Array.isArray(tr.p.k)) tr.p.k[0] -= 130;
+      }
+    });
+  }
+  return data;
+})();
+
+// Deterministic star field — fixed positions so no flicker on re-render
+const STARS = Array.from({ length: 90 }, (_, i) => ({
+  x: `${(i * 37 + 13) % 100}%`,
+  y: `${(i * 23 + 7) % 78}%`,
+  size: i % 5 === 0 ? 2.5 : i % 3 === 0 ? 2 : 1.5,
+  opacity: 0.35 + (i % 6) * 0.1,
+}));
+const SLIDE_TEXTS = [
+  'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
+  'This report captures your role in that progress — the events you attended, the insights you gained, the voices you amplified, and the initiatives you supported.',
+  'Your engagement matters. Your impact multiplies.',
+  "Here's your year with Auto Care in motion.",
+];
 
 type Screen = 'journey' | 'hood' | 'diagnostics';
 
@@ -17,108 +49,6 @@ const NAV_ITEMS: { id: Screen; label: string }[] = [
   { id: 'hood', label: 'Under the Hood' },
   { id: 'diagnostics', label: 'Full Diagnostics' },
 ];
-
-// ── Years Speedometer Gauge ───────────────────────────────────────────────────
-function DashboardGauge() {
-  const gaugeMotion = useMotionValue(0);
-  const [displayValue, setDisplayValue] = useState(0);
-  const TARGET = 30;
-  const cx = 225, cy = 235;
-
-  // All gauge visuals driven by a single motion value — no drift between dial and number
-  const pathLength = useTransform(gaugeMotion, v => v / TARGET);
-  const needleRotate = useTransform(gaugeMotion, v => -135 + (v / TARGET) * 270 * 0.3);
-
-  useEffect(() => {
-    const controls = animate(gaugeMotion, TARGET, {
-      duration: 2.5,
-      delay: 0.8,
-      ease: [0.34, 1.56, 0.64, 1],
-    });
-    const unsub = gaugeMotion.on('change', v => setDisplayValue(v));
-    return () => { controls.stop(); unsub(); };
-  }, []);
-
-  return (
-    <motion.div
-      className="absolute inset-0 bg-gradient-to-b from-gray-900 via-black to-gray-900 z-40 flex flex-col"
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      transition={{ duration: 1, ease: 'easeOut' }}
-    >
-      {/* Header — no border-b separator */}
-      <div className="mt-[80px] px-6 py-4 bg-gray-800/30 text-center shrink-0">
-        <h2 className="text-[#f3901d] text-2xl font-bold">Your Journey</h2>
-        <p className="text-gray-400 text-sm mt-0.5">Celebrating Growth &amp; Innovation</p>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="text-center mb-3">
-          {/* "You've been a Member for" appears above the count */}
-          <div className="text-gray-400 text-sm tracking-widest uppercase mb-2">You've been a Member for</div>
-          <div className="text-[#f3901d] font-bold" style={{ fontSize: '78px', lineHeight: 1 }}>
-            {Math.round(displayValue)}
-          </div>
-          <div className="text-gray-300 tracking-[0.4em] text-base mt-1">YEARS</div>
-        </div>
-
-        {/* Dial — smaller, no text inside */}
-        <svg width="260" height="196" viewBox="0 0 520 390" className="drop-shadow-2xl">
-          <defs>
-            <linearGradient id="ng" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={BRAND_ORANGE} />
-              <stop offset="100%" stopColor="#ff6b35" />
-            </linearGradient>
-            <filter id="og" x="-40%" y="-40%" width="180%" height="180%">
-              <feGaussianBlur stdDeviation="5" result="b" />
-              <feMerge>
-                <feMergeNode in="b" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          <circle cx={cx} cy={cy} r="178" fill="#151515" stroke="#343434" strokeWidth="3" />
-          <circle cx={cx} cy={cy} r="145" fill="none" stroke="#080808" strokeWidth="34" />
-          <path d="M 82 235 A 143 143 0 1 1 368 235" fill="none" stroke="#272727" strokeWidth="26" strokeLinecap="round" />
-
-          <motion.path
-            d="M 82 235 A 143 143 0 0 1 128 130"
-            fill="none" stroke={BRAND_ORANGE} strokeWidth="26" strokeLinecap="round"
-            filter="url(#og)"
-            style={{ pathLength }}
-          />
-
-          {Array.from({ length: 13 }).map((_, i) => {
-            const angle = (-135 + (i / 12) * 270) * Math.PI / 180;
-            const outer = 152, inner = i % 3 === 0 ? 124 : 136;
-            return (
-              <line key={i}
-                x1={cx + Math.cos(angle) * outer} y1={cy + Math.sin(angle) * outer}
-                x2={cx + Math.cos(angle) * inner} y2={cy + Math.sin(angle) * inner}
-                stroke={i <= 4 ? BRAND_ORANGE : '#505050'}
-                strokeWidth={i % 3 === 0 ? 4 : 2} strokeLinecap="round"
-              />
-            );
-          })}
-
-          <motion.line x1={cx} y1={cy} x2={cx} y2="92"
-            stroke="#000" strokeWidth="8" strokeLinecap="round" opacity="0.3"
-            style={{ rotate: needleRotate, transformOrigin: `${cx}px ${cy}px` }}
-          />
-          <motion.line x1={cx} y1={cy} x2={cx} y2="88"
-            stroke="url(#ng)" strokeWidth="5" strokeLinecap="round"
-            style={{ rotate: needleRotate, transformOrigin: `${cx}px ${cy}px` }}
-          />
-
-          <circle cx={cx} cy={cy} r="27" fill="#242424" stroke={BRAND_ORANGE} strokeWidth="3" />
-          <circle cx={cx} cy={cy} r="14" fill={BRAND_ORANGE} />
-          <circle cx={cx} cy={cy} r="7" fill="#111" />
-        </svg>
-      </div>
-    </motion.div>
-  );
-}
 
 // ── Under the Hood: oil pour + dipstick animation ─────────────────────────────
 function UnderTheHood() {
@@ -404,100 +334,253 @@ function FullDiagnostics() {
   );
 }
 
-// ── Sign overhead animation ────────────────────────────────────────────────────
-function SignOverhead({ signNumber, duration }: { signNumber: number; duration: number }) {
-  const [zIdx, setZIdx] = useState(12);
+// ── Car dashboard HUD overlay ─────────────────────────────────────────────────
+// Corner state  → slide_1.json (canvas 1170.6×860, rendered 500px wide)
+//   Arrow element at canvas x≈106 → rendered x≈45px. Text sits at left:60px.
+//   Container height 220px clips top of 367px rendered Lottie; indicator ring
+//   lands at container y≈50px (below the 34px arch top).
+// Centered state → patchedDashData (3218×860, rendered 1600px, centred on speedo)
+function DashboardHUD({
+  centered,
+  currentSlide,
+}: {
+  centered: boolean;
+  currentSlide: number | null;
+}) {
+  const gaugeVal = useMotionValue(0);
+  const [yearsCount, setYearsCount] = useState(0);
 
-  const signText: Record<number, string> = {
-    1: 'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
-    2: 'This report captures your role in that progress — the events you attended, the insights you gained, the voices you amplified, and the initiatives you supported.',
-    3: 'Your engagement matters. Your impact multiplies.',
-    4: "Here's your year with Auto Care in motion.",
-  };
-
-  const times       = [0,      0.06,    0.09,   0.27,   0.72,   0.84,   1.0];
-  const yFrames     = ['57vh', '54.5vh','54vh',  '21vh', '6vh',  '-5vh', '-95vh'];
-  const xFrames     = ['0vw',  '0vw',   '0vw',  '0vw',  '-3vw', '-9vw', '-18vw'];
-  const scaleFrames = [0.05,   0.07,    0.09,   0.44,   0.90,   1.85,   4.4];
-  const rotXFrames  = [30,     25,      22,     12,     3,      1,      0];
-  const opacFrames  = [0,      0,       1,      1,      1,      1,      0.5];
+  useEffect(() => {
+    if (!centered) { gaugeVal.set(0); setYearsCount(0); return; }
+    const controls = animate(gaugeVal, 30, {
+      duration: 2.4,
+      delay: 0.6,
+      ease: [0.34, 1.56, 0.64, 1],
+    });
+    const unsub = gaugeVal.on('change', v => setYearsCount(Math.round(v)));
+    return () => { controls.stop(); unsub(); };
+  }, [centered]);
 
   return (
     <motion.div
-      className="absolute left-1/2 top-0 -translate-x-1/2 will-change-transform"
-      style={{ zIndex: zIdx, perspective: '1200px' }}
-      initial={{
-        y: yFrames[0], x: xFrames[0],
-        scale: scaleFrames[0], rotateX: rotXFrames[0], opacity: opacFrames[0],
-      }}
-      animate={{
-        y: yFrames, x: xFrames,
-        scale: scaleFrames, rotateX: rotXFrames, opacity: opacFrames,
-      }}
-      transition={{ duration, times, ease: 'linear' }}
-      onUpdate={(latest) => {
-        if (Number(latest.scale ?? 0) >= 0.28 && zIdx !== 36) setZIdx(36);
+      className="absolute bottom-0 left-0 right-0 overflow-hidden"
+      animate={{ height: centered ? '430px' : '220px' }}
+      transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
+      style={{
+        zIndex: 20,
+        borderTopLeftRadius: centered ? '0' : '50% 34px',
+        borderTopRightRadius: centered ? '0' : '50% 34px',
+        transition: 'border-top-left-radius 0.9s cubic-bezier(0.4,0,0.2,1), border-top-right-radius 0.9s cubic-bezier(0.4,0,0.2,1)',
       }}
     >
-      <div className="relative w-[660px] bg-gray-800 border-[14px] border-gray-600 p-3 shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
-        <div
-          className="absolute top-full"
-          style={{
-            left: '14px',
-            width: '22px',
-            height: '820px',
-            background: 'linear-gradient(180deg, #b0b0b0 0%, #787878 18%, #484848 50%, #1e1e1e 100%)',
-            transformOrigin: 'top center',
-            transform: 'skewX(-26deg)',
-            boxShadow: '-5px 6px 18px rgba(0,0,0,0.7)',
-          }}
-        />
-        <div className="relative overflow-hidden rounded-md bg-black p-6 min-h-[150px] flex items-center">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(243,144,29,0.08)_1px,transparent_1px)] bg-[length:100%_8px] opacity-70" />
+      <AnimatePresence mode="wait">
+
+        {/* ── Corner state: slide_1_dashboard_view.json — full screen width ── */}
+        {!centered && (
           <motion.div
-            className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/15 to-transparent"
-            animate={{ y: ['-120%', '220%'] }}
-            transition={{ duration: 2.6, repeat: Infinity, ease: 'linear' }}
-          />
-          <p className="relative z-10 text-center text-[32px] leading-snug font-bold text-[#f3901d] drop-shadow-[0_0_12px_rgba(243,144,29,0.7)]">
-            {signText[signNumber]}
-          </p>
-        </div>
-        <div className="absolute top-3 left-3 w-4 h-4 bg-green-500 rounded-full shadow-[0_0_12px_rgba(34,197,94,0.9)]" />
-        <div className="absolute top-3 right-3 w-4 h-4 bg-green-500 rounded-full shadow-[0_0_12px_rgba(34,197,94,0.9)]" />
-      </div>
+            key="corner"
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45 }}
+          >
+            {/* Full-width render — entrance animation plays from frame 0, then loops.
+                Canvas 1624.7×860; at 390px viewport scale≈0.24, height≈206px.
+                The text layer lives at canvas (363, 514) ≈ 22% from left, 83px from bottom. */}
+            <div className="absolute bottom-0 left-0 right-0" style={{ pointerEvents: 'none' }}>
+              <Lottie
+                animationData={slide1DashboardData}
+                loop
+                autoplay
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
+
+            {/* HTML text overlay — sits to the right of the arrow, over the Lottie text area.
+                Positioned from bottom to stay aligned as Lottie height scales with viewport. */}
+            <AnimatePresence mode="wait">
+              {currentSlide !== null && (
+                <motion.div
+                  key={currentSlide}
+                  style={{
+                    position: 'absolute',
+                    bottom: '60px',
+                    left: '15%',
+                    right: '10px',
+                    maxWidth: '340px',
+                    zIndex: 25,
+                    pointerEvents: 'none',
+                  }}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <p
+                    style={{
+                      color: '#ffffff',
+                      fontSize: 'clamp(11px, 2.5vw, 14px)',
+                      lineHeight: 1.55,
+                      margin: 0,
+                      textShadow: '0 1px 8px rgba(0,0,0,0.8)',
+                    }}
+                  >
+                    {SLIDE_TEXTS[currentSlide]}
+                  </p>
+                  <div className="flex gap-1.5 mt-3">
+                    {SLIDE_TEXTS.map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: i === currentSlide ? '16px' : '4px',
+                          height: '2px',
+                          borderRadius: '99px',
+                          background: i === currentSlide ? 'rgba(243,144,29,0.9)' : 'rgba(255,255,255,0.3)',
+                          transition: 'width 0.3s',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+        {/* ── Centered state: patchedDashData with speed dial ── */}
+        {centered && (
+          <motion.div
+            key="centered-dash"
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45 }}
+          >
+            {/* 1600px wide, shifted so speedo lands at 50vw */}
+            <div
+              className="absolute bottom-0"
+              style={{ width: '1600px', left: 'calc(50vw - 800px)', pointerEvents: 'none' }}
+            >
+              <Lottie
+                animationData={patchedDashData}
+                loop
+                autoplay
+                initialSegment={[130, 360] as [number, number]}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
+
+            {/* "30 YEARS" centered on the speed dial */}
+            <motion.div
+              className="absolute"
+              style={{
+                left: '50%',
+                top: '214px',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                zIndex: 25,
+                pointerEvents: 'none',
+              }}
+              initial={{ opacity: 0, scale: 0.75 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.55, delay: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <div
+                style={{ fontSize: '11px', letterSpacing: '0.22em', color: '#8899aa', textTransform: 'uppercase', marginBottom: '4px' }}
+              >
+                You've been a Member for
+              </div>
+              <div
+                style={{
+                  fontSize: 'clamp(52px, 10vw, 80px)',
+                  fontWeight: 900,
+                  color: BRAND_ORANGE,
+                  lineHeight: 1,
+                  textShadow: `0 0 28px rgba(243,144,29,0.55), 0 0 60px rgba(243,144,29,0.25)`,
+                }}
+              >
+                {yearsCount}
+              </div>
+              <div
+                style={{ fontSize: '13px', letterSpacing: '0.35em', color: '#cccccc', marginTop: '6px', textTransform: 'uppercase' }}
+              >
+                Years
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
     </motion.div>
   );
 }
 
-function getCurrentSign(time: number) {
-  for (let i = 0; i < SIGN_COUNT; i++) {
-    const start = SIGN_START + i * (SIGN_DURATION + SIGN_GAP);
-    if (time >= start && time < start + SIGN_DURATION) return i + 1;
-  }
-  return null;
-}
-
 // ── Main DrivingView ──────────────────────────────────────────────────────────
 export function DrivingView() {
-  const timeRef = useRef(0);
-  const [currentSign, setCurrentSign] = useState<number | null>(null);
+  const [currentSlide, setCurrentSlide] = useState<number | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
   const [isStarted, setIsStarted] = useState(false);
+  const [dashCentered, setDashCentered] = useState(false);
 
   const screenOrder = NAV_ITEMS.map(n => n.id);
   const currentIdx = currentScreen ? screenOrder.indexOf(currentScreen) : -1;
 
+  // Sky progress: 0 = night, 1 = full sunrise
+  const skyProgress = useMotionValue(0);
+
+  // Night sky: full opacity at start, fades out by 40%
+  const nightSkyOp = useTransform(skyProgress, [0, 0.4], [1, 0]);
+  // Stars: bright at start, fade by 35%
+  const starOp = useTransform(skyProgress, [0, 0.32], [1, 0]);
+  // Pre-dawn purple: peaks at 30%, gone by 65%
+  const preDawnOp = useTransform(skyProgress, [0.08, 0.28, 0.52, 0.68], [0, 1, 1, 0]);
+  // Sunrise warm gradient: builds from 40% onward
+  const sunriseOp = useTransform(skyProgress, [0.38, 0.72], [0, 1]);
+  // Sun disc opacity
+  const sunOpacity = useTransform(skyProgress, [0.48, 0.78], [0, 1]);
+  // Sun Y: starts below horizon (positive = down into road), rises up through sky
+  const sunYPx = useTransform(skyProgress, [0.45, 0.92], [60, -180]);
+  // Ambient horizon glow (orange haze at horizon as sun rises)
+  const horizonGlowOp = useTransform(skyProgress, [0.35, 0.65], [0, 1]);
+
+  // Animate sky from night → sunrise over 28 seconds once driving starts
+  useEffect(() => {
+    if (!isStarted) return;
+    const controls = animate(skyProgress, 1, { duration: 28, ease: 'linear' });
+    return () => controls.stop();
+  }, [isStarted]);
+
   const handleRestart = () => {
     setIsStarted(false);
-    timeRef.current = 0;
-    setCurrentSign(null);
+    setCurrentSlide(null);
     setCurrentScreen(null);
+    setDashCentered(false);
+    skyProgress.set(0);
   };
 
   const handleSkip = () => {
-    setCurrentSign(null);
+    setCurrentSlide(null);
     setCurrentScreen('journey');
+    setDashCentered(true);
+    skyProgress.set(1);
+  };
+
+  const handleSlideBack = () => {
+    if (currentSlide !== null && currentSlide > 0) setCurrentSlide(currentSlide - 1);
+  };
+
+  const handleSlideNext = () => {
+    if (currentSlide === null) return;
+    if (currentSlide < SLIDE_TEXTS.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    } else {
+      // Past last slide → center the dashboard dial, enter journey
+      setCurrentSlide(null);
+      setDashCentered(true);
+      setCurrentScreen('journey');
+    }
   };
 
   const goToPrev = () => {
@@ -507,14 +590,6 @@ export function DrivingView() {
   const goToNext = () => {
     if (currentIdx < screenOrder.length - 1) setCurrentScreen(screenOrder[currentIdx + 1]);
   };
-
-  useAnimationFrame((_, delta) => {
-    if (!isStarted) return;
-    timeRef.current += delta * 0.001;
-    const time = timeRef.current;
-    setCurrentSign(getCurrentSign(time));
-    if (time >= DASHBOARD_START && !currentScreen) setCurrentScreen('journey');
-  });
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-black">
@@ -528,37 +603,54 @@ export function DrivingView() {
       </div>
 
       {/* ── Footer ── */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-black z-50 flex items-center px-6">
-        {/* Left: Restart + Skip */}
-        <div className="flex items-center gap-4 shrink-0">
-          <button
-            onClick={handleRestart}
-            className="flex items-center gap-2 text-[#f3901d] hover:text-orange-400 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span className="font-semibold text-sm">Restart</span>
-          </button>
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-black z-50 flex items-center px-4 gap-2">
 
-          {isStarted && !currentScreen && (
-            <button
-              onClick={handleSkip}
-              className="flex items-center gap-1.5 text-gray-400 hover:text-[#f3901d] transition-colors border border-gray-700 hover:border-[#f3901d]/50 rounded px-3 py-1.5 text-sm font-medium"
-            >
-              <span>Skip</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
-            </button>
+        {/* Restart */}
+        <button
+          onClick={handleRestart}
+          className="flex items-center gap-1.5 text-[#f3901d] hover:text-orange-400 transition-colors shrink-0"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="font-semibold text-sm">Restart</span>
+        </button>
+
+        {/* Center area — either slide controls or screen nav */}
+        <div className="flex-1 flex items-center justify-center gap-2">
+
+          {/* Slide Back / Next (during driving text sequence) */}
+          {isStarted && currentSlide !== null && !currentScreen && (
+            <>
+              <button
+                onClick={handleSlideBack}
+                disabled={currentSlide === 0}
+                className="flex items-center gap-1 px-3 py-1.5 rounded border text-sm font-medium transition-colors"
+                style={{
+                  borderColor: currentSlide === 0 ? '#374151' : '#f3901d',
+                  color: currentSlide === 0 ? '#374151' : '#f3901d',
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+              <button
+                onClick={handleSlideNext}
+                className="flex items-center gap-1 px-3 py-1.5 rounded border border-[#f3901d] text-[#f3901d] text-sm font-medium hover:bg-[#f3901d]/10 transition-colors"
+              >
+                {currentSlide === SLIDE_TEXTS.length - 1 ? 'Enter' : 'Next'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
           )}
-        </div>
 
-        {/* Center: Navigation row (visible when a screen is active) */}
-        <div className="flex-1 flex items-center justify-center">
+          {/* Screen nav (during dashboard) */}
           {currentScreen && (
             <div className="flex items-center gap-3">
-              {/* Prev arrow */}
               <button
                 onClick={goToPrev}
                 disabled={currentIdx === 0}
@@ -568,9 +660,7 @@ export function DrivingView() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-
-              {/* Nav labels */}
-              {NAV_ITEMS.map((item, i) => (
+              {NAV_ITEMS.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setCurrentScreen(item.id)}
@@ -584,8 +674,6 @@ export function DrivingView() {
                   {item.label}
                 </button>
               ))}
-
-              {/* Next arrow */}
               <button
                 onClick={goToNext}
                 disabled={currentIdx === screenOrder.length - 1}
@@ -599,7 +687,18 @@ export function DrivingView() {
           )}
         </div>
 
-        <div className="shrink-0 w-8" />
+        {/* Skip (only during slide sequence) */}
+        {isStarted && currentSlide !== null && !currentScreen && (
+          <button
+            onClick={handleSkip}
+            className="flex items-center gap-1 text-gray-500 hover:text-[#f3901d] transition-colors border border-gray-700 hover:border-[#f3901d]/50 rounded px-3 py-1.5 text-sm font-medium shrink-0"
+          >
+            <span>Skip</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* ── Main content area ── */}
@@ -620,7 +719,7 @@ export function DrivingView() {
                 <p className="text-[#f3901d] font-bold text-lg">Your Year In Review</p>
               </div>
               <button
-                onClick={() => setIsStarted(true)}
+                onClick={() => { setIsStarted(true); setCurrentSlide(0); }}
                 className="mt-8 w-48 h-48 rounded-full bg-black border-8 border-[#f3901d] flex items-center justify-center text-white text-2xl font-bold hover:bg-gray-900 transition-all active:scale-95"
               >
                 Push to start
@@ -632,47 +731,102 @@ export function DrivingView() {
         {/* Driving scene */}
         {isStarted && (
           <div className="absolute inset-0">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 750" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="drvSkyG" x1="0" y1="0" x2="0" y2="750" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stopColor="#0f2460" />
-                  <stop offset="45%"  stopColor="#1d4ed8" />
-                  <stop offset="78%"  stopColor="#38bdf8" />
-                  <stop offset="100%" stopColor="#93c5fd" />
-                </linearGradient>
-                <linearGradient id="drvGndG" x1="0" y1="425" x2="0" y2="750" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stopColor="#86efac" />
-                  <stop offset="14%"  stopColor="#16a34a" />
-                  <stop offset="58%"  stopColor="#15803d" />
-                  <stop offset="100%" stopColor="#052e16" />
-                </linearGradient>
-                <linearGradient id="drvRoadG" x1="0" y1="430" x2="0" y2="750" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stopColor="#6b7280" />
-                  <stop offset="100%" stopColor="#111827" />
-                </linearGradient>
-              </defs>
 
-              <rect x="0" y="0" width="1000" height="750" fill="url(#drvSkyG)" />
-              <path d="M 0 480 Q 500 380 1000 480 L 1000 750 L 0 750 Z" fill="url(#drvGndG)" />
-              <path d="M 0 480 Q 500 380 1000 480 L 1000 506 Q 500 406 0 506 Z" fill="#bbf7d0" opacity="0.20" />
-              <path d="M 470 430 L 165 750 L 835 750 L 530 430 Z" fill="url(#drvRoadG)" />
-              <line x1="470" y1="430" x2="165" y2="750" stroke="#d1d5db" strokeWidth="5" strokeLinecap="round" />
-              <line x1="530" y1="430" x2="835" y2="750" stroke="#d1d5db" strokeWidth="5" strokeLinecap="round" />
-              <line x1="500" y1="430" x2="500" y2="750" stroke="#fbbf24" strokeWidth="5" strokeDasharray="34 26" strokeLinecap="butt">
-                <animate attributeName="stroke-dashoffset" from="0" to="60" dur="0.4s" repeatCount="indefinite" />
-              </line>
-            </svg>
+            {/* ── Sky layers — fill full content area, behind the road ── */}
+            <div className="absolute inset-0" style={{ zIndex: 0 }}>
+              {/* Night sky base */}
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  opacity: nightSkyOp,
+                  background: 'linear-gradient(180deg, #000005 0%, #020818 45%, #060d22 75%, #0a1228 100%)',
+                }}
+              />
 
-            {currentSign !== null && (
-              <SignOverhead key={currentSign} signNumber={currentSign} duration={SIGN_DURATION} />
-            )}
+              {/* Star field */}
+              <motion.div className="absolute inset-0" style={{ opacity: starOp }}>
+                {STARS.map((s, i) => (
+                  <div
+                    key={i}
+                    className="absolute rounded-full bg-white"
+                    style={{
+                      left: s.x,
+                      top: s.y,
+                      width: s.size,
+                      height: s.size,
+                      opacity: s.opacity,
+                    }}
+                  />
+                ))}
+              </motion.div>
 
-            {/* Solid backdrop — prevents driving scene bleeding during screen transitions */}
-            {currentScreen && (
+              {/* Pre-dawn purple/indigo */}
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  opacity: preDawnOp,
+                  background: 'linear-gradient(180deg, #0d0820 0%, #1e1040 35%, #32186a 65%, #4a2080 100%)',
+                }}
+              />
+
+              {/* Sunrise warm gradient — builds from horizon upward */}
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  opacity: sunriseOp,
+                  background: 'linear-gradient(180deg, #060318 0%, #120820 25%, #2a1000 55%, #8b3a00 75%, #d96800 88%, #ff9020 95%, #ffc060 100%)',
+                }}
+              />
+
+              {/* Horizon glow haze — sits right at the horizon (~70% from bottom) */}
+              <motion.div
+                className="absolute left-0 right-0"
+                style={{
+                  opacity: horizonGlowOp,
+                  bottom: '68%',
+                  height: '16%',
+                  background: 'radial-gradient(ellipse 140% 100% at 50% 100%, rgba(255,140,40,0.6) 0%, rgba(255,80,0,0.25) 60%, transparent 100%)',
+                }}
+              />
+
+              {/* Sun disc — rises from horizon into sky */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: '70px',
+                  height: '70px',
+                  left: 'calc(50% - 35px)',
+                  bottom: '68%',
+                  y: sunYPx,
+                  opacity: sunOpacity,
+                  background: 'radial-gradient(circle, #fff8e0 0%, #ffd060 35%, #ffaa20 65%, #ff7000 100%)',
+                  boxShadow: '0 0 40px 16px rgba(255,160,40,0.55), 0 0 80px 32px rgba(255,120,0,0.25)',
+                }}
+              />
+            </div>
+
+            {/* ── Road Lottie — full content area, transparent sky lets gradient show through ──
+                xMidYMax slice: fills full width on all screen sizes, aligns road to bottom.
+                On portrait mobile: horizon at ~29% from top.
+                On landscape desktop: horizon at ~24% from top (canvas crops from top). ── */}
+            <div className="absolute inset-0" style={{ zIndex: 1 }}>
+              <Lottie
+                animationData={carOnTrackData}
+                loop
+                autoplay
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+                rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+              />
+            </div>
+
+            {/* ── Car dashboard HUD: always visible during driving ── */}
+            <DashboardHUD centered={dashCentered} currentSlide={currentSlide} />
+
+            {/* Solid backdrop — only for hood/diagnostics (not journey, which uses the live dash) */}
+            {currentScreen && currentScreen !== 'journey' && (
               <div className="absolute inset-0 bg-gray-950" style={{ zIndex: 39 }} />
             )}
 
-            {currentScreen === 'journey' && <DashboardGauge />}
             {currentScreen === 'hood' && <UnderTheHood key="hood" />}
             {currentScreen === 'diagnostics' && <FullDiagnostics />}
           </div>
