@@ -1,3 +1,62 @@
+/* Landing screen — title over road, push to start in dashboard body */
+.landing-hero {
+  position: absolute;
+  top: clamp(8%, 12vh, 18%);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.2vh, 12px);
+  pointer-events: none;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.landing-hero__title {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 700;
+  line-height: 1.05;
+  color: #ffffff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.75);
+}
+
+.landing-hero__subtitle {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(16px, 3.2vw, 28px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: #f3901d;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.65);
+}
+
+.landing-push-start {
+  width: clamp(140px, 28vw, 192px);
+  height: clamp(140px, 28vw, 192px);
+  border-radius: 50%;
+  border: 8px solid #f3901d;
+  background: #000;
+  color: #fff;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.landing-push-start:hover {
+  background: #111;
+}
+
+.landing-push-start:active {
+  transform: scale(0.96);
+}
+
 /* Dashboard map simulation + GPS popup */
 
 .dashboard-map-bg {
@@ -18,7 +77,9 @@
 }
 
 .dashboard-hood-bg--trendlens,
-.dashboard-hood-bg--demandindex {
+.dashboard-hood-bg--demandindex,
+.dashboard-hood-bg--factbook,
+.dashboard-hood-bg--academy {
   background: #000;
 }
 
@@ -28,14 +89,32 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  will-change: transform;
 }
 
 .dashboard-hood-arch__tire-hub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: auto;
+  overflow: hidden;
+}
+
+/* Bottom-anchored dashboard shell — no top offset (avoids arch/content overlap on wide screens) */
+.dashboard-panel {
+  position: absolute;
+  top: auto;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: clamp(300px, calc(58vh - 72px), 520px);
+  z-index: 20;
 }
 
 .dashboard-panel--hood {
-  overflow: hidden;
+  overflow-x: visible;
+  overflow-y: hidden;
 }
 
 .dashboard-hood-arch {
@@ -106,7 +185,7 @@
 .hood-dipsticks-row {
   position: relative;
   width: 300px;
-  height: 280px;
+  height: 300px;
   flex: 0 0 auto;
   pointer-events: none;
   overflow: visible;
@@ -123,14 +202,19 @@
   height: 100%;
 }
 
-.hood-dipstick-img {
+.hood-dipstick-rise {
   position: absolute;
-  top: 92%;
+  top: 88%;
+  will-change: top;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+
+.hood-dipstick-rise__img {
+  display: block;
+  width: 100%;
   height: auto;
   object-fit: contain;
   object-position: center bottom;
-  will-change: top;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
 }
 
 .hood-dipstick-img--aces {
@@ -411,13 +495,9 @@
   right: auto;
 }
 
-/* Journey nav: shared PRNDL + back + popup (PRNDL uses inline styles from JourneyPrndlColumn) */
-.journey-nav-section {
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
+/* Journey nav map row (inside journey-layout--nav) */
+.journey-layout--nav {
+  padding-bottom: 4px;
 }
 
 .journey-nav-map-cluster {
@@ -431,23 +511,40 @@
   overflow: visible;
 }
 
-/* Back chevron | popup | forward chevron — 15px gaps */
+/* Back chevron | popup | forward chevron — equal column gaps */
 .journey-nav-popup-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
-  gap: 15px;
-  min-width: 0;
+  column-gap: clamp(16px, 3vw, 24px);
+  width: 100%;
   max-width: 100%;
+  min-width: 0;
+}
+
+.journey-nav-popup-row > .journey-nav-chevron--left {
+  grid-column: 1;
+  justify-self: end;
+}
+
+/* Flatten wrapper so popup + right chevron share the row grid */
+.journey-nav-popup-row > .gps-popup-stage-wrapper {
+  display: contents;
+}
+
+.gps-popup-stage-wrapper > .gps-popup-stage {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+}
+
+.gps-popup-stage-wrapper > .journey-nav-chevron--right {
+  grid-column: 3;
+  justify-self: start;
 }
 
 .gps-popup-stage-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
   min-width: 0;
-  flex: 0 1 auto;
 }
 
 .journey-nav-chevron {
@@ -471,8 +568,358 @@
   flex-shrink: 0;
 }
 
+/* Intro driving slides — text + next arrow */
+.intro-slide__motion {
+  height: 100%;
+  min-height: 0;
+}
+
+.intro-slide__row {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(12px, 2.5vw, 20px);
+  height: 100%;
+  min-height: 0;
+}
+
+.intro-slide__text-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding-left: 20px;
+  box-sizing: border-box;
+}
+
+.intro-slide__text {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(26px, 3vw, 30px);
+  line-height: 1.25;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  white-space: pre-line;
+}
+
+.intro-slide__next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  gap: clamp(6px, 1.2vw, 8px);
+  align-self: flex-start;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.intro-slide__next-btn {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.intro-slide__next-btn svg {
+  display: block;
+  width: clamp(52px, 8.5vw, 96px);
+  height: clamp(52px, 8.5vw, 96px);
+}
+
+.intro-slide__next-label {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .intro-slide__text-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-right: 0;
+    max-height: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .intro-slide__text-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .intro-slide__text {
+    font-size: clamp(22px, 5.5vw, 28px);
+  }
+
+  .intro-slide__next-btn svg {
+    width: clamp(44px, 11vw, 64px);
+    height: clamp(44px, 11vw, 64px);
+  }
+}
+
 .dashboard-body--journey {
   overflow: hidden !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-body--journey > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Counter slides: sit above arch fill, centered in the black dashboard window */
+.dashboard-body--journey-counter {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: clamp(16px, 5vh, 56px);
+  padding-bottom: clamp(4px, 1vh, 12px);
+}
+
+.dashboard-body--journey-nav {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Your Journey — PRNDL column + main (subtitle + gauge or map) */
+.journey-layout {
+  display: grid;
+  grid-template-columns: minmax(28px, auto) minmax(0, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.journey-layout--counter {
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.journey-layout--counter .journey-layout__prndl {
+  align-self: center;
+  padding-top: 0;
+}
+
+.journey-layout__prndl {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  padding-top: clamp(4px, 1vh, 10px);
+  z-index: 1;
+}
+
+.journey-layout__prndl-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.journey-layout__main {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(10px, 1.5vh, 16px);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Counter: subtitle + gauge move together as one block */
+.journey-layout__main--counter {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  overflow: visible;
+}
+
+.journey-layout__counter-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 0.6vh, 8px);
+  width: 100%;
+  flex: 0 1 auto;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.journey-layout__counter-cluster .journey-layout__subtitle {
+  min-height: 0;
+  max-height: none;
+  padding: 0 clamp(8px, 2vw, 16px);
+  overflow: visible;
+}
+
+.journey-layout__counter-cluster .journey-layout__gauge-row {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.journey-layout__subtitle {
+  grid-row: 1;
+  position: relative;
+  margin: 0;
+  padding: 0 clamp(8px, 2vw, 16px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: clamp(44px, 7vh, 64px);
+  max-height: clamp(72px, 14vh, 96px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.journey-layout__subtitle .journey-layout__subtitle-text {
+  flex: 0 0 auto;
+}
+
+.journey-layout__subtitle-text {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(18px, 3vw, 25px);
+  font-weight: bold;
+  line-height: 1.25;
+  text-align: center;
+  width: 100%;
+  max-width: min(100%, 560px);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+}
+
+.journey-layout__counter-cluster .journey-layout__subtitle-text {
+  font-size: clamp(18px, 2.2vw, 24px);
+}
+
+.journey-layout__gauge-row {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(52px, 1fr) auto minmax(52px, 1fr);
+  align-items: center;
+  justify-items: center;
+  column-gap: clamp(16px, 3vw, 24px);
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.journey-layout__gauge-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: clamp(44px, 8vw, 56px);
+}
+
+.journey-layout__gauge-slot--left {
+  grid-column: 1;
+  justify-self: end;
+}
+
+.journey-layout__gauge-slot--center {
+  grid-column: 2;
+  justify-self: center;
+  max-height: 100%;
+}
+
+.journey-layout__gauge-slot--center > * {
+  max-height: min(100%, 220px);
+  max-width: min(100%, 220px);
+}
+
+.journey-layout__gauge-slot--right {
+  grid-column: 3;
+  justify-self: start;
+}
+
+.journey-layout__chev-placeholder {
+  display: block;
+  width: clamp(40px, 8vw, 56px);
+  height: clamp(40px, 8vw, 56px);
+  flex-shrink: 0;
+}
+
+.journey-gauge-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 8px;
+  margin: 0;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.journey-gauge-chevron:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.journey-gauge-chevron__icon {
+  width: clamp(22px, 4vw, 36px);
+  height: clamp(22px, 4vw, 36px);
+  display: block;
+}
+
+.journey-layout__nav-stage {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.journey-layout--nav .journey-nav-map-cluster {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .dashboard-body--journey-counter {
+    padding-top: clamp(28px, 7vh, 80px);
+  }
+
+  .journey-layout--counter {
+    align-items: center;
+  }
 }
 
 .gps-popup-stage {
@@ -548,8 +995,7 @@
   border-radius: 41px;
 }
 
-.gps-event-popup__row-icon,
-.gps-popup-sheet__row {
+.gps-event-popup__row-icon {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -557,8 +1003,7 @@
   min-width: 0;
 }
 
-.gps-event-popup__row-icon svg,
-.gps-popup-sheet__row svg {
+.gps-event-popup__row-icon svg {
   flex-shrink: 0;
 }
 
@@ -587,11 +1032,11 @@
   margin: 0 auto;
 }
 
-/* Tire hub — full circle in frame, arch base, roll transition */
+/* Tire hub — full-width roll lane, arch base */
 .hood-tire-hub {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hood-tire-hub__black {
@@ -609,6 +1054,7 @@
   height: 42%;
   z-index: 1;
   pointer-events: none;
+  will-change: transform;
 }
 
 .hood-tire-hub__arch {
@@ -617,82 +1063,178 @@
   height: 100%;
 }
 
-.hood-tire-hub__stage {
-  position: absolute;
-  left: 50%;
+/* Full viewport width so wheels roll in/out of the screen, not a clipped box */
+.hood-tire-hub__lane {
+  position: fixed;
+  left: 0;
+  width: 100vw;
   top: 54%;
-  transform: translate(-50%, -50%);
-  width: min(82vw, 380px);
   height: min(82vw, 380px);
-  z-index: 2;
-  overflow: hidden;
+  transform: translateY(-50%);
+  z-index: 21;
+  overflow: visible;
   pointer-events: none;
 }
 
 .hood-tire-hub__wheel-track {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  will-change: transform;
+}
+
+.hood-tire-hub__wheel-track--incoming {
+  z-index: 2;
+}
+
+.hood-tire-hub__wheel-track--outgoing,
+.hood-tire-hub__wheel-track--active {
+  z-index: 1;
 }
 
 .hood-tire-wheel {
+  position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 38%, #4a4a4a 0%, #222 52%, #101010 100%);
-  border: clamp(10px, 2vw, 14px) solid #5a5a5a;
-  box-shadow:
-    0 0 0 3px #333,
-    0 12px 32px rgba(0, 0, 0, 0.55),
-    inset 0 2px 12px rgba(255, 255, 255, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.55));
 }
 
-.hood-tire-wheel__rim {
-  width: 72%;
-  height: 72%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #050505 100%);
-  border: 2px solid #444;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+.hood-tire-wheel__asset {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.hood-tire-wheel__badge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .hood-tire-wheel__logo {
-  width: 88%;
-  height: 88%;
+  width: 42%;
+  height: 42%;
   object-fit: contain;
 }
 
 .hood-tire-wheel__label {
   font-family: 'Istok Web', sans-serif;
-  font-size: clamp(14px, 3.2vw, 22px);
+  font-size: clamp(11px, 2.4vw, 17px);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #f3901d;
   text-align: center;
   line-height: 1.15;
-  padding: 0 8px;
+  padding: 0 6px;
+  max-width: 38%;
   text-shadow: 0 0 12px rgba(243, 144, 29, 0.45);
 }
 
-.hood-tire-hub__readout {
+.hood-tire-hub__readout-row {
   position: fixed;
   left: 50%;
   top: clamp(108px, 22vh, 32%);
   transform: translateX(-50%);
-  z-index: 25;
-  width: min(92%, 520px);
+  z-index: 22;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(12px, 2.5vw, 28px);
+  width: min(96vw, 820px);
+  max-width: 820px;
+  pointer-events: none;
+}
+
+.hood-tire-hub__readout {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: min(100%, 480px);
   display: flex;
   justify-content: center;
   pointer-events: none;
+}
+
+.hood-tire-pressure-gauge {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(100px, 16vw, 168px);
+  aspect-ratio: 481 / 391;
+  margin-top: clamp(4px, 0.8vh, 10px);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
+}
+
+.hood-tire-pressure-gauge__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+  /* Asset is black line art — invert to white on the dark hood scene */
+  filter: brightness(0) invert(1);
+}
+
+/* Check overlay — aligned to the four underline slots beside the dial (481×391 asset) */
+.hood-tire-pressure-gauge__checks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hood-tire-pressure-gauge__slot {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  height: 0;
+}
+
+/* top-left → top-right → bottom-left → bottom-right */
+.hood-tire-pressure-gauge__slot--0 {
+  top: 40%;
+  left: 52%;
+  width: 16%;
+}
+
+.hood-tire-pressure-gauge__slot--1 {
+  top: 40%;
+  left: 71%;
+  width: 16%;
+}
+
+.hood-tire-pressure-gauge__slot--2 {
+  top: 58%;
+  left: 52%;
+  width: 16%;
+}
+
+.hood-tire-pressure-gauge__slot--3 {
+  top: 58%;
+  left: 71%;
+  width: 16%;
+}
+
+.hood-tire-pressure-gauge__check {
+  font-family: 'Share Tech Mono', 'Consolas', monospace;
+  font-size: clamp(10px, 1.45vw, 14px);
+  font-weight: 700;
+  line-height: 1;
+  color: #39ff14;
+  text-shadow:
+    0 0 6px rgba(57, 255, 20, 0.95),
+    0 0 12px rgba(57, 255, 20, 0.45);
 }
 
 .hood-tire-hub__screen {
@@ -789,16 +1331,38 @@
 }
 
 @media (max-width: 768px) {
-  .hood-tire-hub__stage {
-    width: min(88vw, 300px);
+  .hood-tire-hub__lane {
     height: min(88vw, 300px);
     top: 56%;
   }
 
-  .hood-tire-hub__readout {
+  .hood-tire-hub__readout-row {
     top: clamp(96px, 18vh, 28%);
-    width: 92%;
-    max-width: 360px;
+    width: 94%;
+    max-width: 400px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hood-tire-pressure-gauge {
+    width: clamp(88px, 28vw, 130px);
+    margin-top: 0;
+  }
+
+  .hood-tire-pressure-gauge__slot--0,
+  .hood-tire-pressure-gauge__slot--2 {
+    left: 51%;
+    width: 17%;
+  }
+
+  .hood-tire-pressure-gauge__slot--1,
+  .hood-tire-pressure-gauge__slot--3 {
+    left: 70%;
+    width: 17%;
+  }
+
+  .hood-tire-pressure-gauge__check {
+    font-size: clamp(9px, 2.8vw, 13px);
   }
 
   .hood-tire-hub__screen-glass {
@@ -811,15 +1375,305 @@
   }
 }
 
-/* Black windshield area when tire hub scenes are active */
-.hood-trendlens-viewport-black {
+/* Full Diagnostics — gauges top, map arch below, ACES/PIES top-right */
+.full-diagnostics {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 8px;
+  padding-bottom: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.full-diagnostics__header {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 8px 16px 4px;
+}
+
+.full-diagnostics__title {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  color: #f3901d;
+}
+
+.full-diagnostics__subtitle {
+  margin: 4px 0 0;
+  font-size: clamp(11px, 2vw, 13px);
+  color: #9ca3af;
+}
+
+.full-diagnostics__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(8px, 2vw, 20px);
+  padding: 4px clamp(10px, 2.5vw, 20px) 8px;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.full-diagnostics__gauges-cluster {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 1.5vw, 16px);
+  flex-shrink: 0;
+}
+
+.full-diagnostics__gauges {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(6px, 1.5vw, 16px);
+  flex-shrink: 0;
+}
+
+.full-diagnostics__gauge {
+  flex-shrink: 0;
+}
+
+/* Completed Kick the Tires gauge — beside member count (desktop + mobile) */
+.full-diagnostics__tire-check {
+  display: block;
+  flex-shrink: 0;
+  width: clamp(72px, 10vw, 120px);
+  align-self: flex-end;
+}
+
+.full-diagnostics__tire-check-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
+}
+
+.full-diagnostics__dipsticks {
+  position: relative;
+  width: clamp(140px, 22vw, 220px);
+  height: clamp(120px, 18vh, 168px);
+  flex-shrink: 0;
+  margin-top: 4px;
+  overflow: visible;
+}
+
+.full-diagnostics__dipsticks .hood-dipstick-rise {
+  position: absolute;
+  bottom: 0;
+}
+
+.full-diagnostics__dipstick.hood-dipstick-img--aces {
+  left: 2%;
+  width: 46%;
+}
+
+.full-diagnostics__dipstick.hood-dipstick-img--pies {
+  left: 52%;
+  width: 46%;
+}
+
+.full-diagnostics__map {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-diagnostics__map-shell {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-diagnostics__map-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.full-diagnostics__map-bg .dashboard-map-arch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.full-diagnostics__map-bg .dashboard-map-arch__svg {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.full-diagnostics__map-popup-wrap {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  bottom: clamp(300px, calc(58vh - 72px), 520px);
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 clamp(10px, 2.5vw, 20px) clamp(6px, 1.2vh, 12px);
+  pointer-events: none;
+}
+
+.full-diagnostics__map-popups-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(8px, 2vw, 16px);
+  width: 100%;
+  max-width: min(100%, 720px);
+}
+
+.full-diagnostics__map-popup {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  min-height: clamp(96px, 16vh, 128px);
+  padding: clamp(10px, 2vw, 16px) clamp(12px, 2.5vw, 18px);
+  border-radius: clamp(16px, 3vw, 22px);
+  gap: clamp(6px, 1.2vw, 10px);
+}
+
+.full-diagnostics__map-popup .gps-event-popup__title {
+  font-size: clamp(22px, 4.5vw, 36px);
+}
+
+.full-diagnostics__map-popup .gps-event-popup__subtitle {
+  font-size: clamp(12px, 2.2vw, 18px);
+}
+
+.full-diagnostics__map-popup .gps-event-popup__bar-track {
+  min-width: 72px;
+  max-width: 140px;
+  height: clamp(28px, 5vw, 36px);
+}
+
+.full-diagnostics__map-popup .gps-event-popup__row-icon svg {
+  width: clamp(22px, 4vw, 28px);
+  height: clamp(22px, 4vw, 28px);
+}
+
+@media (max-width: 768px) {
+  .full-diagnostics__top {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .full-diagnostics__gauges-cluster {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: auto auto;
+    column-gap: clamp(4px, 1.5vw, 10px);
+    row-gap: 2px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .full-diagnostics__gauges {
+    display: contents;
+  }
+
+  .full-diagnostics__gauge--years {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .full-diagnostics__gauge--members {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .full-diagnostics__gauge--committee {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .full-diagnostics__tire-check {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    justify-self: end;
+    align-self: start;
+    width: clamp(88px, 26vw, 128px);
+    margin-top: -2px;
+  }
+
+  .full-diagnostics__dipsticks {
+    width: min(100%, 240px);
+    margin: 0 auto;
+  }
+
+  .full-diagnostics__map-popups-row {
+    gap: clamp(6px, 1.5vw, 10px);
+    max-width: 100%;
+  }
+
+  .full-diagnostics__map-popup {
+    min-height: clamp(80px, 12vh, 100px);
+    padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 14px);
+    border-radius: 14px;
+  }
+
+  .full-diagnostics__map-popup .gps-event-popup__title {
+    font-size: clamp(18px, 5vw, 26px);
+  }
+
+  .full-diagnostics__map-popup .gps-event-popup__subtitle {
+    font-size: clamp(10px, 2.5vw, 14px);
+  }
+
+  .full-diagnostics__map-popup .gps-event-popup__bar-track {
+    min-width: 48px;
+    max-width: 96px;
+    height: clamp(22px, 4vw, 28px);
+  }
+}
+
+/* Diagnostics handoff after Kick the Tires */
+.diagnostics-flow {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
   background: #000;
-  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.diagnostics-flow__message {
+  margin: 0;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(20px, 3.5vw, 32px);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: #39ff14;
+  text-align: center;
+  text-shadow:
+    0 0 8px rgba(57, 255, 20, 0.9),
+    0 0 20px rgba(57, 255, 20, 0.4);
+}
+
+/* Full black windshield for all Under the Hood phases */
+.hood-scene-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -842,124 +1696,6 @@
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
-.gps-popup-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 12px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  pointer-events: none;
-}
-
-.gps-popup-mobile-row {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  max-width: calc(100vw - 24px);
-  pointer-events: auto;
-}
-
-.gps-popup-overlay__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  pointer-events: auto;
-  z-index: 0;
-}
-
-.gps-popup-sheet {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 480px;
-  max-height: 80vh;
-  background: #0d0d0d;
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  padding: 20px 20px 24px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-sizing: border-box;
-}
-
-.gps-popup-sheet__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  flex-shrink: 0;
-  min-width: 0;
-}
-
-.gps-popup-sheet__header > div:first-child {
-  min-width: 0;
-  flex: 1;
-}
-
-.gps-popup-sheet__close {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  margin: -8px -8px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #fff;
-}
-
-.gps-popup-sheet__title {
-  font-family: 'Istok Web', sans-serif;
-  font-weight: 700;
-  font-size: clamp(24px, 6.5vw, 42px);
-  line-height: 1.15;
-  color: #5eb8e8;
-  margin: 0;
-  word-break: break-word;
-}
-
-.gps-popup-sheet__subtitle {
-  font-family: 'Istok Web', sans-serif;
-  font-weight: 400;
-  font-size: clamp(16px, 4.5vw, 26px);
-  line-height: 1.25;
-  color: #fff;
-  margin: 0;
-  word-break: break-word;
-}
-
-.gps-popup-sheet__bar-track {
-  width: 100%;
-  max-width: 280px;
-  height: clamp(40px, 10vw, 48px);
-  background: #3b263b;
-  border-radius: 41px;
-  overflow: hidden;
-  margin-top: 4px;
-  flex-shrink: 0;
-}
-
-.gps-popup-sheet__bar-fill {
-  height: 100%;
-  background: #007ac3;
-  border-radius: 41px;
-  transition: width 0.05s linear;
-}
-
 @media (max-width: 1023px) {
   .map-control-zoom {
     right: 6%;
@@ -971,6 +1707,40 @@
 @media (max-width: 768px) {
   .journey-nav-map-cluster {
     padding: 8px 0;
+  }
+
+  .journey-layout--nav .journey-layout__nav-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .journey-nav-popup-row {
+    width: 100%;
+    column-gap: clamp(10px, 2.5vw, 16px);
+  }
+
+  .gps-popup-stage {
+    width: min(100%, 300px);
+    height: auto;
+    min-height: 0;
+  }
+
+  .gps-event-popup {
+    width: 100%;
+    max-width: 100%;
+    min-height: 110px;
+    padding: 14px 16px;
+  }
+
+  .gps-event-popup__title {
+    font-size: clamp(26px, 7vw, 40px);
+  }
+
+  .gps-event-popup__subtitle {
+    font-size: clamp(15px, 4vw, 22px);
   }
 
   .map-control-btn {
@@ -991,15 +1761,8 @@
 }
 
 @media (max-width: 479px) {
-  .gps-popup-overlay {
-    align-items: center;
-    padding: 12px;
-  }
-
-  .gps-popup-sheet {
-    border-radius: 18px;
-    max-width: min(calc(100vw - 24px), 360px);
-    padding: 16px;
+  .gps-popup-stage {
+    width: min(100%, 260px);
   }
 
   .journey-nav-chevron-icon {
@@ -1009,7 +1772,13 @@
 
   .gps-event-popup {
     border-radius: 20px;
-    min-height: 120px;
+    min-height: 100px;
+    padding: 12px 14px;
+  }
+
+  .gps-event-popup__bar-track {
+    min-width: 90px;
+    max-width: 160px;
   }
 }
 

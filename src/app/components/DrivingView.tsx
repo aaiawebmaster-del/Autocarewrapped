@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useIsMobile } from './ui/use-mobile';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { motion, AnimatePresence, animate, useMotionValue, useTransform } from 'motion/react';
 import Lottie from 'lottie-react';
-import imgMountainRoad from '../../imports/Screen1/061eac1a3db513915e4c53f4dae9a70e92d32dbb.png';
 import carOnTrackData from '../../imports/Car_on_track.json';
-import journeyCircleData from '../../imports/Animation_-_1779761385872.json';
-import { DashboardMapArch, DashboardHoodArch, type HoodPhase } from './MapSimulation';
+import { JourneyCounterGauge } from './JourneyCounterGauge';
+import {
+  DashboardMapArch,
+  DashboardHoodArch,
+  isTirePhase,
+  type HoodPhase,
+} from './MapSimulation';
 import imgAapexLogo from '../../assets/aapex-logo.png';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
-import MyAutocareOrgEngagementMobile from '../../imports/MyAutocareOrgEngagementMobile/MyAutocareOrgEngagementMobile';
+import { FullDiagnosticsPanel } from './FullDiagnosticsPanel';
 
 const BRAND_ORANGE = '#f3901d';
 
@@ -23,17 +25,40 @@ const STARS = Array.from({ length: 90 }, (_, i) => ({
 const SLIDE_TEXTS = [
   'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
   'This report captures your role in that progress — the events you attended, the insights you gained, the voices you amplified, and the initiatives you supported.',
-  'Your engagement matters. Your impact multiplies.',
-  "Here's your year with Auto Care in motion.",
+  "Your engagement matters. Your impact multiplies.\n\nHere's your year with Auto Care in motion.",
 ];
+
+const DRIVING_SLIDE_COUNT = SLIDE_TEXTS.length;
+const SUN_RISE_BOTTOM_Y = 60;
+const SUN_RISE_TOP_Y = -220;
+const SKY_STEP_ANIMATION = { duration: 0.85, ease: [0.4, 0, 0.2, 1] as const };
+
+/** 3 slides → sky/sun progress 0, ½, 1 */
+function skyProgressForSlide(slideIndex: number) {
+  if (DRIVING_SLIDE_COUNT <= 1) return 1;
+  return slideIndex / (DRIVING_SLIDE_COUNT - 1);
+}
 
 type Screen = 'journey' | 'hood' | 'diagnostics';
 
-const NAV_ITEMS: { id: Screen; label: string }[] = [
+/** Bottom-center checkpoints (tires shares the hood screen with a different phase). */
+type NavCheckpoint = 'journey' | 'hood' | 'tires' | 'diagnostics';
+
+const NAV_ITEMS: { id: NavCheckpoint; label: string }[] = [
   { id: 'journey', label: 'Your Journey' },
   { id: 'hood', label: 'Under the Hood' },
+  { id: 'tires', label: 'Kick the Tires' },
   { id: 'diagnostics', label: 'Full Diagnostics' },
 ];
+
+function getActiveNavCheckpoint(
+  screen: Screen | null,
+  hoodPhase: HoodPhase,
+): NavCheckpoint | null {
+  if (!screen) return null;
+  if (screen === 'hood') return isTirePhase(hoodPhase) ? 'tires' : 'hood';
+  return screen;
+}
 
 // Lottie canvas: 1600×1080. Horizon (sky/tree boundary) ≈ y=486 → r=0.45.
 // With xMidYMax slice in a viewport-sized container:
@@ -292,25 +317,45 @@ function UnderTheHood({ embedded = false }: { embedded?: boolean }) {
   );
 }
 
-// ── Full Diagnostics: Figma import ────────────────────────────────────────────
+const DIAGNOSTICS_TRANSITION_MS = 2000;
+
+// ── Diagnostics handoff (after Kick the Tires) ─────────────────────────────────
+function DiagnosticsTransition() {
+  return (
+    <motion.div
+      className="diagnostics-flow diagnostics-flow--transition"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35 }}
+    >
+      <p className="diagnostics-flow__message">completing your diagnostics</p>
+    </motion.div>
+  );
+}
+
+/** Placeholder until final scene art direction is provided */
+function FinalScenePlaceholder() {
+  return (
+    <motion.div
+      className="diagnostics-flow diagnostics-flow--final"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    />
+  );
+}
+
+// ── Full Diagnostics dashboard layout ─────────────────────────────────────────
 function FullDiagnostics() {
   return (
     <motion.div
-      className="absolute inset-0 bg-black z-40 flex flex-col"
+      className="absolute inset-0 bg-black z-40 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <div className="mt-[80px] px-6 py-4 bg-gray-800/30 text-center shrink-0">
-        <h2 className="text-[#f3901d] text-2xl font-bold">Full Diagnostics</h2>
-        <p className="text-gray-400 text-sm mt-0.5">Your Complete Standards Profile</p>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center overflow-hidden">
-        <div className="relative overflow-hidden" style={{ width: '268px', height: '568px' }}>
-          <MyAutocareOrgEngagementMobile />
-        </div>
-      </div>
+      <FullDiagnosticsPanel />
     </motion.div>
   );
 }
@@ -326,12 +371,24 @@ const NAV_TOP = '20px';
 // Text area: nav top (20px) + nav height (arrow size) + 45px gap (25px original + 20px extra)
 const TEXT_TOP = 'calc(20px + clamp(28px, 3.5vw, 36px) + 45px)';
 type JourneySection =
-  | { type: 'counter'; subtitle: string; target: number; label: string }
+  | {
+      type: 'counter';
+      subtitle: string;
+      target: number;
+      label: string;
+      labelLines?: string[];
+    }
   | { type: 'nav'; subtitle: string };
 
 const JOURNEY_SECTIONS: JourneySection[] = [
   { type: 'counter', subtitle: "you've been a member for:", target: 46, label: 'years' },
   { type: 'counter', subtitle: 'you have 937 active contacts.', target: 937, label: 'contacts' },
+  {
+    type: 'counter',
+    subtitle: 'you have 1 contact in a leadership committee.',
+    target: 1,
+    label: 'Active Contacts',
+  },
   { type: 'nav', subtitle: 'events you attended this year:' },
 ];
 
@@ -374,137 +431,54 @@ type GpsPopupProps = {
   dotCount: number;
   evtPct: number;
   barW: number;
-  variant: 'inframe' | 'sheet';
-  onDismiss?: () => void;
 };
 
-function GpsPopupClose({ onDismiss }: { onDismiss?: () => void }) {
-  if (!onDismiss) return null;
-  return (
-    <button type="button" className="gps-popup-sheet__close" onClick={onDismiss} aria-label="Minimize info panel">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-        <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
-    </button>
-  );
-}
-
-function GpsPopupContent({ phase, dotCount, evtPct, barW, variant, onDismiss }: GpsPopupProps) {
-  const isSheet = variant === 'sheet';
-  const titleClass = isSheet ? 'gps-popup-sheet__title' : 'gps-event-popup__title';
-  const subtitleClass = isSheet ? 'gps-popup-sheet__subtitle' : 'gps-event-popup__subtitle';
+function GpsPopupContent({ phase, dotCount, evtPct, barW }: GpsPopupProps) {
+  const popupMotion = {
+    initial: { opacity: 0, scale: 0.92, y: 8 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const },
+  };
 
   if (phase === 1) {
     const title = `calculating${'.'.repeat(dotCount)}`;
-    if (isSheet) {
-      return (
-        <div className="gps-popup-sheet__header">
-          <div>
-            <p className={titleClass}>{title}</p>
-            <p className={subtitleClass}>event attendance</p>
-          </div>
-          <GpsPopupClose onDismiss={onDismiss} />
-        </div>
-      );
-    }
     return (
-      <motion.div
-        className="gps-event-popup"
-        initial={{ opacity: 0, scale: 0.92, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-      >
-        <p className={titleClass}>{title}</p>
-        <p className={subtitleClass}>event attendance</p>
+      <motion.div className="gps-event-popup" {...popupMotion}>
+        <p className="gps-event-popup__title">{title}</p>
+        <p className="gps-event-popup__subtitle">event attendance</p>
       </motion.div>
     );
   }
 
   if (phase === 2) {
-    if (isSheet) {
-      return (
-        <>
-          <div className="gps-popup-sheet__header">
-            <div>
-              <p className={titleClass}>{evtPct}%</p>
-              <p className={subtitleClass}>event attendance</p>
-            </div>
-            <GpsPopupClose onDismiss={onDismiss} />
-          </div>
-          <div className="gps-popup-sheet__bar-track">
-            <div className="gps-popup-sheet__bar-fill" style={{ width: `${(barW / BAR_FILL_MAX) * 100}%` }} />
-          </div>
-        </>
-      );
-    }
     return (
-      <motion.div
-        className="gps-event-popup"
-        initial={{ opacity: 0, scale: 0.92, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-      >
+      <motion.div className="gps-event-popup" {...popupMotion}>
         <div className="gps-event-popup__headline">
-          <p className={titleClass}>{evtPct}%</p>
+          <p className="gps-event-popup__title">{evtPct}%</p>
           <div className="gps-event-popup__bar-track">
             <div className="gps-event-popup__bar-fill" style={{ width: `${(barW / BAR_FILL_MAX) * 100}%` }} />
           </div>
         </div>
-        <p className={subtitleClass}>event attendance</p>
+        <p className="gps-event-popup__subtitle">event attendance</p>
       </motion.div>
     );
   }
 
   if (phase === 3) {
-    if (isSheet) {
-      return (
-        <div className="gps-popup-sheet__header">
-          <div>
-            <div className="gps-popup-sheet__row">
-              <WebinarTurnIcon size={32} />
-              <p className={titleClass} style={{ margin: 0 }}>54 Hours</p>
-            </div>
-            <p className={subtitleClass}>of webinars attended</p>
-          </div>
-          <GpsPopupClose onDismiss={onDismiss} />
-        </div>
-      );
-    }
     return (
-      <motion.div
-        className="gps-event-popup"
-        initial={{ opacity: 0, scale: 0.92, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-      >
+      <motion.div className="gps-event-popup" {...popupMotion}>
         <div className="gps-event-popup__row-icon">
           <WebinarTurnIcon size={36} />
-          <p className={titleClass} style={{ margin: 0 }}>54 Hours</p>
+          <p className="gps-event-popup__title" style={{ margin: 0 }}>54 Hours</p>
         </div>
-        <p className={subtitleClass}>of webinars attended</p>
+        <p className="gps-event-popup__subtitle">of webinars attended</p>
       </motion.div>
     );
   }
 
   if (phase === 4) {
-    if (isSheet) {
-      return (
-        <div className="gps-popup-sheet__header gps-arrived-popup">
-          <div>
-            <p className="gps-arrived-popup__title">YOU ARRIVED</p>
-            <img src={imgAapexLogo} alt="aapex — ready for every shift" className="gps-arrived-popup__logo" />
-          </div>
-          <GpsPopupClose onDismiss={onDismiss} />
-        </div>
-      );
-    }
     return (
-      <motion.div
-        className="gps-event-popup gps-arrived-popup"
-        initial={{ opacity: 0, scale: 0.92, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-      >
+      <motion.div className="gps-event-popup gps-arrived-popup" {...popupMotion}>
         <p className="gps-arrived-popup__title">YOU ARRIVED</p>
         <img src={imgAapexLogo} alt="aapex — ready for every shift" className="gps-arrived-popup__logo" />
       </motion.div>
@@ -512,51 +486,6 @@ function GpsPopupContent({ phase, dotCount, evtPct, barW, variant, onDismiss }: 
   }
 
   return null;
-}
-
-function GpsMobilePopupOverlay(
-  props: GpsPopupProps & {
-    minimized: boolean;
-    onDismiss: () => void;
-    onAdvance?: () => void;
-    canAdvance?: boolean;
-    advanceLabel?: string;
-  },
-) {
-  const { phase, minimized, onDismiss, onAdvance, canAdvance, advanceLabel, ...contentProps } = props;
-  if (phase < 1 || minimized) return null;
-
-  return createPortal(
-    <AnimatePresence>
-      <motion.div
-        key={`gps-popup-${phase}`}
-        className="gps-popup-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-      >
-        <button type="button" className="gps-popup-overlay__backdrop" onClick={onDismiss} aria-label="Dismiss overlay" />
-        <div className="gps-popup-mobile-row">
-          <motion.div
-            className="gps-popup-sheet"
-            role="dialog"
-            aria-live="polite"
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 24, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <GpsPopupContent {...contentProps} phase={phase} variant="sheet" onDismiss={onDismiss} />
-          </motion.div>
-          {canAdvance && onAdvance && (
-            <JourneyNavChevron direction="right" onClick={onAdvance} label={advanceLabel ?? 'Continue'} />
-          )}
-        </div>
-      </motion.div>
-    </AnimatePresence>,
-    document.body,
-  );
 }
 
 function gpsAdvanceLabel(phase: number): string {
@@ -572,7 +501,6 @@ function GpsNavSection({ onGoToHood }: { onGoToHood: () => void }) {
   const [barW, setBarW] = useState(0);
   const [webinarsReady, setWebinarsReady] = useState(false);
   const [popupMinimized, setPopupMinimized] = useState(false);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (phase !== 1) return;
@@ -618,20 +546,23 @@ function GpsNavSection({ onGoToHood }: { onGoToHood: () => void }) {
   const handleAdvance = () => {
     if (phase === 2) setPhase(3);
     else if (phase === 3) setPhase(4);
-    else if (phase === 4) onGoToHood();
+    else if (phase === 4) {
+      setPopupMinimized(true);
+      onGoToHood();
+    }
   };
 
   const canAdvance = phase === 2 || (phase === 3 && webinarsReady) || phase === 4;
   const advanceLabel = gpsAdvanceLabel(phase);
   const evtPct = Math.round((barW / BAR_FILL_MAX) * 73);
-  const popupProps: GpsPopupProps = { phase, dotCount, evtPct, barW, variant: 'inframe' };
-  const showDesktopPopup = !isMobile && phase >= 1 && !popupMinimized;
+  const popupProps: GpsPopupProps = { phase, dotCount, evtPct, barW };
+  const showPopup = phase >= 1 && !popupMinimized;
 
   return (
     <div className="gps-popup-stage-wrapper">
       <div className="gps-popup-stage">
         <AnimatePresence mode="wait">
-          {showDesktopPopup && (
+          {showPopup && (
             <motion.div
               key={phase}
               className="gps-popup-stage__content"
@@ -646,19 +577,8 @@ function GpsNavSection({ onGoToHood }: { onGoToHood: () => void }) {
         </AnimatePresence>
       </div>
 
-      {!isMobile && canAdvance && (
+      {canAdvance && (
         <JourneyNavChevron direction="right" onClick={handleAdvance} label={advanceLabel} />
-      )}
-
-      {isMobile && (
-        <GpsMobilePopupOverlay
-          {...popupProps}
-          minimized={popupMinimized}
-          onDismiss={() => setPopupMinimized(true)}
-          onAdvance={handleAdvance}
-          canAdvance={canAdvance}
-          advanceLabel={advanceLabel}
-        />
       )}
     </div>
   );
@@ -683,10 +603,68 @@ function WebinarTurnIcon({ size = 36 }: { size?: number }) {
   );
 }
 
+function JourneySectionSubtitle({
+  sectionIdx,
+  subtitle,
+}: {
+  sectionIdx: number;
+  subtitle: string;
+}) {
+  return (
+    <header className="journey-layout__subtitle">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.p
+          key={sectionIdx}
+          className="journey-layout__subtitle-text"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          {subtitle}
+        </motion.p>
+      </AnimatePresence>
+    </header>
+  );
+}
+
+function JourneyGaugeChevron({
+  direction,
+  onClick,
+  disabled = false,
+}: {
+  direction: 'left' | 'right';
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={`journey-gauge-chevron journey-gauge-chevron--${direction}`}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={direction === 'left' ? 'Previous section' : 'Next section'}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#F3901D"
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="journey-gauge-chevron__icon"
+        aria-hidden
+      >
+        <path d={direction === 'left' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
+      </svg>
+    </button>
+  );
+}
+
 /** Shared PRNDL column — same layout on counter and map screens */
 function JourneyPrndlColumn() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+    <div className="journey-layout__prndl-inner">
       {['P', 'R', 'N', 'D', 'L'].map((letter) => (
         <span
           key={letter}
@@ -717,123 +695,75 @@ function YourJourney({
   useEffect(() => {
     onSectionChange?.(sectionIdx);
   }, [sectionIdx, onSectionChange]);
-  const [count, setCount] = useState(0);
-
   const section = JOURNEY_SECTIONS[sectionIdx];
   const isFirst = sectionIdx === 0;
 
-  useEffect(() => {
-    if (section.type !== 'counter') return;
-    setCount(0);
-    let frame: number;
-    const start = performance.now();
-    const duration = 2200;
-    const target = section.target;
-    const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
-      setCount(Math.round((1 - Math.pow(1 - progress, 3)) * target));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [sectionIdx]);
-
-  const circleSize = 'clamp(140px, 22vw, 220px)';
-  const chevW = 'clamp(24px, 4vw, 40px)';
-
-  const ChevLeft = () => (
-    <button onClick={() => setSectionIdx(i => i - 1)}
-      style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer', flexShrink: 0 }}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="#F3901D" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
-        style={{ width: chevW, height: chevW }}>
-        <path d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
-  );
-
-  const ChevRight = () => (
-    <button onClick={() => setSectionIdx(i => i + 1)}
-      style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer', flexShrink: 0 }}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="#F3901D" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
-        style={{ width: chevW, height: chevW }}>
-        <path d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
-  );
-
-  const Spacer = () => <div style={{ width: `calc(${chevW} + 16px)`, flexShrink: 0 }} />;
-
-  // Nav section: PRNDL (same as counter slides) + back chevron + map popup
+  // Nav section: PRNDL + subtitle + map popup row
   if (section.type === 'nav') {
     return (
       <motion.div
-        className="flex h-full journey-nav-section"
-        style={{ gap: '20px', paddingTop: '4px' }}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+        className="journey-layout journey-layout--nav"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
-        <JourneyPrndlColumn />
-
-        <div className="journey-nav-map-cluster">
-          <div className="journey-nav-popup-row">
-            <JourneyNavChevron
-              direction="left"
-              onClick={() => setSectionIdx(i => i - 1)}
-              label="Previous journey section"
-            />
-            <GpsNavSection key={sectionIdx} onGoToHood={onGoToHood} />
+        <aside className="journey-layout__prndl">
+          <JourneyPrndlColumn />
+        </aside>
+        <main className="journey-layout__main">
+          <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
+          <div className="journey-layout__nav-stage">
+            <div className="journey-nav-popup-row">
+              <JourneyNavChevron
+                direction="left"
+                onClick={() => setSectionIdx((i) => i - 1)}
+                label="Previous journey section"
+              />
+              <GpsNavSection key={sectionIdx} onGoToHood={onGoToHood} />
+            </div>
           </div>
-        </div>
+        </main>
       </motion.div>
     );
   }
 
-  // Counter section: PRNDL inline + title/subtitle + circle with chevrons
+  // Counter section: PRNDL + subtitle + gauge with chevrons
   return (
     <motion.div
-      className="flex h-full"
-      style={{ gap: '20px', paddingTop: '4px' }}
+      className="journey-layout journey-layout--counter"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <JourneyPrndlColumn />
-
-      {/* Content: title row + circle */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Title row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <p style={{ color: '#F3901D', fontSize: '25px', fontWeight: 'bold', margin: 0 }}>Your Journey</p>
-          <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '25px', fontWeight: '300', lineHeight: 1 }}>|</span>
-          <AnimatePresence mode="wait">
-            <motion.p key={sectionIdx} style={{ color: '#ffffff', fontSize: '25px', fontWeight: 'bold', margin: 0 }}
-              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.25 }}>
-              {section.subtitle}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-
-        {/* Counter with chevrons */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
-          {isFirst ? <Spacer /> : <ChevLeft />}
-          <div key={sectionIdx} style={{ position: 'relative', width: circleSize, height: circleSize }}>
-            <Lottie animationData={journeyCircleData} loop autoplay style={{ width: '100%', height: '100%' }} />
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
-              <AnimatePresence mode="wait">
-                <motion.span key={sectionIdx}
-                  style={{ color: '#ffffff', fontSize: 'clamp(40px, 7vw, 80px)', fontWeight: 'normal', lineHeight: 1 }}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                  {count}
-                </motion.span>
-              </AnimatePresence>
-              <span style={{ color: '#ffffff', fontSize: 'clamp(14px, 2vw, 22px)', fontWeight: 'normal' }}>
-                {section.label}
-              </span>
+      <aside className="journey-layout__prndl">
+        <JourneyPrndlColumn />
+      </aside>
+      <main className="journey-layout__main journey-layout__main--counter">
+        <div className="journey-layout__counter-cluster">
+          <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
+          <div className="journey-layout__gauge-row">
+            <div className="journey-layout__gauge-slot journey-layout__gauge-slot--left">
+              {isFirst ? (
+                <span className="journey-layout__chev-placeholder" aria-hidden />
+              ) : (
+                <JourneyGaugeChevron direction="left" onClick={() => setSectionIdx((i) => i - 1)} />
+              )}
+            </div>
+            <div className="journey-layout__gauge-slot journey-layout__gauge-slot--center">
+              <JourneyCounterGauge
+                key={sectionIdx}
+                target={section.target}
+                label={section.label}
+                labelLines={section.labelLines}
+                animationKey={sectionIdx}
+              />
+            </div>
+            <div className="journey-layout__gauge-slot journey-layout__gauge-slot--right">
+              <JourneyGaugeChevron direction="right" onClick={() => setSectionIdx((i) => i + 1)} />
             </div>
           </div>
-          <ChevRight />
         </div>
-      </div>
+      </main>
     </motion.div>
   );
 }
@@ -845,61 +775,69 @@ function DashboardPanel({
   onNext,
   isJourney = false,
   isHood = false,
+  isLanding = false,
+  landingCenter,
   hoodPhase = 'standards',
+  hoodSession = 0,
   onHoodPhaseChange,
   onGoToHood,
+  onFinishTireSequence,
 }: {
   currentSlide: number | null;
   onBack: () => void;
   onNext: () => void;
   isJourney?: boolean;
   isHood?: boolean;
+  isLanding?: boolean;
+  landingCenter?: ReactNode;
   hoodPhase?: HoodPhase;
-  onHoodPhaseChange?: (phase: HoodPhase) => void;
+  hoodSession?: number;
+  onHoodPhaseChange: (phase: HoodPhase) => void;
   onGoToHood: () => void;
+  onFinishTireSequence?: () => void;
 }) {
-  const isFirstSlide = currentSlide === 0;
+  const isFirstSlide = isLanding || currentSlide === 0;
   const [journeySectionIdx, setJourneySectionIdx] = useState(0);
-  const isMapScene = isJourney && JOURNEY_SECTIONS[journeySectionIdx]?.type === 'nav';
+  const journeySection = isJourney ? JOURNEY_SECTIONS[journeySectionIdx] : null;
+  const isMapScene = journeySection?.type === 'nav';
+  const isCounterScene = journeySection?.type === 'counter';
   const showDashboardChrome = !isHood;
+  const [panelEntered, setPanelEntered] = useState(false);
 
   return (
     <motion.div
-      className={
-        isHood
-          ? 'dashboard-panel--hood'
-          : isMapScene
-            ? 'dashboard-panel--map'
-            : undefined
-      }
-      style={{
-        position: 'absolute',
-        bottom: '-3px',
-        left: 0,
-        right: 0,
-        height: 'clamp(300px, calc(58vh - 72px), 520px)',
-        zIndex: 20,
-      }}
-      initial={{ y: '100%', opacity: 0 }}
+      className={[
+        'dashboard-panel',
+        isHood ? 'dashboard-panel--hood' : '',
+        isMapScene ? 'dashboard-panel--map' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      initial={isLanding || panelEntered ? { y: 0, opacity: 1 } : { y: '100%', opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: '40px', opacity: 0 }}
-      transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: isLanding ? 0 : 0.55, ease: [0.4, 0, 0.2, 1] }}
+      onAnimationComplete={() => {
+        if (!panelEntered && !isLanding) setPanelEntered(true);
+      }}
     >
       {isMapScene ? (
         <div className="dashboard-map-bg">
-          <DashboardMapArch showNavCursor />
+          <DashboardMapArch showNavCursor={false} />
         </div>
       ) : isHood ? (
         <div
           className={
-            hoodPhase === 'trendlens'
-              ? 'dashboard-hood-bg dashboard-hood-bg--trendlens'
-              : hoodPhase === 'demandindex'
-                ? 'dashboard-hood-bg dashboard-hood-bg--demandindex'
-                : 'dashboard-hood-bg'
+            hoodPhase === 'standards'
+              ? 'dashboard-hood-bg'
+              : `dashboard-hood-bg dashboard-hood-bg--${hoodPhase}`
           }
         >
-          <DashboardHoodArch onPhaseChange={onHoodPhaseChange} />
+          <DashboardHoodArch
+            key={hoodSession}
+            phase={hoodPhase}
+            onPhaseChange={onHoodPhaseChange}
+            onFinishTireSequence={onFinishTireSequence}
+          />
         </div>
       ) : (
         <svg
@@ -980,7 +918,7 @@ function DashboardPanel({
       <div
         className={
           isJourney
-            ? `dashboard-body--journey${isMapScene ? ' dashboard-body--journey-nav' : ''}`
+            ? `dashboard-body--journey${isMapScene ? ' dashboard-body--journey-nav' : ''}${isCounterScene ? ' dashboard-body--journey-counter' : ''}`
             : undefined
         }
         style={{
@@ -988,11 +926,30 @@ function DashboardPanel({
           top: TEXT_TOP,
           left: '8%',
           right: '8%',
-          bottom: '12%',
+          bottom: '14%',
           overflow: 'hidden',
         }}
       >
-        {isJourney ? (
+        {isLanding ? (
+          <div
+            className="landing-dashboard__body"
+            style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', height: '100%' }}
+          >
+            <JourneyPrndlColumn />
+            <div
+              style={{
+                flex: 1,
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 0,
+              }}
+            >
+              {landingCenter}
+            </div>
+          </div>
+        ) : isJourney ? (
           <YourJourney onSectionChange={setJourneySectionIdx} onGoToHood={onGoToHood} />
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', height: '100%' }}>
@@ -1004,29 +961,28 @@ function DashboardPanel({
                 {currentSlide !== null && (
                   <motion.div
                     key={currentSlide}
+                    className="intro-slide__motion"
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -5 }}
                     transition={{ duration: 0.35 }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
-                      <p style={{
-                        color: '#ffffff',
-                        fontSize: 'clamp(26px, 3vw, 30px)',
-                        lineHeight: 1.25,
-                        margin: 0,
-                        textShadow: '0 1px 8px rgba(0,0,0,0.8)',
-                        flex: 1,
-                      }}>
-                        {SLIDE_TEXTS[currentSlide]}
-                      </p>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, gap: '10px' }}>
-                        <button onClick={onNext} style={{ display: 'flex', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                          <svg viewBox="0 0 640 640" style={{ width: 'clamp(100px, 15vw, 200px)', height: 'clamp(100px, 15vw, 200px)' }} fill="#F3901D">
+                    <div className="intro-slide__row">
+                      <div className="intro-slide__text-scroll">
+                        <p className="intro-slide__text">{SLIDE_TEXTS[currentSlide]}</p>
+                      </div>
+                      <div className="intro-slide__next">
+                        <button
+                          type="button"
+                          className="intro-slide__next-btn"
+                          onClick={onNext}
+                          aria-label="Next slide"
+                        >
+                          <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
                             <path d={TURN_RIGHT_PATH} />
                           </svg>
                         </button>
-                        <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: 'bold', letterSpacing: '0.08em' }}>next</span>
+                        <span className="intro-slide__next-label">next</span>
                       </div>
                     </div>
                   </motion.div>
@@ -1058,12 +1014,14 @@ function DashboardPanel({
           </svg>
         </div>
 
-        <div style={{ width: '124px', height: '42px' }}>
-          <svg viewBox="0 0 125.522 42.6612" style={{ width: '100%', height: '100%' }} fill="none">
-            <path d={svgPaths.p3f6e2800} fill="#737373" />
-            <path d={svgPaths.p36592bb2} fill="#737373" />
-          </svg>
-        </div>
+        {!isLanding && (
+          <div style={{ width: '124px', height: '42px' }}>
+            <svg viewBox="0 0 125.522 42.6612" style={{ width: '100%', height: '100%' }} fill="none">
+              <path d={svgPaths.p3f6e2800} fill="#737373" />
+              <path d={svgPaths.p36592bb2} fill="#737373" />
+            </svg>
+          </div>
+        )}
       </div>
       )}
 
@@ -1076,36 +1034,45 @@ export function DrivingView() {
   const [currentSlide, setCurrentSlide] = useState<number | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
   const [hoodPhase, setHoodPhase] = useState<HoodPhase>('standards');
+  const [hoodSession, setHoodSession] = useState(0);
   const [isStarted, setIsStarted] = useState(false);
+  const [diagnosticsStage, setDiagnosticsStage] = useState<
+    'full' | 'transition' | 'final'
+  >('full');
 
-  useEffect(() => {
-    if (currentScreen !== 'hood') setHoodPhase('standards');
-  }, [currentScreen]);
-
-  const screenOrder = NAV_ITEMS.map(n => n.id);
-  const currentIdx = currentScreen ? screenOrder.indexOf(currentScreen) : -1;
+  const screenOrder = NAV_ITEMS.map((n) => n.id);
+  const activeNav = getActiveNavCheckpoint(currentScreen, hoodPhase);
+  const currentIdx = activeNav ? screenOrder.indexOf(activeNav) : -1;
 
   const skyProgress = useMotionValue(0);
 
-  const nightSkyOp = useTransform(skyProgress, [0, 0.4], [1, 0]);
-  const starOp = useTransform(skyProgress, [0, 0.32], [1, 0]);
-  const preDawnOp = useTransform(skyProgress, [0.08, 0.28, 0.52, 0.68], [0, 1, 1, 0]);
-  const sunriseOp = useTransform(skyProgress, [0.38, 0.72], [0, 1]);
-  const sunOpacity = useTransform(skyProgress, [0.48, 0.78], [0, 1]);
-  // Sun rises from horizon (y=60, just below) to well above (y=-220)
-  const sunYPx = useTransform(skyProgress, [0.45, 0.92], [60, -220]);
-  const horizonGlowOp = useTransform(skyProgress, [0.35, 0.65], [0, 1]);
+  const nightSkyOp = useTransform(skyProgress, [0, 0.7], [1, 0]);
+  const starOp = useTransform(skyProgress, [0, 0.45], [1, 0]);
+  const dawnWarmOp = useTransform(skyProgress, [0.1, 0.45, 0.75], [0, 0.85, 0]);
+  const daySkyOp = useTransform(skyProgress, [0, 1], [0, 1]);
+  const sunOpacity = useTransform(skyProgress, [0, 0.08, 1], [0, 1, 1]);
+  const sunYPx = useTransform(skyProgress, [0, 1], [SUN_RISE_BOTTOM_Y, SUN_RISE_TOP_Y]);
+  const horizonGlowOp = useTransform(skyProgress, [0.12, 0.55, 1], [0, 1, 0.35]);
+
+  const animateSkyTo = useCallback(
+    (target: number) => {
+      const controls = animate(skyProgress, target, SKY_STEP_ANIMATION);
+      return () => controls.stop();
+    },
+    [skyProgress],
+  );
 
   useEffect(() => {
-    if (!isStarted) return;
-    const controls = animate(skyProgress, 1, { duration: 6, ease: 'linear' });
-    return () => controls.stop();
-  }, [isStarted]);
+    if (!isStarted || currentScreen) return;
+    if (currentSlide === null) return;
+    return animateSkyTo(skyProgressForSlide(currentSlide));
+  }, [currentSlide, currentScreen, isStarted, animateSkyTo]);
 
   const handleRestart = () => {
     setIsStarted(false);
     setCurrentSlide(null);
     setCurrentScreen(null);
+    setDiagnosticsStage('full');
     skyProgress.set(0);
   };
 
@@ -1124,34 +1091,94 @@ export function DrivingView() {
     if (currentSlide < SLIDE_TEXTS.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
+      animate(skyProgress, 1, SKY_STEP_ANIMATION);
       setCurrentSlide(null);
       setCurrentScreen('journey');
     }
   };
 
+  const enterHoodScreen = () => {
+    if (!isStarted) setIsStarted(true);
+    setCurrentSlide(null);
+    setHoodPhase('standards');
+    setHoodSession((n) => n + 1);
+    setCurrentScreen('hood');
+  };
+
+  const goToCheckpoint = (checkpoint: NavCheckpoint) => {
+    if (!isStarted) setIsStarted(true);
+    setCurrentSlide(null);
+    if (checkpoint === 'journey') {
+      setCurrentScreen('journey');
+      return;
+    }
+    if (checkpoint === 'hood') {
+      setHoodPhase('standards');
+      setHoodSession((n) => n + 1);
+      setCurrentScreen('hood');
+      return;
+    }
+    if (checkpoint === 'tires') {
+      setHoodPhase('trendlens');
+      setHoodSession((n) => n + 1);
+      setCurrentScreen('hood');
+      return;
+    }
+    setDiagnosticsStage('full');
+    setCurrentScreen('diagnostics');
+  };
+
+  const beginDiagnosticsFromTires = useCallback(() => {
+    if (!isStarted) setIsStarted(true);
+    setCurrentSlide(null);
+    setCurrentScreen('diagnostics');
+    setDiagnosticsStage('transition');
+  }, [isStarted]);
+
+  useEffect(() => {
+    if (diagnosticsStage !== 'transition') return;
+    const timer = window.setTimeout(
+      () => setDiagnosticsStage('full'),
+      DIAGNOSTICS_TRANSITION_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [diagnosticsStage]);
+
   const goToPrev = () => {
-    if (currentIdx > 0) setCurrentScreen(screenOrder[currentIdx - 1]);
+    if (currentIdx > 0) goToCheckpoint(screenOrder[currentIdx - 1]);
   };
 
   const goToNext = () => {
-    if (currentIdx < screenOrder.length - 1) setCurrentScreen(screenOrder[currentIdx + 1]);
+    if (currentIdx < screenOrder.length - 1) goToCheckpoint(screenOrder[currentIdx + 1]);
   };
 
   const handleGoToHood = () => {
-    setCurrentScreen('hood');
-    setCurrentSlide(null);
+    enterHoodScreen();
   };
 
   const isHoodScreen = currentScreen === 'hood';
   const isDiagnosticsScreen = currentScreen === 'diagnostics';
-  const showDrivingBackdrop = isStarted && !isHoodScreen && !isDiagnosticsScreen;
+  const isDiagnosticsFlow =
+    isDiagnosticsScreen &&
+    (diagnosticsStage === 'transition' || diagnosticsStage === 'final');
+  const showLandingBackdrop = !isStarted;
+  const showDrivingBackdrop =
+    isStarted && !isHoodScreen && !isDiagnosticsScreen && !isDiagnosticsFlow;
+  const showSkyAndRoad = showLandingBackdrop || showDrivingBackdrop;
+  const showFooterNav = currentScreen && diagnosticsStage === 'full';
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-black">
 
-      {/* ── Sky gradient layers — hidden on Under the Hood / Diagnostics ── */}
-      {showDrivingBackdrop && (
-        <div className="absolute inset-0" style={{ zIndex: 2 }}>
+      {/* ── Sky gradient layers — landing (darkest) + driving slides ── */}
+      {showSkyAndRoad && (
+        <div
+          className="absolute inset-0"
+          style={{
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
           <motion.div
             className="absolute inset-0"
             style={{
@@ -1179,16 +1206,18 @@ export function DrivingView() {
           <motion.div
             className="absolute inset-0"
             style={{
-              opacity: preDawnOp,
-              background: 'linear-gradient(180deg, #0d0820 0%, #1e1040 35%, #32186a 65%, #4a2080 100%)',
+              opacity: dawnWarmOp,
+              background:
+                'linear-gradient(180deg, #0d0820 0%, #2a1848 30%, #6a3820 60%, #c86818 80%, #ffb040 100%)',
             }}
           />
 
           <motion.div
             className="absolute inset-0"
             style={{
-              opacity: sunriseOp,
-              background: 'linear-gradient(180deg, #060318 0%, #120820 25%, #2a1000 55%, #8b3a00 75%, #d96800 88%, #ff9020 95%, #ffc060 100%)',
+              opacity: daySkyOp,
+              background:
+                'linear-gradient(180deg, #1e5a8a 0%, #3d8fd4 28%, #6bb8e8 55%, #9dd4f5 78%, #c8ebfc 100%)',
             }}
           />
 
@@ -1220,11 +1249,15 @@ export function DrivingView() {
         </div>
       )}
 
-      {/* ── Road Lottie — full viewport, bottom-aligned, edge-to-edge ── */}
-      {showDrivingBackdrop && (
+      {/* ── Road Lottie — landing + driving; keep mounted to avoid unmount crashes ── */}
+      {showSkyAndRoad && (
         <div
           className="absolute inset-0 overflow-hidden"
-          style={{ zIndex: 3, pointerEvents: 'none' }}
+          style={{
+            zIndex: 3,
+            pointerEvents: 'none',
+          }}
+          aria-hidden={false}
         >
           <Lottie
             animationData={carOnTrackData}
@@ -1237,6 +1270,7 @@ export function DrivingView() {
       )}
 
       {/* ── Menu bar ── */}
+      {!isDiagnosticsFlow && (
       <div className="absolute top-0 left-0 right-0 bg-[#1a1a1a] px-6 py-4 flex items-center justify-between z-50">
         <div className="flex flex-col">
           <span className="text-white text-sm font-bold">auto care</span>
@@ -1244,8 +1278,10 @@ export function DrivingView() {
         </div>
         <div className="text-[#f3901d] font-semibold">Menu ☰</div>
       </div>
+      )}
 
       {/* ── Footer ── */}
+      {!isDiagnosticsFlow && (
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-black z-50 flex items-center px-4 gap-2">
 
         <button
@@ -1260,7 +1296,7 @@ export function DrivingView() {
 
         <div className="flex-1 flex items-center justify-center gap-2">
 
-          {currentScreen && (
+          {showFooterNav && (
             <div className="flex items-center gap-3">
               <button
                 onClick={goToPrev}
@@ -1274,12 +1310,12 @@ export function DrivingView() {
               {NAV_ITEMS.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentScreen(item.id)}
-                  className="transition-colors text-sm"
+                  onClick={() => goToCheckpoint(item.id)}
+                  className="transition-colors text-sm whitespace-nowrap"
                   style={{
-                    color: currentScreen === item.id ? BRAND_ORANGE : '#6b7280',
-                    fontWeight: currentScreen === item.id ? 'bold' : 'normal',
-                    letterSpacing: currentScreen === item.id ? '0.02em' : undefined,
+                    color: activeNav === item.id ? BRAND_ORANGE : '#6b7280',
+                    fontWeight: activeNav === item.id ? 'bold' : 'normal',
+                    letterSpacing: activeNav === item.id ? '0.02em' : undefined,
                   }}
                 >
                   {item.label}
@@ -1310,38 +1346,49 @@ export function DrivingView() {
           </button>
         )}
       </div>
+      )}
 
       {/* ── Main content area — dashboard panels and screens only ── */}
       <div className="absolute top-[72px] bottom-24 left-0 right-0" style={{ zIndex: 10 }}>
 
-        {/* Start screen */}
+        {/* Landing — dashboard chrome + title over darkest sky/road */}
         {!isStarted && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#27B0FA] md:bg-transparent">
-            <div className="absolute inset-0 -top-[72px] md:top-0">
-              <img src={imgMountainRoad} alt="Mountain road" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0">
+            <div className="landing-hero" aria-hidden={false}>
+              <h1 className="landing-hero__title">Driven by You</h1>
+              <p className="landing-hero__subtitle">your year in review</p>
             </div>
-            <div className="relative z-10 flex flex-col items-center gap-6">
-              <div className="text-center">
-                <h1 className="text-6xl font-extrabold text-black mb-2">Auto Care</h1>
-                <h1 className="text-6xl font-extrabold text-black">WRAPPED</h1>
-              </div>
-              <div className="bg-black px-8 py-3">
-                <p className="text-[#f3901d] font-bold text-lg">Your Year In Review</p>
-              </div>
-              <button
-                onClick={() => { setIsStarted(true); setCurrentSlide(0); }}
-                className="mt-8 w-48 h-48 rounded-full bg-black border-8 border-[#f3901d] flex items-center justify-center text-white text-2xl font-bold hover:bg-gray-900 transition-all active:scale-95"
-              >
-                Push to start
-              </button>
-            </div>
+            <DashboardPanel
+              isLanding
+              currentSlide={null}
+              onBack={() => {}}
+              onNext={() => {}}
+              onHoodPhaseChange={setHoodPhase}
+              onGoToHood={handleGoToHood}
+              landingCenter={
+                <button
+                  type="button"
+                  onClick={() => {
+                    skyProgress.set(0);
+                    setIsStarted(true);
+                    setCurrentSlide(0);
+                  }}
+                  className="landing-push-start"
+                >
+                  Push to start
+                </button>
+              }
+            />
           </div>
         )}
 
         {/* Driving scene — only panels/screens, background is at viewport level */}
         {isStarted && (
           <div className="absolute inset-0">
+
+            {isHoodScreen && (
+              <div className="hood-scene-black" aria-hidden />
+            )}
 
             {isHoodScreen && hoodPhase === 'standards' && (
               <motion.h1
@@ -1354,33 +1401,29 @@ export function DrivingView() {
               </motion.h1>
             )}
 
-            {isHoodScreen && (hoodPhase === 'trendlens' || hoodPhase === 'demandindex') && (
-              <motion.div
-                className="hood-trendlens-viewport-black"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                aria-hidden
+            {/* Dashboard panel — slides, journey, and hood (not diagnostics) */}
+            {(currentSlide !== null || currentScreen === 'journey' || currentScreen === 'hood') && (
+              <DashboardPanel
+                currentSlide={currentSlide}
+                onBack={handleSlideBack}
+                onNext={handleSlideNext}
+                isJourney={currentScreen === 'journey'}
+                isHood={currentScreen === 'hood'}
+                hoodPhase={hoodPhase}
+                hoodSession={hoodSession}
+                onHoodPhaseChange={setHoodPhase}
+                onGoToHood={handleGoToHood}
+                onFinishTireSequence={beginDiagnosticsFromTires}
               />
             )}
 
-            {/* Dashboard panel — visible during slides AND journey mode */}
-            <AnimatePresence>
-              {(currentSlide !== null || currentScreen === 'journey' || currentScreen === 'hood') && (
-                <DashboardPanel
-                  currentSlide={currentSlide}
-                  onBack={handleSlideBack}
-                  onNext={handleSlideNext}
-                  isJourney={currentScreen === 'journey'}
-                  isHood={currentScreen === 'hood'}
-                  hoodPhase={hoodPhase}
-                  onHoodPhaseChange={setHoodPhase}
-                  onGoToHood={handleGoToHood}
-                />
-              )}
-            </AnimatePresence>
-
-            {currentScreen === 'diagnostics' && <FullDiagnostics />}
+            {isDiagnosticsFlow && diagnosticsStage === 'transition' && (
+              <DiagnosticsTransition />
+            )}
+            {isDiagnosticsFlow && diagnosticsStage === 'final' && <FinalScenePlaceholder />}
+            {currentScreen === 'diagnostics' && diagnosticsStage === 'full' && (
+              <FullDiagnostics />
+            )}
           </div>
         )}
       </div>
