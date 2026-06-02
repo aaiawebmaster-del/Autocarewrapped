@@ -220,7 +220,7 @@ function SignOverhead({ signNumber, duration }: { signNumber: number; duration: 
 
   const signText = {
     1: 'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
-    2: 'This report captures your role in that progress — the events you attended, the insights you gained, the voices you amplified, and the initiatives you supported.',
+    2: 'This report captures your role in that progress — the events you attended, the insights you gained, and the voices you amplified.',
     3: 'Your engagement matters. Your impact multiplies.',
     4: "Here's your year with Auto Care in motion.",
   }[signNumber];

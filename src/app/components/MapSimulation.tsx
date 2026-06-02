@@ -4,26 +4,38 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import frame7Paths from '../../imports/Frame7/svg-6dey2phzjs';
-import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
+import Lottie from 'lottie-react';
+import tireGaugeData from '../../imports/tire.json';
+import wheelAlignmentServiceData from '../../imports/wheel-alignment-service.json';
 import gpsMapTexture from '../../assets/gps-map-dark.png';
+import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
 import engineFullImage from '../../assets/engine-full.png?url';
 import engineHoleFrameImage from '../../assets/engine-hole-frame.png?url';
-import acesOilImage from '../../assets/aces-oil.png?url';
-import piesOilImage from '../../assets/pies-oil.png?url';
-import ipoOilImage from '../../assets/ipo-oil.png?url';
-import ishopOilImage from '../../assets/ishop-oil.png?url';
-import superspecOilImage from '../../assets/superspec-oil.png?url';
-import trendlensLogoImage from '../../assets/trendlens-logo.png?url';
-import tireWheelImage from '../../assets/tire-wheel.png?url';
-import tirePressureGaugeImage from '../../assets/tire-pressure-gauge.png?url';
+import acesDipstickImage from '../../assets/dipstick-aces.svg?url';
+import piesDipstickImage from '../../assets/dipstick-pies.svg?url';
+import ipoDipstickImage from '../../assets/dipstick-ipo.svg?url';
+import ishopDipstickImage from '../../assets/dipstick-ishop.svg?url';
+import superspecDipstickImage from '../../assets/dipstick-superspec.svg?url';
+import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
+import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
+import tireFactbookImage from '../../assets/tire-factbook.svg?url';
+import tireAcademyImage from '../../assets/tire-academy.svg?url';
+import tireCheckNullImage from '../../assets/tire-check-null.png?url';
+import tireCheck2Image from '../../assets/tire-check-2.png?url';
+import tireCheck3Image from '../../assets/tire-check-3.png?url';
+import tireCheck4Image from '../../assets/tire-check-4.png?url';
+import tireCheck5Image from '../../assets/tire-check-5.png?url';
 import iconGear from '../../assets/map-controls/gear-solid-full.png';
 import iconVolume from '../../assets/map-controls/volume-low-solid-full.png';
 import iconPlus from '../../assets/map-controls/plus-solid-full.png';
 import iconMinus from '../../assets/map-controls/minus-solid-full.png';
+import circleChevronLeft from '../../assets/circle-chevron-left-solid-full.png';
+import circleChevronRight from '../../assets/circle-chevron-right-solid-full.png';
 
 export const DASHBOARD_ARCH_PATH = svgPaths.p33654d00;
 export const MAP_CANVAS_DARK = '#151a22';
@@ -48,15 +60,27 @@ export function getTireCheckIndex(phase: TirePhase): number {
   return TIRE_PHASE_ORDER.indexOf(phase);
 }
 
-export const TRENDLENS_USER_COUNT = 40;
-export const TRENDLENS_CONTACT_PCT = 54;
-export const DEMANDINDEX_USER_COUNT = 30;
-export const DEMANDINDEX_CONTACT_PCT = 45;
-export const FACTBOOK_USER_COUNT = 20;
-export const FACTBOOK_CONTACT_PCT = 13;
-export const ACADEMY_GRADUATES = 3;
+/** Tire check gauge frames: null → 1 check → 2 → 3 → all 4 */
+const TIRE_CHECK_SEQUENCE = [
+  tireCheckNullImage,
+  tireCheck2Image,
+  tireCheck3Image,
+  tireCheck4Image,
+  tireCheck5Image,
+] as const;
+
+function getTireCheckImageIndex(completedCount: number): number {
+  return Math.min(Math.max(completedCount, 0), TIRE_CHECK_SEQUENCE.length - 1);
+}
+
+export const TRENDLENS_USER_COUNT = 4;
+export const TRENDLENS_CONTACT_PCT = 6;
+export const DEMANDINDEX_PRODUCT_GROUPS = 7;
+export const DEMANDINDEX_PRODUCT_GROUPS_TOTAL = 200;
+export const FACTBOOK_USER_COUNT = 0;
+export const FACTBOOK_CONTACT_PCT = 0;
+export const ACADEMY_USER_COUNT = 3;
 export const ACADEMY_COURSES_COMPLETED = 3;
-export const ACADEMY_COURSES_TOTAL = 6;
 
 function getNextTirePhase(phase: TirePhase): TirePhase | null {
   const i = TIRE_PHASE_ORDER.indexOf(phase);
@@ -70,7 +94,9 @@ function getPrevTirePhase(phase: TirePhase): TirePhase | null {
 
 type TireReadoutSecondary =
   | { type: 'percent'; value: number; suffix: string }
-  | { type: 'fraction'; completed: number; total: number; suffix: string };
+  | { type: 'fraction'; completed: number; total: number; suffix: string }
+  | { type: 'overTotal'; total: number; suffix: string }
+  | { type: 'count'; value: number; suffix: string };
 
 type TireReadoutConfig = {
   measuring: string;
@@ -88,9 +114,13 @@ const TIRE_READOUT_CONFIG: Record<TirePhase, TireReadoutConfig> = {
   },
   demandindex: {
     measuring: 'measuring demandindex usage..',
-    primaryValue: DEMANDINDEX_USER_COUNT,
-    primaryLabel: 'DemandIndex users',
-    secondary: { type: 'percent', value: DEMANDINDEX_CONTACT_PCT, suffix: 'of active contacts' },
+    primaryValue: DEMANDINDEX_PRODUCT_GROUPS,
+    primaryLabel: 'product groups',
+    secondary: {
+      type: 'overTotal',
+      total: DEMANDINDEX_PRODUCT_GROUPS_TOTAL,
+      suffix: 'available product groups',
+    },
   },
   factbook: {
     measuring: 'measuring factbook usage..',
@@ -100,13 +130,12 @@ const TIRE_READOUT_CONFIG: Record<TirePhase, TireReadoutConfig> = {
   },
   academy: {
     measuring: 'measuring academy progress..',
-    primaryValue: ACADEMY_GRADUATES,
-    primaryLabel: 'Academy graduates',
+    primaryValue: ACADEMY_USER_COUNT,
+    primaryLabel: 'Academy Users',
     secondary: {
-      type: 'fraction',
-      completed: ACADEMY_COURSES_COMPLETED,
-      total: ACADEMY_COURSES_TOTAL,
-      suffix: 'courses completed',
+      type: 'count',
+      value: ACADEMY_COURSES_COMPLETED,
+      suffix: 'completed courses',
     },
   },
 };
@@ -120,32 +149,122 @@ const TIRE_BADGE_LABELS: Record<TirePhase, string> = {
 
 const TIRE_ROLL_MS = 900;
 const HOOD_STANDARDS_EXIT_MS = 850;
-const HOOD_GROUND_RISE_MS = 700;
+export const HOOD_PANEL_SLIDE_MS = 700;
+const HOOD_ENGINE_EXIT_MS = 550;
+const HOOD_GROUND_RISE_MS = HOOD_PANEL_SLIDE_MS;
 const HOOD_WHEEL_ROLL_IN_MS = 900;
-const HOOD_COUNTER_MEASURE_MS = 1400;
 const HOOD_COUNTER_COUNT_MS = 1200;
-const HOOD_WHEEL_MAX_PX = 380;
-const HOOD_WHEEL_ROLL_SPIN = 540;
+const HOOD_WHEEL_MAX_PX = 272; /* ~15% smaller than 320px */
+const HOOD_READOUT_GAP_PX = 20;
+const HOOD_READOUT_WIDTH_DESKTOP = 340;
+const HOOD_READOUT_WIDTH_MOBILE = 272;
+const HOOD_READOUT_GAUGE_SLOT_PX = 162;
+/** Fixed content area below gauge — same on every tire so the screen never resizes. */
+const HOOD_READOUT_CONTENT_SLOT_PX = 156;
+const HOOD_READOUT_BEZEL_HEIGHT_PX =
+  168 + HOOD_READOUT_GAUGE_SLOT_PX + HOOD_READOUT_CONTENT_SLOT_PX;
+const HOOD_READOUT_GLASS_HEIGHT_PX =
+  108 + HOOD_READOUT_GAUGE_SLOT_PX + HOOD_READOUT_CONTENT_SLOT_PX;
+const VISIT_TRENDLENS_HREF = 'https://www.autocare.org/trendlens';
+const LEARN_DEMANDINDEX_HREF = 'https://www.autocare.org/demandindex';
+const FACTBOOK_2027_HREF = 'https://www.autocare.org/factbook';
+const EXPLORE_ACADEMY_HREF = 'https://www.autocare.org/education';
+
+type TireCtaConfig = {
+  message: string;
+  linkLabel: string;
+  href: string;
+  nextTarget: TirePhase | null;
+};
+
+const TIRE_CTA_CONFIG: Partial<Record<TirePhase, TireCtaConfig>> = {
+  trendlens: {
+    message: 'Get the most interactive and up to date economic data',
+    linkLabel: 'Visit TrendLens',
+    href: VISIT_TRENDLENS_HREF,
+    nextTarget: 'demandindex',
+  },
+  demandindex: {
+    message:
+      'See the full list of product groups to see what else might be eligible to subscribe to.',
+    linkLabel: 'Learn More',
+    href: LEARN_DEMANDINDEX_HREF,
+    nextTarget: 'factbook',
+  },
+  factbook: {
+    message: 'Send the latest factbook to your team to find out what you missed!',
+    linkLabel: 'Facebook 2027',
+    href: FACTBOOK_2027_HREF,
+    nextTarget: 'academy',
+  },
+  academy: {
+    message: "See what's new in our course catalog",
+    linkLabel: 'Explore Academy Courses',
+    href: EXPLORE_ACADEMY_HREF,
+    nextTarget: null,
+  },
+};
+
+function tireHasCta(phase: TirePhase): boolean {
+  return TIRE_CTA_CONFIG[phase] != null;
+}
+const HOOD_TIRE_LAYOUT_BREAKPOINT = 768;
+const TIRE_WHEEL_NATIVE_PX: Record<TirePhase, number> = {
+  trendlens: 548,
+  demandindex: 548,
+  factbook: 548,
+  academy: 548,
+};
+/** Full rotations so the branded tire art lands upright when motion stops. */
+const HOOD_WHEEL_ROLL_SPIN = 720;
+
+const TIRE_WHEEL_IMAGES: Record<TirePhase, string> = {
+  trendlens: tireTrendlensImage,
+  demandindex: tireDemandindexImage,
+  factbook: tireFactbookImage,
+  academy: tireAcademyImage,
+};
 
 function useWheelLaneMetrics() {
   const [metrics, setMetrics] = useState({
     laneW: typeof window !== 'undefined' ? window.innerWidth : 1200,
     wheelW: HOOD_WHEEL_MAX_PX,
     offLeft: -HOOD_WHEEL_MAX_PX,
-    center: 400,
+    parkX: 400,
     offRight: 1200,
+    readoutWidth: HOOD_READOUT_WIDTH_DESKTOP,
+    readoutBezelHeight: HOOD_READOUT_BEZEL_HEIGHT_PX,
+    readoutGlassHeight: HOOD_READOUT_GLASS_HEIGHT_PX,
+    readoutGap: HOOD_READOUT_GAP_PX,
   });
 
   useLayoutEffect(() => {
     const update = () => {
       const laneW = window.innerWidth;
+      const isMobile = laneW <= HOOD_TIRE_LAYOUT_BREAKPOINT;
       const wheelW = Math.min(laneW * 0.82, HOOD_WHEEL_MAX_PX);
+      let readoutWidth = isMobile ? HOOD_READOUT_WIDTH_MOBILE : HOOD_READOUT_WIDTH_DESKTOP;
+      let groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
+      const maxGroupWidth = laneW - 24;
+      if (groupWidth > maxGroupWidth) {
+        readoutWidth = Math.max(180, maxGroupWidth - HOOD_READOUT_GAP_PX - wheelW);
+        groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
+      }
+      const groupLeft = Math.round(
+        Math.max(12, Math.min((laneW - groupWidth) / 2, laneW - groupWidth - 12)),
+      );
+      const parkX = groupLeft + readoutWidth + HOOD_READOUT_GAP_PX;
+
       setMetrics({
         laneW,
         wheelW,
         offLeft: -wheelW,
-        center: (laneW - wheelW) / 2,
+        parkX,
         offRight: laneW,
+        readoutWidth,
+        readoutBezelHeight: HOOD_READOUT_BEZEL_HEIGHT_PX,
+        readoutGlassHeight: HOOD_READOUT_GLASS_HEIGHT_PX,
+        readoutGap: HOOD_READOUT_GAP_PX,
       });
     };
     update();
@@ -157,16 +276,54 @@ function useWheelLaneMetrics() {
 }
 
 const CLIP_ID = 'dashboard-map-arch-clip';
+
 const HOOD_CLIP_ID = 'dashboard-hood-arch-clip';
 const VB_W = 1889;
 const VB_H = 540;
 
+/** Dashboard arch silhouette with flat black fill */
+export function DashboardPanelArch() {
+  return (
+    <div className="dashboard-panel-arch" aria-hidden>
+      <svg
+        className="dashboard-panel__arch dashboard-panel-arch__svg"
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="xMidYMax slice"
+        fill="none"
+      >
+        <defs>
+          <linearGradient
+            id="dashboard-panel-arch-gradient"
+            x1="944.5"
+            y1="0"
+            x2="944.5"
+            y2="540"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%" stopColor="#4a4a52" />
+            <stop offset="24%" stopColor="#242428" />
+            <stop offset="58%" stopColor="#111114" />
+            <stop offset="100%" stopColor="#060608" />
+          </linearGradient>
+        </defs>
+        <path className="dashboard-panel__arch-fill" d={DASHBOARD_ARCH_PATH} fill="#000000" />
+      </svg>
+    </div>
+  );
+}
+
 /** Dark GPS street map inside arch clip, with slow parallax drift */
-export function DashboardMapArch({ showNavCursor = true }: { showNavCursor?: boolean }) {
+export function DashboardMapArch({
+  showNavCursor: _showNavCursor = true,
+  showZoomControls = true,
+}: {
+  showNavCursor?: boolean;
+  showZoomControls?: boolean;
+}) {
   return (
     <div className="dashboard-map-arch" aria-hidden={false}>
       <svg
-        className="dashboard-map-arch__svg"
+        className="dashboard-panel__arch dashboard-map-arch__svg"
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         preserveAspectRatio="xMidYMax slice"
         fill="none"
@@ -177,11 +334,9 @@ export function DashboardMapArch({ showNavCursor = true }: { showNavCursor?: boo
           </clipPath>
         </defs>
 
-        {/* Arch silhouette base (replaces previous blue fill) */}
         <path d={DASHBOARD_ARCH_PATH} fill={MAP_CANVAS_DARK} />
 
         <g clipPath={`url(#${CLIP_ID})`}>
-          {/* Parallax map texture — drifts to simulate driving */}
           <foreignObject x="0" y="0" width={VB_W} height={VB_H}>
             <div xmlns="http://www.w3.org/1999/xhtml" className="gps-map-parallax-host">
               <motion.div
@@ -190,38 +345,27 @@ export function DashboardMapArch({ showNavCursor = true }: { showNavCursor?: boo
                 transition={{ duration: 56, repeat: Infinity, ease: 'linear' }}
               >
                 <img src={gpsMapTexture} alt="" className="gps-map-parallax-tile" draggable={false} />
-                <img src={gpsMapTexture} alt="" className="gps-map-parallax-tile" draggable={false} aria-hidden />
+                <img
+                  src={gpsMapTexture}
+                  alt=""
+                  className="gps-map-parallax-tile"
+                  draggable={false}
+                  aria-hidden
+                />
               </motion.div>
             </div>
           </foreignObject>
-
-          {/* Route highlight + nav cursor (fixed on map, does not parallax) */}
-          <path
-            d="M303.5 2.88681L334.731 2.88681L231.753 253.113L201.477 252.49L303.5 2.88681Z"
-            fill="#3d4550"
-            fillOpacity="0.55"
-          />
-          <path
-            d="M565.051 82.4587L565.191 114.213L281.575 105.845L282.518 73.8586L565.051 82.4587Z"
-            fill="#4a5360"
-            fillOpacity="0.45"
-          />
-
-          {showNavCursor && (
-            <g transform="translate(480 235) scale(0.95)">
-              <path d={frame7Paths.p3732cb80} fill="#007ac3" />
-              <path d={frame7Paths.p3732cb80} fill="#5eb8e8" fillOpacity="0.35" transform="translate(2 2)" />
-            </g>
-          )}
         </g>
       </svg>
 
       <div className="map-simulation__controls" style={{ clipPath: `url(#${CLIP_ID})` }}>
         <MapNavControls />
-        <div className="map-control-zoom">
-          <MapControlButton label="Zoom in" className="map-control--zoom-in" src={iconPlus} />
-          <MapControlButton label="Zoom out" className="map-control--zoom-out" src={iconMinus} />
-        </div>
+        {showZoomControls ? (
+          <div className="map-control-zoom">
+            <MapControlButton label="Zoom in" className="map-control--zoom-in" src={iconPlus} />
+            <MapControlButton label="Zoom out" className="map-control--zoom-out" src={iconMinus} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -233,18 +377,33 @@ const HOOD_POPUP_MESSAGES = [
   'you are missing IPO, ISHOP, and Super Spec',
 ] as const;
 
-const DIPSTICK_RISE = { duration: 4.5, ease: [0.25, 0, 0.2, 1] as const };
-const HOOD_RISE_DURATION_MS = 4500;
-const HOOD_ACES_START_MS = 2000;
-const HOOD_PIES_STAGGER_MS = 900;
-const HOOD_MISSING_STAGGER_MS = 900;
-const HOOD_PAIR_COMPLETE_MS =
-  HOOD_ACES_START_MS + HOOD_PIES_STAGGER_MS + HOOD_RISE_DURATION_MS + 200;
+const HOOD_VIP_MESSAGE =
+  'Make sure your databases are up-to-date with the latest releases';
+
+const EXPLORE_VIP_HREF = 'https://autocare.org/';
+const SEE_ALL_SUBSCRIPTIONS_HREF =
+  'https://www.autocare.org/data-standards/subscriptions';
+
+const HOOD_CHECKING_POPUP_INDEX = 0;
+const HOOD_SUBSCRIBED_POPUP_INDEX = 1;
+const HOOD_VIP_POPUP_INDEX = 2;
+const HOOD_MISSING_POPUP_INDEX = 3;
+
+function getHoodPopupMessage(index: number): string {
+  if (index === HOOD_VIP_POPUP_INDEX) return HOOD_VIP_MESSAGE;
+  if (index === HOOD_MISSING_POPUP_INDEX) return HOOD_POPUP_MESSAGES[2];
+  return HOOD_POPUP_MESSAGES[index] ?? '';
+}
+
+const DIPSTICK_RISE = { duration: 2.2, ease: [0.25, 0, 0.2, 1] as const };
+const HOOD_ACES_START_MS = 280;
+const HOOD_PIES_STAGGER_MS = 320;
+const HOOD_MISSING_STAGGER_MS = 700;
 
 const MISSING_DIPSTICKS = [
-  { src: ipoOilImage, alt: 'IPO standard', className: 'hood-dipstick-img--ipo' },
-  { src: ishopOilImage, alt: 'iSHOP standard', className: 'hood-dipstick-img--ishop' },
-  { src: superspecOilImage, alt: 'Super Spec standard', className: 'hood-dipstick-img--superspec' },
+  { src: ipoDipstickImage, alt: 'IPO standard', className: 'hood-dipstick-img--ipo' },
+  { src: ishopDipstickImage, alt: 'iSHOP standard', className: 'hood-dipstick-img--ishop' },
+  { src: superspecDipstickImage, alt: 'SuperSpec standard', className: 'hood-dipstick-img--superspec' },
 ] as const;
 
 function HoodNavChevron({
@@ -258,6 +417,8 @@ function HoodNavChevron({
   disabled: boolean;
   label: string;
 }) {
+  const icon = direction === 'left' ? circleChevronLeft : circleChevronRight;
+
   return (
     <button
       type="button"
@@ -266,56 +427,178 @@ function HoodNavChevron({
       disabled={disabled}
       aria-label={label}
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#F3901D"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <img
+        src={icon}
+        alt=""
         className="hood-nav-chevron-icon"
-      >
-        <path d={direction === 'left' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
-      </svg>
+        width={44}
+        height={44}
+        draggable={false}
+        aria-hidden
+      />
     </button>
   );
 }
 
-function HoodStandardsPopup({ index, onPrev }: { index: number; onPrev: () => void }) {
+function HoodTypewriterText({
+  text,
+  onComplete,
+  charDelayMs = 42,
+  scrollContainerRef,
+  showCursorAfterComplete = false,
+}: {
+  text: string;
+  onComplete?: () => void;
+  charDelayMs?: number;
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
+  /** Keep blinking cursor visible after typing until the user clicks next. */
+  showCursorAfterComplete?: boolean;
+}) {
+  const [count, setCount] = useState(0);
+  const completedRef = useRef(false);
+
+  useEffect(() => {
+    setCount(0);
+    completedRef.current = false;
+    const el = scrollContainerRef?.current;
+    if (el) el.scrollTop = 0;
+  }, [text, scrollContainerRef]);
+
+  useEffect(() => {
+    if (count >= text.length) {
+      if (!completedRef.current) {
+        completedRef.current = true;
+        onComplete?.();
+      }
+      return;
+    }
+    const id = window.setTimeout(() => setCount((c) => c + 1), charDelayMs);
+    return () => window.clearTimeout(id);
+  }, [count, text, charDelayMs, onComplete]);
+
+  useEffect(() => {
+    const el = scrollContainerRef?.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [count, scrollContainerRef]);
+
+  const done = count >= text.length;
+  const showCursor = !done || showCursorAfterComplete;
+
+  return (
+    <p className="hood-standards-popup__text">
+      <span>{text.slice(0, count)}</span>
+      {showCursor && <span className="hood-standards-popup__cursor" aria-hidden />}
+    </p>
+  );
+}
+
+function HoodStandardsPopup({
+  index,
+  onTypeComplete,
+  onBackToJourney,
+  onNext,
+  nextDisabled = false,
+  showNavButtons = false,
+}: {
+  index: number;
+  onTypeComplete?: () => void;
+  onBackToJourney?: () => void;
+  onNext?: () => void;
+  nextDisabled?: boolean;
+  showNavButtons?: boolean;
+}) {
+  const [typingDone, setTypingDone] = useState(false);
+  const textAreaRef = useRef<HTMLDivElement>(null);
+  const message = getHoodPopupMessage(index);
+  const isVip = index === HOOD_VIP_POPUP_INDEX;
+  const isMissing = index === HOOD_MISSING_POPUP_INDEX;
+
+  useEffect(() => {
+    setTypingDone(false);
+  }, [index, message]);
+
+  const handleTypeComplete = useCallback(() => {
+    setTypingDone(true);
+    onTypeComplete?.();
+  }, [onTypeComplete]);
+
   return (
     <motion.div
       className="hood-standards-popup-row"
-      initial={{ y: 48, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
     >
-      <HoodNavChevron
-        direction="left"
-        onClick={onPrev}
-        disabled={index <= 0}
-        label="Previous standards message"
-      />
       <div className="hood-standards-popup" role="status" aria-live="polite">
         <AnimatePresence mode="wait">
-          <motion.p
+          <motion.div
             key={index}
-            className="hood-standards-popup__text"
+            className="hood-standards-popup__body"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: 0.25 }}
           >
-            {HOOD_POPUP_MESSAGES[index]}
-          </motion.p>
+            <div ref={textAreaRef} className="hood-standards-popup__text-area">
+              <HoodTypewriterText
+                text={message}
+                onComplete={handleTypeComplete}
+                scrollContainerRef={textAreaRef}
+                showCursorAfterComplete={showNavButtons}
+              />
+            </div>
+            <div className="hood-standards-popup__footer">
+              {showNavButtons && typingDone && (
+                <div className="hood-standards-popup__nav">
+                  <button
+                    type="button"
+                    className="hood-standards-popup__btn hood-standards-popup__btn--back"
+                    onClick={onBackToJourney}
+                  >
+                    back
+                  </button>
+                  {isVip && (
+                    <a
+                      href={EXPLORE_VIP_HREF}
+                      className="hood-standards-popup__btn hood-standards-popup__cta"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Explore VIP
+                    </a>
+                  )}
+                  {isMissing && (
+                    <a
+                      href={SEE_ALL_SUBSCRIPTIONS_HREF}
+                      className="hood-standards-popup__btn hood-standards-popup__cta"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      See All Subscriptions
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    className="hood-standards-popup__btn hood-standards-popup__btn--next"
+                    onClick={onNext}
+                    disabled={nextDisabled}
+                  >
+                    next
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
         </AnimatePresence>
       </div>
     </motion.div>
   );
 }
 
-const HOOD_DIPSTICK_HIDDEN_TOP = '88%';
-const HOOD_DIPSTICK_RISE_TOP = '24%';
-const HOOD_DIPSTICK_ELEVATED_TOP = '34%';
+const HOOD_DIPSTICK_HIDDEN_TOP = '115%';
+const HOOD_DIPSTICK_RISE_TOP = '17%';
+const HOOD_DIPSTICK_ELEVATED_TOP = '27%';
 
 function HoodDipstickRise({
   src,
@@ -340,7 +623,7 @@ function HoodDipstickRise({
       transition={{
         duration: isInitialRise ? DIPSTICK_RISE.duration : 1.25,
         ease: DIPSTICK_RISE.ease,
-        delay: isInitialRise ? 0.15 : 0,
+        delay: isInitialRise ? 0.05 : 0,
       }}
     >
       <img src={src} alt={alt} className="hood-dipstick-rise__img" draggable={false} />
@@ -400,61 +683,74 @@ function HoodTireWheel({ tirePhase }: { tirePhase: TirePhase }) {
   return (
     <div className={`hood-tire-wheel hood-tire-wheel--${tirePhase}`}>
       <img
-        src={tireWheelImage}
-        alt=""
+        src={TIRE_WHEEL_IMAGES[tirePhase]}
+        alt={TIRE_BADGE_LABELS[tirePhase]}
         className="hood-tire-wheel__asset"
+        width={TIRE_WHEEL_NATIVE_PX[tirePhase]}
+        height={TIRE_WHEEL_NATIVE_PX[tirePhase]}
         draggable={false}
       />
-      {tirePhase === 'trendlens' ? (
-        <img
-          src={trendlensLogoImage}
-          alt="TrendLens"
-          className="hood-tire-wheel__badge hood-tire-wheel__logo"
-          draggable={false}
-        />
-      ) : (
-        <span className="hood-tire-wheel__badge hood-tire-wheel__label">
-          {TIRE_BADGE_LABELS[tirePhase]}
-        </span>
-      )}
     </div>
   );
 }
 
-type ReadoutPhase = 'idle' | 'measuring' | 'counting' | 'secondary';
+type ReadoutPhase = 'idle' | 'counting' | 'secondary' | 'cta';
+
+const readoutMotion = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.45, ease: [0.4, 0, 0.2, 1] as const },
+};
+
+function HoodTireReadoutNav({
+  onBack,
+  onNext,
+  nextDisabled,
+}: {
+  onBack: () => void;
+  onNext: () => void;
+  nextDisabled?: boolean;
+}) {
+  return (
+    <motion.div
+      className="hood-tire-hub__screen-nav"
+      {...readoutMotion}
+      transition={{ ...readoutMotion.transition, delay: 0.2 }}
+    >
+      <button type="button" className="hood-tire-hub__btn hood-tire-hub__btn--back" onClick={onBack}>
+        Back
+      </button>
+      <button
+        type="button"
+        className="hood-tire-hub__btn hood-tire-hub__btn--next"
+        onClick={onNext}
+        disabled={nextDisabled}
+      >
+        Next
+      </button>
+    </motion.div>
+  );
+}
 
 function HoodTirePressureGauge({ completedTires }: { completedTires: ReadonlySet<TirePhase> }) {
+  const checkIndex = getTireCheckImageIndex(completedTires.size);
+  const src = TIRE_CHECK_SEQUENCE[checkIndex];
+
   return (
     <div className="hood-tire-pressure-gauge" aria-hidden={false}>
-      <img
-        src={tirePressureGaugeImage}
-        alt=""
-        className="hood-tire-pressure-gauge__img"
-        draggable={false}
-      />
-      <div className="hood-tire-pressure-gauge__checks">
-        {TIRE_PHASE_ORDER.map((tirePhase) => {
-          const checked = completedTires.has(tirePhase);
-          return (
-            <div
-              key={tirePhase}
-              className={`hood-tire-pressure-gauge__slot hood-tire-pressure-gauge__slot--${getTireCheckIndex(tirePhase)}`}
-            >
-              {checked && (
-                <motion.span
-                  className="hood-tire-pressure-gauge__check"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                  aria-hidden
-                >
-                  ✓
-                </motion.span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={checkIndex}
+          src={src}
+          alt=""
+          className="hood-tire-pressure-gauge__sequence"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          draggable={false}
+        />
+      </AnimatePresence>
     </div>
   );
 }
@@ -462,73 +758,172 @@ function HoodTirePressureGauge({ completedTires }: { completedTires: ReadonlySet
 function HoodTireHubReadout({
   tirePhase,
   counterActive,
+  screenVisible,
   onReadoutReady,
+  onNavigateToTire,
+  onFinishTireSequence,
 }: {
   tirePhase: TirePhase;
   counterActive: boolean;
+  screenVisible: boolean;
   onReadoutReady?: () => void;
+  onNavigateToTire?: (target: TirePhase) => void;
+  onFinishTireSequence?: () => void;
 }) {
   const [readoutPhase, setReadoutPhase] = useState<ReadoutPhase>('idle');
   const onReadyRef = useRef(onReadoutReady);
   onReadyRef.current = onReadoutReady;
   const config = TIRE_READOUT_CONFIG[tirePhase];
+  const ctaConfig = TIRE_CTA_CONFIG[tirePhase];
+  const hasCta = tireHasCta(tirePhase);
 
   useEffect(() => {
     setReadoutPhase('idle');
     if (!counterActive) return;
 
     const timers = [
-      setTimeout(() => setReadoutPhase('measuring'), 80),
-      setTimeout(() => setReadoutPhase('counting'), HOOD_COUNTER_MEASURE_MS),
+      setTimeout(() => setReadoutPhase('counting'), 80),
       setTimeout(() => {
         setReadoutPhase('secondary');
-        onReadyRef.current?.();
-      }, HOOD_COUNTER_MEASURE_MS + HOOD_COUNTER_COUNT_MS + 200),
+        if (!hasCta) onReadyRef.current?.();
+      }, HOOD_COUNTER_COUNT_MS + 200),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [tirePhase, counterActive]);
+  }, [tirePhase, counterActive, hasCta]);
 
-  const counting = readoutPhase === 'counting' || readoutPhase === 'secondary';
+  useEffect(() => {
+    if (readoutPhase === 'cta' && hasCta) onReadyRef.current?.();
+  }, [readoutPhase, hasCta]);
+
+  const counting =
+    readoutPhase === 'counting' ||
+    readoutPhase === 'secondary' ||
+    (readoutPhase === 'cta' && hasCta);
+  const showPressureGauge =
+    readoutPhase === 'counting' || readoutPhase === 'secondary' || readoutPhase === 'cta';
+  const showCta = readoutPhase === 'cta' && ctaConfig;
+  const showStatsNext = hasCta && readoutPhase === 'secondary';
+  const readoutInteractive =
+    hasCta && (readoutPhase === 'secondary' || readoutPhase === 'cta');
+
+  const handleCtaNext = () => {
+    const target = ctaConfig?.nextTarget;
+    if (target) onNavigateToTire?.(target);
+    else onFinishTireSequence?.();
+  };
 
   return (
     <motion.div
-      className="hood-tire-hub__screen"
-      key={tirePhase}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: counterActive ? 1 : 0, y: counterActive ? 0 : 12 }}
+      className={`hood-tire-hub__screen${readoutInteractive ? ' hood-tire-hub__screen--interactive' : ''}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: screenVisible ? 1 : 0 }}
       transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
       role="status"
       aria-live="polite"
     >
       <div className="hood-tire-hub__screen-bezel">
-        <div className="hood-tire-hub__screen-glass">
-          {readoutPhase === 'measuring' ? (
-            <p className="hood-tire-hub__line hood-tire-hub__line--measuring">
-              {config.measuring}
-            </p>
-          ) : readoutPhase === 'idle' ? null : (
-            <div className="hood-tire-hub__results">
-              <p className="hood-tire-hub__line hood-tire-hub__line--primary">
-                <HoodCountUp value={config.primaryValue} active={counting} /> {config.primaryLabel}
-              </p>
-              {readoutPhase === 'secondary' && (
-                <motion.p
-                  className="hood-tire-hub__line hood-tire-hub__line--secondary"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
-                >
-                  {config.secondary.type === 'percent' ? (
-                    <>
-                      <HoodCountUp value={config.secondary.value} active />% {config.secondary.suffix}
-                    </>
-                  ) : (
-                    <>
-                      <HoodCountUp value={config.secondary.completed} active /> of{' '}
-                      <HoodCountUp value={config.secondary.total} active /> {config.secondary.suffix}
-                    </>
+        <div
+          className={
+            showPressureGauge
+              ? 'hood-tire-hub__screen-glass hood-tire-hub__screen-glass--with-gauge'
+              : 'hood-tire-hub__screen-glass'
+          }
+        >
+          {showPressureGauge && (
+            <div className="hood-tire-hub__pressure-gauge" aria-hidden>
+              <Lottie
+                key={tirePhase}
+                animationData={tireGaugeData}
+                loop={false}
+                autoplay
+                className="hood-tire-hub__pressure-gauge-lottie"
+                rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
+              />
+            </div>
+          )}
+          {readoutPhase === 'idle' ? null : (
+            <div className="hood-tire-hub__screen-content">
+              {showCta ? (
+                <div className="hood-tire-hub__results hood-tire-hub__results--cta">
+                  <motion.p className="hood-tire-hub__line hood-tire-hub__line--momentum" {...readoutMotion}>
+                    {ctaConfig.message}
+                  </motion.p>
+                  <motion.a
+                    href={ctaConfig.href}
+                    className="hood-tire-hub__btn hood-tire-hub__btn--visit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    {...readoutMotion}
+                    transition={{ ...readoutMotion.transition, delay: 0.12 }}
+                  >
+                    {ctaConfig.linkLabel}
+                  </motion.a>
+                  <HoodTireReadoutNav
+                    onBack={() => setReadoutPhase('secondary')}
+                    onNext={handleCtaNext}
+                    nextDisabled={!ctaConfig.nextTarget && !onFinishTireSequence}
+                  />
+                </div>
+              ) : (
+                <div className="hood-tire-hub__results">
+                  <div className="hood-tire-hub__stat-block">
+                    <p className="hood-tire-hub__line hood-tire-hub__line--primary">
+                      <span className="hood-tire-hub__stat-value">
+                        <HoodCountUp value={config.primaryValue} active={counting} />
+                      </span>
+                    </p>
+                    <p className="hood-tire-hub__line hood-tire-hub__stat-label">{config.primaryLabel}</p>
+                  </div>
+                  {readoutPhase === 'secondary' && (
+                    <motion.p className="hood-tire-hub__line hood-tire-hub__line--secondary" {...readoutMotion}>
+                      {config.secondary.type === 'percent' ? (
+                        <>
+                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                            <HoodCountUp value={config.secondary.value} active />
+                          </span>
+                          % {config.secondary.suffix}
+                        </>
+                      ) : config.secondary.type === 'fraction' ? (
+                        <>
+                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                            <HoodCountUp value={config.secondary.completed} active />
+                          </span>{' '}
+                          of{' '}
+                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                            <HoodCountUp value={config.secondary.total} active />
+                          </span>{' '}
+                          {config.secondary.suffix}
+                        </>
+                      ) : config.secondary.type === 'overTotal' ? (
+                        <>
+                          of over{' '}
+                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                            <HoodCountUp value={config.secondary.total} active />
+                          </span>{' '}
+                          {config.secondary.suffix}
+                        </>
+                      ) : (
+                        <>
+                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                            <HoodCountUp value={config.secondary.value} active />
+                          </span>{' '}
+                          {config.secondary.suffix}
+                        </>
+                      )}
+                    </motion.p>
                   )}
-                </motion.p>
+                  {showStatsNext && (
+                    <motion.button
+                      type="button"
+                      className="hood-tire-hub__btn hood-tire-hub__btn--next hood-tire-hub__btn--stats-next"
+                      {...readoutMotion}
+                      transition={{ ...readoutMotion.transition, delay: 0.15 }}
+                      onClick={() => setReadoutPhase('cta')}
+                    >
+                      Next
+                    </motion.button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -543,30 +938,68 @@ function HoodTireHubScene({
   isRolling,
   rollTarget,
   playIntro,
+  skipGroundIntro = false,
+  slideGroundOut = false,
   completedTires,
   onIntroComplete,
+  onGroundExitComplete,
   onReadoutReady,
+  onNavigateToTire,
+  onFinishTireSequence,
 }: {
   phase: TirePhase;
   isRolling: boolean;
   rollTarget: TireRollTarget;
   playIntro: boolean;
+  /** Ground already visible (e.g. hood-close overlay on standards). */
+  skipGroundIntro?: boolean;
+  slideGroundOut?: boolean;
   completedTires: ReadonlySet<TirePhase>;
   onIntroComplete: () => void;
+  onGroundExitComplete?: () => void;
   onReadoutReady: () => void;
+  onNavigateToTire: (target: TirePhase) => void;
+  onFinishTireSequence?: () => void;
 }) {
   const [introStep, setIntroStep] = useState<TireIntroStep>(playIntro ? 'ground' : 'done');
-  const { offLeft, center, offRight, wheelW } = useWheelLaneMetrics();
+  const groundExitReportedRef = useRef(false);
+  const { offLeft, parkX, offRight, wheelW, readoutWidth, readoutBezelHeight, readoutGlassHeight, readoutGap } =
+    useWheelLaneMetrics();
   const counterActive =
     !isRolling && (introStep === 'counter' || introStep === 'done');
+  const screenVisible =
+    isRolling ||
+    introStep === 'wheel' ||
+    introStep === 'counter' ||
+    introStep === 'done';
 
   const swapping = isRolling && rollTarget !== null;
   const introWheelRolling = playIntro && introStep === 'wheel';
+  const parked = !isRolling && introStep !== 'ground' && introStep !== 'wheel';
+  const rolling = introWheelRolling || swapping;
 
   useEffect(() => {
+    if (!slideGroundOut) {
+      groundExitReportedRef.current = false;
+    }
+  }, [slideGroundOut]);
+
+  useEffect(() => {
+    if (slideGroundOut) return;
     if (!playIntro) {
       setIntroStep('done');
       return;
+    }
+    if (skipGroundIntro) {
+      setIntroStep('wheel');
+      const timers = [
+        setTimeout(() => setIntroStep('counter'), HOOD_WHEEL_ROLL_IN_MS),
+        setTimeout(() => {
+          setIntroStep('done');
+          onIntroComplete();
+        }, HOOD_WHEEL_ROLL_IN_MS + 80),
+      ];
+      return () => timers.forEach(clearTimeout);
     }
     setIntroStep('ground');
     const timers = [
@@ -584,78 +1017,99 @@ function HoodTireHubScene({
       ),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [playIntro, onIntroComplete]);
-
-  const idleX = center;
-  const outgoingX = swapping ? offRight : idleX;
-  const incomingX = introWheelRolling || swapping ? center : offLeft;
-  const outgoingSpin = swapping || introWheelRolling ? HOOD_WHEEL_ROLL_SPIN : 0;
-  const incomingSpin = swapping || introWheelRolling ? HOOD_WHEEL_ROLL_SPIN : 0;
+  }, [playIntro, skipGroundIntro, slideGroundOut, onIntroComplete]);
 
   const rollDuration =
     introWheelRolling ? HOOD_WHEEL_ROLL_IN_MS / 1000 : TIRE_ROLL_MS / 1000;
+  const rollEase = [0.45, 0, 0.2, 1] as const;
 
-  const showIdleWheel = !swapping && introStep !== 'ground' && introStep !== 'wheel';
-  const showOutgoingWheel = swapping;
-  const showIncomingWheel = swapping || introWheelRolling;
+  const hubStyle = {
+    '--hood-wheel-park-x': `${parkX}px`,
+    '--hood-wheel-half': `${wheelW / 2}px`,
+    '--hood-readout-width': `${readoutWidth}px`,
+    '--hood-readout-bezel-height': `${readoutBezelHeight}px`,
+    '--hood-readout-glass-height': `${readoutGlassHeight}px`,
+    '--hood-readout-content-min-height': `${HOOD_READOUT_CONTENT_SLOT_PX}px`,
+    '--hood-readout-gap': `${readoutGap}px`,
+  } as CSSProperties;
 
   return (
-    <div className="hood-tire-hub">
+    <div className="hood-tire-hub" style={hubStyle}>
       <div className="hood-tire-hub__black" aria-hidden />
       <motion.div
+        key={slideGroundOut ? 'hood-ground-exit' : 'hood-ground-idle'}
         className="hood-tire-hub__arch-wrap"
-        initial={playIntro ? { y: '100%' } : { y: 0 }}
-        animate={{ y: 0 }}
+        initial={{
+          y: slideGroundOut ? '0%' : playIntro && !skipGroundIntro ? '100%' : '0%',
+        }}
+        animate={{ y: slideGroundOut ? '100%' : '0%' }}
         transition={{
-          duration: playIntro ? HOOD_GROUND_RISE_MS / 1000 : 0,
+          duration:
+            slideGroundOut || (playIntro && !skipGroundIntro)
+              ? HOOD_GROUND_RISE_MS / 1000
+              : 0,
           ease: [0.4, 0, 0.2, 1],
+        }}
+        onAnimationComplete={() => {
+          if (!slideGroundOut || groundExitReportedRef.current) return;
+          groundExitReportedRef.current = true;
+          onGroundExitComplete?.();
         }}
       >
         <HoodTireBaseArch />
       </motion.div>
+      <div className="hood-tire-hub__sky-bg" aria-hidden>
+        <Lottie
+          animationData={wheelAlignmentServiceData}
+          loop
+          autoplay
+          className="hood-tire-hub__sky-bg-player"
+          rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+        />
+      </div>
       <div className="hood-tire-hub__lane" aria-hidden={false}>
-        {showIdleWheel && (
-          <motion.div
-            className="hood-tire-hub__wheel-track hood-tire-hub__wheel-track--active"
-            style={{ width: wheelW }}
-            animate={{ x: idleX, rotate: 0, opacity: 1 }}
-            transition={{ duration: rollDuration, ease: [0.45, 0, 0.2, 1] }}
-          >
-            <HoodTireWheel tirePhase={phase} />
-          </motion.div>
-        )}
-        {showOutgoingWheel && rollTarget && (
+        {rolling && swapping && rollTarget && (
           <motion.div
             className="hood-tire-hub__wheel-track hood-tire-hub__wheel-track--outgoing"
             style={{ width: wheelW }}
-            initial={{ x: center, rotate: 0, opacity: 1 }}
-            animate={{ x: outgoingX, rotate: outgoingSpin, opacity: 1 }}
-            transition={{ duration: rollDuration, ease: [0.45, 0, 0.2, 1] }}
+            initial={{ x: parkX, rotate: 0 }}
+            animate={{ x: offRight, rotate: HOOD_WHEEL_ROLL_SPIN }}
+            transition={{ duration: rollDuration, ease: rollEase }}
           >
             <HoodTireWheel tirePhase={phase} />
           </motion.div>
         )}
-        {showIncomingWheel && (
+        {rolling && (
           <motion.div
             className="hood-tire-hub__wheel-track hood-tire-hub__wheel-track--incoming"
             style={{ width: wheelW }}
-            initial={{ x: offLeft, rotate: 0, opacity: 1 }}
-            animate={{ x: incomingX, rotate: incomingSpin, opacity: 1 }}
-            transition={{ duration: rollDuration, ease: [0.45, 0, 0.2, 1] }}
+            initial={{ x: offLeft, rotate: 0 }}
+            animate={{ x: parkX, rotate: HOOD_WHEEL_ROLL_SPIN }}
+            transition={{ duration: rollDuration, ease: rollEase }}
           >
             <HoodTireWheel tirePhase={swapping && rollTarget ? rollTarget : 'trendlens'} />
           </motion.div>
         )}
+        {parked && (
+          <div
+            className="hood-tire-hub__wheel-track hood-tire-hub__wheel-track--active"
+            style={{ width: wheelW, transform: `translate3d(${Math.round(parkX)}px, 0, 0)` }}
+          >
+            <HoodTireWheel tirePhase={phase} />
+          </div>
+        )}
       </div>
       <div className="hood-tire-hub__readout-row">
-        <div className="hood-tire-hub__readout">
+        <div className="hood-tire-hub__readout hood-tire-hub__readout--interactive">
           <HoodTireHubReadout
             tirePhase={phase}
             counterActive={counterActive}
+            screenVisible={screenVisible}
             onReadoutReady={onReadoutReady}
+            onNavigateToTire={onNavigateToTire}
+            onFinishTireSequence={onFinishTireSequence}
           />
         </div>
-        <HoodTirePressureGauge completedTires={completedTires} />
       </div>
     </div>
   );
@@ -665,16 +1119,38 @@ function HoodTireHubScene({
  * Under the Hood arch — layer stack inside one SVG clip (back → front):
  * 1. Full engine  2. Dipstick  3. Frame overlay (black hole = transparent via mask)
  */
+export type HoodNavTransition = 'tire-to-standards' | 'standards-to-tire';
+
+const HOOD_ARCH_SLIDE_EASE = [0.4, 0, 0.2, 1] as const;
+
 export function DashboardHoodArch({
   phase,
   onPhaseChange,
   onFinishTireSequence,
+  onBackToJourney,
+  onRequestStandardsToTireTransition,
+  onRequestTireToStandardsTransition,
+  hoodNavTransition = null,
+  onNavTransitionMidpoint,
+  onNavTransitionComplete,
 }: {
   phase: HoodPhase;
   onPhaseChange: (phase: HoodPhase) => void;
   onFinishTireSequence?: () => void;
+  /** Returns to the final screen of the Your Journey GPS sequence. */
+  onBackToJourney?: () => void;
+  /** Starts the hood-close transition into kick-the-tires (from standards popup or nav). */
+  onRequestStandardsToTireTransition?: () => void;
+  /** Slides the tire ground down and returns to the standards scene. */
+  onRequestTireToStandardsTransition?: () => void;
+  hoodNavTransition?: HoodNavTransition | null;
+  /** Fired when the outgoing arch (tire or standards) finishes sliding down. */
+  onNavTransitionMidpoint?: () => void;
+  /** Fired when the incoming arch finishes sliding up. */
+  onNavTransitionComplete?: () => void;
 }) {
-  const [popupIndex, setPopupIndex] = useState(0);
+  const [popupIndex, setPopupIndex] = useState(HOOD_CHECKING_POPUP_INDEX);
+  const [popupTyped, setPopupTyped] = useState(false);
   const [acesRisen, setAcesRisen] = useState(false);
   const [piesRisen, setPiesRisen] = useState(false);
   const [showMissing, setShowMissing] = useState(false);
@@ -682,6 +1158,7 @@ export function DashboardHoodArch({
   const [ishopRisen, setIshopRisen] = useState(false);
   const [superspecRisen, setSuperspecRisen] = useState(false);
   const missingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const acesPiesTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const missingRisen = [ipoRisen, ishopRisen, superspecRisen];
   const missingComplete = ipoRisen && ishopRisen && superspecRisen;
@@ -691,6 +1168,9 @@ export function DashboardHoodArch({
   const [tireIntroComplete, setTireIntroComplete] = useState(false);
   const [tireReadoutReady, setTireReadoutReady] = useState(false);
   const [completedTires, setCompletedTires] = useState<Set<TirePhase>>(() => new Set());
+  const [standardsCloseStep, setStandardsCloseStep] = useState<
+    'idle' | 'engine-out' | 'ground-in'
+  >('idle');
 
   const tirePhase = phase === 'standards' ? 'trendlens' : phase;
   const nextTirePhase = getNextTirePhase(tirePhase);
@@ -721,30 +1201,38 @@ export function DashboardHoodArch({
     [onPhaseChange],
   );
 
-  const goToTrendLens = useCallback(() => {
-    setTireReadoutReady(false);
-    setTireIntroComplete(false);
-    onPhaseChange('trendlens');
-  }, [onPhaseChange]);
+  const clearAcesPiesTimers = useCallback(() => {
+    acesPiesTimersRef.current.forEach(clearTimeout);
+    acesPiesTimersRef.current = [];
+  }, []);
+
+  const scheduleAcesPiesRise = useCallback(() => {
+    clearAcesPiesTimers();
+    acesPiesTimersRef.current.push(setTimeout(() => setAcesRisen(true), HOOD_ACES_START_MS));
+    acesPiesTimersRef.current.push(
+      setTimeout(() => setPiesRisen(true), HOOD_ACES_START_MS + HOOD_PIES_STAGGER_MS),
+    );
+  }, [clearAcesPiesTimers]);
 
   const clearMissingTimers = useCallback(() => {
     missingTimersRef.current.forEach(clearTimeout);
     missingTimersRef.current = [];
   }, []);
 
-  const returnToStandards = useCallback(() => {
+  const beginReturnToStandards = useCallback(() => {
     clearMissingTimers();
-    setShowMissing(true);
-    setIpoRisen(true);
-    setIshopRisen(true);
-    setSuperspecRisen(true);
-    setPopupIndex(2);
+    setShowMissing(false);
+    setIpoRisen(false);
+    setIshopRisen(false);
+    setSuperspecRisen(false);
+    setPopupIndex(HOOD_VIP_POPUP_INDEX);
+    setPopupTyped(true);
     setAcesRisen(true);
     setPiesRisen(true);
     setTireIntroComplete(false);
     setTireReadoutReady(false);
-    onPhaseChange('standards');
-  }, [clearMissingTimers, onPhaseChange]);
+    onRequestTireToStandardsTransition?.();
+  }, [clearMissingTimers, onRequestTireToStandardsTransition]);
 
   const beginMissingSequence = useCallback(() => {
     clearMissingTimers();
@@ -768,63 +1256,160 @@ export function DashboardHoodArch({
       return;
     }
     if (phase !== 'standards') {
-      returnToStandards();
+      if (prevTirePhase) {
+        rollToTirePhase(prevTirePhase);
+      } else {
+        beginReturnToStandards();
+      }
       return;
     }
-    if (popupIndex === 2) {
+    if (popupIndex === HOOD_MISSING_POPUP_INDEX) {
       clearMissingTimers();
       setShowMissing(false);
       setIpoRisen(false);
       setIshopRisen(false);
       setSuperspecRisen(false);
-      setPopupIndex(1);
+      setPopupIndex(HOOD_VIP_POPUP_INDEX);
       return;
     }
-    if (popupIndex > 0) setPopupIndex((i) => i - 1);
-  }, [phase, prevTirePhase, popupIndex, clearMissingTimers, returnToStandards, rollToTirePhase]);
+    if (popupIndex === HOOD_VIP_POPUP_INDEX) {
+      setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
+      setPopupTyped(false);
+      return;
+    }
+    if (popupIndex > HOOD_CHECKING_POPUP_INDEX) {
+      if (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX) {
+        clearAcesPiesTimers();
+        setAcesRisen(false);
+        setPiesRisen(false);
+      }
+      setPopupIndex((i) => i - 1);
+      setPopupTyped(false);
+    }
+  }, [phase, prevTirePhase, popupIndex, clearMissingTimers, clearAcesPiesTimers, beginReturnToStandards, rollToTirePhase]);
 
   const handleNext = useCallback(() => {
-    if (popupIndex === 1) {
-      setPopupIndex(2);
-      beginMissingSequence();
+    if (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX) {
+      setPopupIndex(HOOD_VIP_POPUP_INDEX);
+      setPopupTyped(false);
       return;
     }
-    if (popupIndex === 2 && missingComplete) {
-      goToTrendLens();
+    if (popupIndex === HOOD_VIP_POPUP_INDEX && popupTyped) {
+      setTireReadoutReady(false);
+      setTireIntroComplete(false);
+      onRequestStandardsToTireTransition?.();
     }
-  }, [popupIndex, missingComplete, beginMissingSequence, goToTrendLens]);
+  }, [popupIndex, popupTyped, onRequestStandardsToTireTransition]);
 
-  const showForwardChevron = phase === 'standards' && popupIndex >= 1;
-  const forwardDisabled =
-    popupIndex === 1 ? false : popupIndex === 2 ? !missingComplete : true;
+  const handlePopupTypeComplete = useCallback(() => {
+    setPopupTyped(true);
+  }, []);
+
+  const showForwardChevron = phase === 'standards' && popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX;
+  const forwardDisabled = popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped;
   const pairElevated = popupIndex >= 1 && !showMissing;
   const pairRisenTop = pairElevated ? HOOD_DIPSTICK_ELEVATED_TOP : HOOD_DIPSTICK_RISE_TOP;
 
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    if (popupIndex !== HOOD_CHECKING_POPUP_INDEX || !popupTyped) return;
+    scheduleAcesPiesRise();
+  }, [popupIndex, popupTyped, scheduleAcesPiesRise]);
 
-    timers.push(setTimeout(() => setAcesRisen(true), HOOD_ACES_START_MS));
-    timers.push(
-      setTimeout(() => setPiesRisen(true), HOOD_ACES_START_MS + HOOD_PIES_STAGGER_MS),
-    );
-    timers.push(setTimeout(() => setPopupIndex(1), HOOD_PAIR_COMPLETE_MS));
+  useEffect(() => {
+    if (popupIndex !== HOOD_CHECKING_POPUP_INDEX || !acesRisen) return;
+    setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
+    setPopupTyped(false);
+  }, [popupIndex, acesRisen]);
 
-    return () => timers.forEach(clearTimeout);
+  useEffect(
+    () => () => {
+      clearMissingTimers();
+      clearAcesPiesTimers();
+    },
+    [clearMissingTimers, clearAcesPiesTimers],
+  );
+
+  const archSlideTransition = {
+    duration: HOOD_PANEL_SLIDE_MS / 1000,
+    ease: HOOD_ARCH_SLIDE_EASE,
+  };
+  const standardsHoodClosing =
+    hoodNavTransition === 'standards-to-tire' && phase === 'standards';
+  const standardsEnterUp =
+    hoodNavTransition === 'tire-to-standards' && phase === 'standards';
+  const tireSlideGroundOut =
+    hoodNavTransition === 'tire-to-standards' && isTirePhase(phase);
+  const tireSkipGroundIntro =
+    hoodNavTransition === 'standards-to-tire' && isTirePhase(phase);
+
+  useEffect(() => {
+    if (hoodNavTransition !== 'standards-to-tire' || phase === 'standards') return;
+    onNavTransitionComplete?.();
+  }, [hoodNavTransition, phase, onNavTransitionComplete]);
+
+  useEffect(() => {
+    if (hoodNavTransition !== 'tire-to-standards') return;
+    clearMissingTimers();
+    setShowMissing(false);
+    setIpoRisen(false);
+    setIshopRisen(false);
+    setSuperspecRisen(false);
+    setPopupIndex(HOOD_VIP_POPUP_INDEX);
+    setPopupTyped(true);
+    setAcesRisen(true);
+    setPiesRisen(true);
+  }, [hoodNavTransition, clearMissingTimers]);
+
+  useEffect(() => {
+    if (standardsHoodClosing) {
+      setStandardsCloseStep('engine-out');
+      return;
+    }
+    setStandardsCloseStep('idle');
+  }, [standardsHoodClosing]);
+
+  const handleEngineExitComplete = useCallback(() => {
+    setStandardsCloseStep((step) => (step === 'engine-out' ? 'ground-in' : step));
   }, []);
 
-  useEffect(() => () => clearMissingTimers(), [clearMissingTimers]);
-
-  return (
-    <div className="dashboard-hood-arch" aria-hidden={false}>
-      <AnimatePresence mode="wait">
-        {phase === 'standards' ? (
-          <motion.div
-            key="hood-standards"
-            className="dashboard-hood-arch__standards"
-            initial={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ duration: HOOD_STANDARDS_EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
-          >
+  const standardsBranch = (
+    <motion.div
+      key="hood-standards"
+      className="dashboard-hood-arch__standards"
+      initial={
+        hoodNavTransition
+          ? standardsEnterUp
+            ? { y: '100%' }
+            : false
+          : { y: 0 }
+      }
+      animate={{ y: 0 }}
+      exit={hoodNavTransition ? undefined : { y: '100%' }}
+      transition={
+        hoodNavTransition
+          ? archSlideTransition
+          : {
+              duration: HOOD_STANDARDS_EXIT_MS / 1000,
+              ease: HOOD_ARCH_SLIDE_EASE,
+            }
+      }
+      onAnimationComplete={() => {
+        if (!hoodNavTransition) return;
+        if (standardsEnterUp) onNavTransitionComplete?.();
+      }}
+    >
+            {!standardsHoodClosing && (
+              <div className="hood-standards-popup-anchor">
+                <HoodStandardsPopup
+                  index={popupIndex}
+                  onTypeComplete={handlePopupTypeComplete}
+                  onBackToJourney={onBackToJourney}
+                  onNext={handleNext}
+                  nextDisabled={forwardDisabled}
+                  showNavButtons={showForwardChevron}
+                />
+              </div>
+            )}
             <svg
               className="dashboard-hood-arch__svg"
               viewBox={`0 0 ${VB_W} ${VB_H}`}
@@ -841,7 +1426,22 @@ export function DashboardHoodArch({
 
               <g clipPath={`url(#${HOOD_CLIP_ID})`}>
                 <foreignObject x="0" y="0" width={VB_W} height={VB_H}>
-                  <div xmlns="http://www.w3.org/1999/xhtml" className="hood-engine-stack">
+                  <motion.div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    className="hood-engine-stack"
+                    animate={{
+                      y:
+                        standardsCloseStep === 'engine-out' ||
+                        standardsCloseStep === 'ground-in'
+                          ? '100%'
+                          : '0%',
+                    }}
+                    transition={{
+                      duration: HOOD_ENGINE_EXIT_MS / 1000,
+                      ease: HOOD_ARCH_SLIDE_EASE,
+                    }}
+                    onAnimationComplete={handleEngineExitComplete}
+                  >
                     <img
                       src={engineFullImage}
                       alt=""
@@ -850,67 +1450,56 @@ export function DashboardHoodArch({
                     />
                     <div className="hood-dipstick-slot">
                       <div className="hood-standards-band">
-                        <HoodStandardsPopup index={popupIndex} onPrev={handlePrev} />
-                        <div
-                          className={`hood-dipsticks-row${showMissing ? ' hood-dipsticks-row--triple' : ''}`}
-                        >
-                          <AnimatePresence mode="wait">
-                            {!showMissing ? (
-                              <motion.div
-                                key="pair"
-                                className="hood-dipsticks-pair"
-                                initial={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.35 }}
-                              >
-                                <HoodDipstickRise
-                                  src={acesOilImage}
-                                  alt="ACES standard"
-                                  risen={acesRisen}
-                                  risenTop={pairRisenTop}
-                                  className="hood-dipstick-img--aces"
-                                />
-                                <HoodDipstickRise
-                                  src={piesOilImage}
-                                  alt="PIES standard"
-                                  risen={piesRisen}
-                                  risenTop={pairRisenTop}
-                                  className="hood-dipstick-img--pies"
-                                />
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                key="triple"
-                                className="hood-dipsticks-triple"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.35 }}
-                              >
-                                {MISSING_DIPSTICKS.map((stick, i) => (
+                        <div className="hood-standards-dipsticks-group">
+                          <div
+                            className={`hood-dipsticks-row${showMissing ? ' hood-dipsticks-row--triple' : ''}`}
+                          >
+                            <AnimatePresence mode="wait">
+                              {!showMissing ? (
+                                <motion.div
+                                  key="pair"
+                                  className="hood-dipsticks-pair"
+                                  initial={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  transition={{ duration: 0.35 }}
+                                >
                                   <HoodDipstickRise
-                                    key={stick.alt}
-                                    src={stick.src}
-                                    alt={stick.alt}
-                                    risen={missingRisen[i]}
-                                    className={`hood-dipstick-img--missing ${stick.className}`}
+                                    src={acesDipstickImage}
+                                    alt="ACES standard"
+                                    risen={acesRisen}
+                                    risenTop={pairRisenTop}
+                                    className="hood-dipstick-img--aces"
                                   />
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                                  <HoodDipstickRise
+                                    src={piesDipstickImage}
+                                    alt="PIES standard"
+                                    risen={piesRisen}
+                                    risenTop={pairRisenTop}
+                                    className="hood-dipstick-img--pies"
+                                  />
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  key="triple"
+                                  className="hood-dipsticks-triple"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ duration: 0.35 }}
+                                >
+                                  {MISSING_DIPSTICKS.map((stick, i) => (
+                                    <HoodDipstickRise
+                                      key={stick.alt}
+                                      src={stick.src}
+                                      alt={stick.alt}
+                                      risen={missingRisen[i]}
+                                      className={stick.className}
+                                    />
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
-                        {showForwardChevron && (
-                          <HoodNavChevron
-                            direction="right"
-                            onClick={handleNext}
-                            disabled={forwardDisabled}
-                            label={
-                              popupIndex === 2
-                                ? 'Show TrendLens users'
-                                : 'Show missing standards'
-                            }
-                          />
-                        )}
                       </div>
                     </div>
                     <img
@@ -919,26 +1508,48 @@ export function DashboardHoodArch({
                       className="hood-engine-img hood-engine-img--front"
                       draggable={false}
                     />
-                  </div>
+                  </motion.div>
                 </foreignObject>
               </g>
             </svg>
+            {standardsCloseStep === 'ground-in' && (
+              <motion.div
+                key="hood-ground-close"
+                className="hood-standards-ground-close"
+                initial={{ y: '-100%' }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: HOOD_GROUND_RISE_MS / 1000,
+                  ease: [0.4, 0, 0.2, 1],
+                }}
+                onAnimationComplete={() => onNavTransitionMidpoint?.()}
+              >
+                <HoodTireBaseArch />
+              </motion.div>
+            )}
           </motion.div>
-        ) : (
-          <motion.div
-            key="hood-tire-hub"
-            className="dashboard-hood-arch__tire-hub"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-          >
+  );
+
+  const tireBranch = (
+    <motion.div
+      key="hood-tire-hub"
+      className="dashboard-hood-arch__tire-hub"
+      initial={false}
+      animate={{ y: 0 }}
+    >
             <HoodTireHubScene
               phase={tirePhase}
               isRolling={tireRolling}
               rollTarget={tireRollTarget}
               playIntro={!tireIntroComplete}
+              skipGroundIntro={tireSkipGroundIntro}
+              slideGroundOut={tireSlideGroundOut}
               completedTires={completedTires}
               onIntroComplete={handleTireIntroComplete}
+              onGroundExitComplete={onNavTransitionMidpoint}
               onReadoutReady={handleReadoutReady}
+              onNavigateToTire={rollToTirePhase}
+              onFinishTireSequence={onFinishTireSequence}
             />
             <div className="hood-tire-hub__nav">
               <HoodNavChevron
@@ -970,8 +1581,17 @@ export function DashboardHoodArch({
               )}
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+  );
+
+  return (
+    <div className="dashboard-hood-arch" aria-hidden={false}>
+      {hoodNavTransition ? (
+        phase === 'standards' ? standardsBranch : tireBranch
+      ) : (
+        <AnimatePresence mode="wait">
+          {phase === 'standards' ? standardsBranch : tireBranch}
+        </AnimatePresence>
+      )}
     </div>
   );
 }

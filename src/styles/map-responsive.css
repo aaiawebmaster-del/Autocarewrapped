@@ -14,14 +14,35 @@
   padding: 0 16px;
 }
 
+.landing-hero__title-row {
+  --landing-title-font-size: clamp(28px, 6.5vw, 72px);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2.5vw, 24px);
+  max-width: min(100%, 920px);
+}
+
+.landing-hero__logo {
+  flex-shrink: 0;
+  width: auto;
+  height: calc(var(--landing-title-font-size) * 1.05);
+  max-width: clamp(120px, 22vw, 240px);
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+
 .landing-hero__title {
   margin: 0;
   font-family: 'Istok Web', sans-serif;
-  font-size: clamp(36px, 8vw, 72px);
+  font-size: var(--landing-title-font-size);
   font-weight: 700;
   line-height: 1.05;
   color: #ffffff;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.75);
+  text-align: left;
 }
 
 .landing-hero__subtitle {
@@ -36,25 +57,474 @@
 }
 
 .landing-push-start {
-  width: clamp(140px, 28vw, 192px);
-  height: clamp(140px, 28vw, 192px);
+  --landing-start-size: clamp(9rem, 32vw, 12.5rem);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--landing-start-size);
+  max-width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  border: none;
   border-radius: 50%;
-  border: 8px solid #f3901d;
-  background: #000;
-  color: #fff;
-  font-size: clamp(18px, 3vw, 24px);
-  font-weight: 700;
+  background: transparent;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
   flex-shrink: 0;
+  overflow: hidden;
+  transition: transform 0.18s ease;
 }
 
-.landing-push-start:hover {
-  background: #111;
+.landing-push-start__chrome {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 210deg at 50% 50%, #9a9aa4 0deg, #5c5c66 70deg, #24242a 160deg, #101014 250deg, #6a6a74 320deg, #9a9aa4 360deg),
+    linear-gradient(145deg, #7a7a84 0%, #3a3a42 38%, #16161a 72%, #08080a 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.9),
+    0 0 0 2px rgba(255, 255, 255, 0.14),
+    0 10px 28px rgba(0, 0, 0, 0.55),
+    inset 0 3px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.55);
+}
+
+.landing-push-start__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 90% 55% at 32% 18%, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.08) 38%, transparent 62%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.22) 0%, transparent 42%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.landing-push-start__face {
+  position: absolute;
+  inset: 0;
+  width: 86%;
+  height: 86%;
+  margin: auto;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.2), transparent 48%),
+    radial-gradient(circle at 78% 82%, rgba(243, 144, 29, 0.08), transparent 42%),
+    linear-gradient(180deg, #22242c 0%, #101218 55%, #06070a 100%);
+  box-shadow:
+    inset 0 2px 12px rgba(255, 255, 255, 0.08),
+    inset 0 -2px 12px rgba(0, 0, 0, 0.8),
+    inset 0 0 20px rgba(0, 0, 0, 0.45);
+}
+
+.landing-push-start__glow {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(243, 144, 29, 0.65) 0%, rgba(243, 144, 29, 0.18) 42%, transparent 72%);
+  box-shadow: 0 0 32px rgba(243, 144, 29, 0.45);
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.landing-push-start__label {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  width: 100%;
+  height: 100%;
+  padding: 0 14%;
+  box-sizing: border-box;
+  color: #ffffff;
+  font-family: 'Istok Web', sans-serif;
+  line-height: 1;
+  text-align: center;
+  text-shadow:
+    0 0 14px rgba(243, 144, 29, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.95);
+  pointer-events: none;
+}
+
+.landing-push-start__year,
+.landing-push-start__action {
+  font-size: clamp(14px, 2.2vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.landing-push-start__divider {
+  display: block;
+  width: clamp(28px, 42%, 52px);
+  height: 1px;
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(243, 144, 29, 0.95) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 8px rgba(243, 144, 29, 0.55);
+}
+
+.landing-push-start__action {
+  font-size: clamp(13px, 2vw, 18px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.landing-push-start:hover .landing-push-start__glow,
+.landing-push-start:focus-visible .landing-push-start__glow {
+  opacity: 1;
+}
+
+.landing-push-start:hover .landing-push-start__face,
+.landing-push-start:focus-visible .landing-push-start__face {
+  box-shadow:
+    inset 0 0 22px rgba(243, 144, 29, 0.28),
+    inset 0 2px 12px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.landing-push-start:hover .landing-push-start__shine,
+.landing-push-start:focus-visible .landing-push-start__shine {
+  background:
+    radial-gradient(ellipse 90% 55% at 32% 18%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 38%, transparent 62%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.3) 0%, transparent 42%);
 }
 
 .landing-push-start:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
+}
+
+.landing-push-start:active .landing-push-start__glow {
+  opacity: 1;
+}
+
+.landing-push-start--inactive {
+  cursor: default;
+  opacity: 0.88;
+}
+
+.landing-push-start--inactive .landing-push-start__glow {
+  opacity: 0.35;
+}
+
+.dashboard-panel__stage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.dashboard-panel__stage--pre-journey,
+.dashboard-panel__stage--journey {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dashboard-body--pre-journey {
+  overflow: visible;
+}
+
+.pre-journey-stage {
+  --landing-start-size: clamp(9rem, 32vw, 12.5rem);
+  --journey-counter-dial-size: min(100%, var(--landing-start-size));
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.pre-journey-stage--landing {
+  display: block;
+}
+
+.pre-journey-stage--intro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  align-items: start;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.pre-journey-stage__start-float {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: var(--landing-start-size);
+  max-width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.pre-journey-stage__start-float .landing-push-start {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+}
+
+.pre-journey-stage--intro .pre-journey-stage__intro-col {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  position: relative;
+  top: calc(50% - var(--landing-start-size) / 2);
+  width: 100%;
+}
+
+.pre-journey-stage__intro-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+/* Premium automotive HMI screen — intro panel, journey message row, nav map stage */
+.pre-journey-stage__intro-panel,
+.journey-counter-panel__message-row,
+.journey-nav-stage-inner,
+.full-diagnostics__map-stage-inner,
+.journey-layout__nav-message-panel {
+  --hmi-chrome-border: clamp(8px, 1.1vw, 12px);
+  --hmi-radius: clamp(12px, 1.6vw, 16px);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: var(--hmi-radius);
+  border: var(--hmi-chrome-border) solid transparent;
+  background:
+    linear-gradient(180deg, rgba(6, 8, 12, 0.98) 0%, rgba(2, 3, 6, 0.99) 100%) padding-box,
+    linear-gradient(
+      180deg,
+      #e4e8ee 0%,
+      #b8bec8 12%,
+      #8a919c 28%,
+      #565d68 52%,
+      #3a404a 72%,
+      #252932 88%,
+      #181b20 100%
+    ) border-box;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 6px 18px rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(0, 155, 220, 0.1),
+    0 0 28px rgba(0, 120, 200, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+}
+
+.pre-journey-stage__intro-panel::before,
+.journey-counter-panel__message-row::before,
+.journey-nav-stage-inner::before,
+.full-diagnostics__map-stage-inner::before,
+.journey-layout__nav-message-panel::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--hmi-chrome-border) - 2px);
+  border-radius: calc(var(--hmi-radius) - 4px);
+  border: 1px solid rgba(0, 191, 255, 0.72);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, rgba(14, 18, 24, 0.92) 0%, rgba(4, 6, 10, 0.96) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 240, 255, 0.42),
+    inset 0 0 0 2px rgba(0, 191, 255, 0.22),
+    inset 0 0 10px rgba(0, 191, 255, 0.28),
+    inset 0 0 22px rgba(0, 140, 220, 0.12),
+    inset 0 4px 14px rgba(0, 0, 0, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
+    0 0 6px rgba(0, 191, 255, 0.35),
+    0 0 16px rgba(0, 160, 230, 0.18),
+    0 0 32px rgba(0, 120, 200, 0.08);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pre-journey-stage__intro-panel::after,
+.journey-counter-panel__message-row::after,
+.journey-nav-stage-inner::after,
+.full-diagnostics__map-stage-inner::after,
+.journey-layout__nav-message-panel::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--hmi-chrome-border) + 1px);
+  left: 10%;
+  right: 10%;
+  height: 38%;
+  border-radius: calc(var(--hmi-radius) - 6px) calc(var(--hmi-radius) - 6px) 50% 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.06) 42%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pre-journey-stage__intro-panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: clamp(0.5rem, 1.5vw, 1rem);
+  width: 100%;
+  min-height: max(var(--landing-start-size), clamp(11rem, 28vh, 17rem));
+  height: auto;
+  padding-block: clamp(0.65rem, 1.4vh, 1rem);
+  padding-inline: clamp(0.5rem, 1.2vw, 0.85rem);
+}
+
+.pre-journey-stage__intro-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+.pre-journey-stage__intro-panel .intro-slide__back,
+.pre-journey-stage__intro-panel .intro-slide__next {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+  z-index: 2;
+}
+
+.pre-journey-stage__intro-panel .intro-slide__text,
+.pre-journey-stage__intro-panel .intro-slide__welcome {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 640px) {
+  .pre-journey-stage--intro {
+    grid-template-columns: 1fr;
+    gap: clamp(0.75rem, 2vh, 1.25rem);
+    align-items: center;
+  }
+
+  .pre-journey-stage--intro .pre-journey-stage__intro-col {
+    grid-column: 1;
+    top: 0;
+    width: 100%;
+  }
+
+  .pre-journey-stage--intro .pre-journey-stage__start-float {
+    display: none;
+  }
+}
+
+.dashboard-panel--landing .dashboard-panel__body {
+  overflow: visible;
+}
+
+.dashboard-panel--landing {
+  overflow: visible;
+}
+
+/* Metallic dash arch — landing, intro, journey counter, and journey nav scenes */
+.dashboard-panel--arch {
+  overflow: visible;
+}
+
+.dashboard-panel--arch .dashboard-panel-arch {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% 0%, rgba(243, 144, 29, 0.07), transparent 58%),
+    linear-gradient(180deg, #2e2e34 0%, #141418 45%, #070708 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -12px 28px rgba(0, 0, 0, 0.55);
+}
+
+.dashboard-panel--arch .dashboard-panel__arch-fill {
+  fill: url(#dashboard-panel-arch-gradient);
+}
+
+.dashboard-panel--arch .dashboard-panel-arch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 18%, transparent 42%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.015) 0,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+}
+
+.dashboard-panel--arch .dashboard-panel-arch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 8%, rgba(243, 144, 29, 0.09), transparent 62%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0%, transparent 38%);
+}
+
+.dashboard-panel--arch::before {
+  content: '';
+  position: absolute;
+  top: clamp(58px, 14%, 72px);
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 20%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.12) 80%,
+    transparent 100%
+  );
+  opacity: 0.7;
+}
+
+.dashboard-panel--arch .dashboard-panel__clock,
+.dashboard-panel--arch .dashboard-panel__weather {
+  text-shadow:
+    0 0 10px rgba(243, 144, 29, 0.25),
+    0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
 /* Dashboard map simulation + GPS popup */
@@ -73,14 +543,14 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #000;
+  background: transparent;
 }
 
 .dashboard-hood-bg--trendlens,
 .dashboard-hood-bg--demandindex,
 .dashboard-hood-bg--factbook,
 .dashboard-hood-bg--academy {
-  background: #000;
+  background: transparent;
 }
 
 .dashboard-hood-arch__standards,
@@ -98,7 +568,7 @@
   width: 100%;
   height: 100%;
   pointer-events: auto;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Bottom-anchored dashboard shell — no top offset (avoids arch/content overlap on wide screens) */
@@ -108,13 +578,224 @@
   bottom: -3px;
   left: 0;
   right: 0;
-  height: clamp(300px, calc(58vh - 72px), 520px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 316px;
   z-index: 20;
+  isolation: isolate;
+  vertical-align: middle;
+}
+
+/* Layer order inside panel: arch (back) → nav → body (front) */
+.dashboard-panel__arch {
+  z-index: 0;
+}
+
+.dashboard-panel-arch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  background: #000000;
+}
+
+.dashboard-panel-arch__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Center cluster (arrows + clock) stays fixed; gas/tire sit in side columns */
+.dashboard-panel__nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  column-gap: clamp(8px, 1.5vw, 14px);
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.dashboard-panel__nav-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2.5vw, 24px);
+}
+
+.dashboard-panel__nav-flank {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-panel__nav-flank--left {
+  justify-self: end;
+}
+
+.dashboard-panel__nav-flank--right {
+  justify-self: start;
+}
+
+.dashboard-panel__clock,
+.dashboard-panel__weather {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: clamp(13px, 2.5vw, 20px);
+  flex-shrink: 0;
+}
+
+.dashboard-panel__signal {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.dashboard-panel__signal:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.dashboard-panel__signal svg {
+  width: clamp(28px, 3.5vw, 36px);
+  height: clamp(28px, 3.5vw, 36px);
+  display: block;
+}
+
+.dashboard-panel__signal--right svg {
+  transform: scaleX(-1);
+}
+
+.dashboard-panel__indicator {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(28px, 3.5vw, 36px);
+  line-height: 0;
+}
+
+.dashboard-panel__indicator svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+.dashboard-panel__indicator--gas {
+  aspect-ratio: 53.3783 / 42.6199;
+}
+
+.dashboard-panel__indicator--tire {
+  aspect-ratio: 61 / 42.6612;
+}
+
+.dashboard-panel__body {
+  z-index: 4;
 }
 
 .dashboard-panel--hood {
-  overflow-x: visible;
-  overflow-y: hidden;
+  overflow: visible;
+}
+
+/* Kick the Tires — full content area; Under the Hood standards stays bottom-anchored */
+.dashboard-panel--hood:has(.dashboard-hood-bg--trendlens),
+.dashboard-panel--hood:has(.dashboard-hood-bg--demandindex),
+.dashboard-panel--hood:has(.dashboard-hood-bg--factbook),
+.dashboard-panel--hood:has(.dashboard-hood-bg--academy) {
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  max-height: none;
+}
+
+.dashboard-panel--hood .dashboard-hood-bg,
+.dashboard-panel--hood .dashboard-hood-arch,
+.dashboard-panel--hood .dashboard-hood-arch__standards,
+.dashboard-panel--hood .dashboard-hood-arch__tire-hub {
+  overflow: visible;
+}
+
+/* Journey counter + nav slides: taller panel than landing/intro default */
+.dashboard-panel--counter {
+  --dashboard-journey-body-top: calc(20px + clamp(28px, 3.5vw, 36px) + 20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 419px;
+  overflow: visible;
+}
+
+.dashboard-panel--map {
+  --dashboard-journey-body-top: calc(20px + clamp(28px, 3.5vw, 36px) + 20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: min(520px, calc(100% - 10px));
+  max-height: calc(100vh - 72px - 6rem - 10px);
+  overflow: visible;
+}
+
+.dashboard-panel--journey-resize {
+  max-height: calc(100vh - 72px - 6rem - 10px);
+}
+
+.dashboard-panel--counter .dashboard-panel__body.dashboard-body--journey-counter,
+.dashboard-panel--map .dashboard-panel__body.dashboard-body--journey-nav {
+  position: absolute;
+  top: var(--dashboard-journey-body-top);
+  left: 8%;
+  right: 8%;
+  bottom: auto;
+  width: auto;
+  height: fit-content;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.dashboard-panel--map .dashboard-panel__body.dashboard-body--journey-nav {
+  bottom: clamp(10px, 1.5vh, 18px);
+  height: auto;
+  justify-content: stretch;
+}
+
+.dashboard-panel--map .dashboard-body--journey-nav > * {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.dashboard-panel--counter .dashboard-body--journey-counter > .journey-layout--counter {
+  flex: 0 1 auto;
+  width: 100%;
+  height: fit-content;
+  max-height: none;
+  overflow: visible;
 }
 
 .dashboard-hood-arch {
@@ -137,6 +818,7 @@
   height: 100%;
   overflow: hidden;
   isolation: isolate;
+  will-change: transform;
 }
 
 .hood-engine-img {
@@ -168,34 +850,85 @@
   pointer-events: none;
 }
 
-/* Popup + dipsticks + forward chevron in one row (stays inside arch clip) */
+/* Popup above engine (title slot) + centered dipsticks below */
 .hood-standards-band {
   position: absolute;
+  inset: 0;
   left: 50%;
-  bottom: 28%;
   transform: translateX(-50%);
   display: flex;
-  align-items: flex-end;
-  gap: 15px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   z-index: 5;
-  pointer-events: auto;
+  pointer-events: none;
+  width: 100%;
   max-width: min(96%, 1100px);
+}
+
+.dashboard-hood-arch__standards > .hood-standards-popup-anchor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: clamp(8px, 1.2vh, 14px);
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 clamp(16px, 3vw, 24px);
+  pointer-events: auto;
+  box-sizing: border-box;
 }
 
 .hood-dipsticks-row {
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: clamp(440px, 76vw, 640px);
+  height: min(640px, 84vh);
   flex: 0 0 auto;
   pointer-events: none;
   overflow: visible;
+  margin: 0 auto;
+  --hood-dipstick-pies-width: clamp(200px, 24vw, 280px);
+  /* ACES viewBox is wider vs artwork — scale width so cap matches PIES */
+  --hood-dipstick-aces-width: clamp(255px, 30.6vw, 358px);
+}
+
+.hood-standards-dipsticks-group {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  padding-bottom: clamp(10%, 16vh, 26%);
+  pointer-events: none;
+}
+
+/* Centered ACES + PIES pair */
+.hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--aces {
+  left: 0;
+  right: auto;
+  width: var(--hood-dipstick-aces-width);
+  /* ACES artboard has more headroom above the cap — nudge up so caps align with PIES */
+  translate: 0 calc(-100% * (62 / 1600 - 28 * 252 / (251 * 1600)));
+}
+
+.hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--pies {
+  left: auto;
+  right: 0;
+  width: var(--hood-dipstick-pies-width);
 }
 
 .hood-dipsticks-row--triple {
-  width: 374px;
+  width: 748px;
 }
 
-.hood-dipsticks-pair,
+.hood-dipsticks-pair {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .hood-dipsticks-triple {
   position: relative;
   width: 100%;
@@ -219,45 +952,51 @@
 
 .hood-dipstick-img--aces {
   left: 0;
-  width: 140px;
+  width: var(--hood-dipstick-aces-width, clamp(255px, 30.6vw, 358px));
+  translate: 0 calc(-100% * (62 / 1600 - 28 * 252 / (251 * 1600)));
 }
 
 .hood-dipstick-img--pies {
-  left: 152px;
-  width: 140px;
-}
-
-.hood-dipstick-img--missing {
-  width: 118px;
+  left: clamp(216px, 28vw, 304px);
+  width: var(--hood-dipstick-pies-width, clamp(200px, 24vw, 280px));
 }
 
 .hood-dipstick-img--ipo {
   left: 0;
+  width: clamp(180px, 22vw, 256px);
 }
 
 .hood-dipstick-img--ishop {
-  left: 128px;
+  left: clamp(196px, 24vw, 276px);
+  width: clamp(180px, 22vw, 256px);
 }
 
 .hood-dipstick-img--superspec {
-  left: 256px;
+  left: clamp(392px, 48vw, 552px);
+  width: clamp(180px, 22vw, 256px);
 }
 
-/* Back chevron | popup */
+/* Standards copy box — centered in title slot */
 .hood-standards-popup-row {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 15px;
-  flex: 0 1 auto;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
   min-width: 0;
-  max-width: min(460px, 42vw);
+  max-width: min(600px, 92vw);
+  height: 200px;
 }
 
 .hood-standards-popup {
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: min(420px, 38vw);
+  --hood-standards-popup-height: 200px;
+  position: relative;
+  flex: 0 0 auto;
+  width: min(560px, 58vw);
+  min-width: min(360px, 50vw);
+  height: var(--hood-standards-popup-height);
+  min-height: var(--hood-standards-popup-height);
+  max-width: min(560px, 58vw);
   padding: clamp(14px, 2.5vw, 20px) clamp(16px, 3vw, 24px);
   background: #0a0a0a;
   border-radius: 12px;
@@ -265,6 +1004,128 @@
   box-shadow:
     0 0 24px rgba(57, 255, 20, 0.12),
     inset 0 0 16px rgba(57, 255, 20, 0.06);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hood-standards-popup__body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(10px, 1.5vw, 14px);
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hood-standards-popup__text-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(57, 255, 20, 0.55) rgba(10, 10, 10, 0.9);
+}
+
+.hood-standards-popup__text-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hood-standards-popup__text-area::-webkit-scrollbar-track {
+  background: rgba(10, 10, 10, 0.9);
+}
+
+.hood-standards-popup__text-area::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.45);
+  border-radius: 3px;
+}
+
+.hood-standards-popup__text-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(57, 255, 20, 0.65);
+}
+
+.hood-standards-popup__footer {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  padding-top: clamp(8px, 1.2vw, 10px);
+}
+
+.hood-standards-popup__nav {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: clamp(6px, 1.2vw, 10px);
+  width: 100%;
+  min-height: 31px;
+}
+
+.hood-standards-popup__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: clamp(8px, 1.5vw, 12px) clamp(10px, 1.8vw, 16px);
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(14px, 2.4vw, 22px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  border-radius: 0;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.hood-standards-popup__btn--next {
+  margin-left: auto;
+  align-self: stretch;
+  background: #39ff14;
+  color: #0a0a0a;
+  border: none;
+  text-decoration: none;
+}
+
+.hood-standards-popup__btn--next:hover:not(:disabled) {
+  background: #5dff3d;
+}
+
+.hood-standards-popup__btn--next:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.hood-standards-popup__btn--back {
+  background: #0a0a0a;
+  color: #39ff14;
+  border: 2px solid #39ff14;
+}
+
+.hood-standards-popup__btn--back:hover {
+  background: #141414;
+}
+
+.hood-standards-popup__btn:focus-visible {
+  outline: 2px solid #39ff14;
+  outline-offset: 2px;
 }
 
 .hood-nav-chevron {
@@ -286,25 +1147,22 @@
   cursor: default;
 }
 
-.hood-nav-chevron--right {
-  flex-shrink: 0;
-  align-self: center;
-  margin-bottom: 0;
-}
-
 .hood-nav-chevron-icon {
-  width: clamp(22px, 4vw, 36px);
-  height: clamp(22px, 4vw, 36px);
+  width: clamp(28px, 5vw, 44px);
+  height: clamp(28px, 5vw, 44px);
   display: block;
   flex-shrink: 0;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(70%) sepia(48%) saturate(1718%) hue-rotate(346deg)
+    brightness(101%) contrast(92%);
 }
 
 .hood-standards-popup__text {
   margin: 0;
   font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.35;
   letter-spacing: 0.04em;
   color: #39ff14;
   text-transform: lowercase;
@@ -314,33 +1172,102 @@
     0 0 28px rgba(57, 255, 20, 0.35);
 }
 
+.hood-standards-popup__cursor {
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 3px;
+  vertical-align: text-bottom;
+  background: #39ff14;
+  box-shadow:
+    0 0 6px rgba(57, 255, 20, 0.95),
+    0 0 14px rgba(57, 255, 20, 0.65);
+  animation: hood-standards-cursor-blink 1s step-end infinite;
+}
+
+@keyframes hood-standards-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.hood-standards-popup__cta {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #39ff14;
+  color: #0a0a0a;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.hood-standards-popup__cta:hover {
+  background: #5dff3d;
+}
+
+.hood-standards-popup__cta:focus-visible {
+  outline: 2px solid #39ff14;
+  outline-offset: 2px;
+}
+
 @media (max-width: 768px) {
   .hood-standards-band {
-    bottom: 24%;
-    gap: 10px;
     max-width: 98%;
   }
 
+  .dashboard-hood-arch__standards > .hood-standards-popup-anchor {
+    margin-bottom: clamp(6px, 1vh, 10px);
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
   .hood-standards-popup-row {
-    max-width: min(300px, 52vw);
-    gap: 10px;
+    max-width: min(600px, 96vw);
+  }
+
+  .hood-standards-dipsticks-group {
+    padding-bottom: clamp(8%, 14vh, 22%);
   }
 
   .hood-standards-popup {
-    max-width: min(260px, 48vw);
+    --hood-standards-popup-height: 200px;
+    width: min(400px, 96vw);
+    min-width: min(340px, 92vw);
+    max-width: min(400px, 96vw);
+    height: var(--hood-standards-popup-height);
+    min-height: var(--hood-standards-popup-height);
     padding: 12px 14px;
   }
 
+  .hood-standards-popup__nav {
+    gap: 6px;
+  }
+
+  .hood-standards-popup__btn {
+    padding: 8px 10px;
+    font-size: clamp(11px, 2.8vw, 16px);
+  }
+
   .hood-standards-popup__text {
-    font-size: clamp(16px, 4.5vw, 22px);
+    font-size: 22px;
+  }
+
+  .hood-standards-popup__cta {
+    font-size: clamp(11px, 2.8vw, 16px);
   }
 
   .hood-dipsticks-row {
-    height: 180px;
+    width: min(600px, 92vw);
+    height: min(520px, 96vh);
   }
 
   .hood-dipsticks-row--triple {
-    width: min(374px, 78vw);
+    width: min(748px, 78vw);
   }
 
   .hood-dipsticks-row--triple .hood-dipstick-img--ishop {
@@ -355,9 +1282,11 @@
     left: 0;
   }
 
-  .hood-dipsticks-row--triple .hood-dipstick-img--missing {
+  .hood-dipsticks-row--triple .hood-dipstick-img--ipo,
+  .hood-dipsticks-row--triple .hood-dipstick-img--ishop,
+  .hood-dipsticks-row--triple .hood-dipstick-img--superspec {
     width: calc(33.33% - 8px);
-    max-width: 118px;
+    max-width: 256px;
   }
 }
 
@@ -366,6 +1295,9 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .dashboard-map-arch__svg {
@@ -374,12 +1306,13 @@
   height: 100%;
 }
 
-/* Parallax GPS map texture inside arch clip */
+/* Parallax GPS map texture inside arch foreignObject — aligned with panel arch clip */
 .gps-map-parallax-host {
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: #151a22;
+  pointer-events: none;
 }
 
 .gps-map-parallax-track {
@@ -402,9 +1335,8 @@
 }
 
 .dashboard-panel--map .dashboard-panel__nav,
-.dashboard-panel--map .dashboard-panel__body,
-.dashboard-panel--map .dashboard-panel__status {
-  z-index: 2;
+.dashboard-panel--map .dashboard-panel__body {
+  z-index: 4;
 }
 
 /* Volume + gear: top-left of arch, ~250px left of center, same Y as under time/weather */
@@ -475,6 +1407,46 @@
 .gps-icon-turn {
   flex-shrink: 0;
   display: block;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(73%) sepia(30%) saturate(1500%) hue-rotate(166deg)
+    brightness(100%) contrast(95%);
+}
+
+.gps-icon-turn--attendance {
+  filter: none;
+  color: #007ac3;
+}
+
+.gps-icon-turn--hours {
+  filter: none;
+  color: #f3901d;
+}
+
+/* Hourglass loading: flip 180° → pause → flip 180° → pause */
+@keyframes gps-hourglass-flip {
+  0% {
+    transform: rotate(0deg);
+  }
+  22% {
+    transform: rotate(180deg);
+  }
+  48% {
+    transform: rotate(180deg);
+  }
+  70% {
+    transform: rotate(360deg);
+  }
+  92% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.gps-icon-turn.gps-icon-hourglass--loading {
+  transform-origin: center center;
+  animation: gps-hourglass-flip 2.2s ease-in-out infinite;
 }
 
 .map-control-zoom {
@@ -496,10 +1468,6 @@
 }
 
 /* Journey nav map row (inside journey-layout--nav) */
-.journey-layout--nav {
-  padding-bottom: 4px;
-}
-
 .journey-nav-map-cluster {
   flex: 1;
   min-width: 0;
@@ -511,40 +1479,576 @@
   overflow: visible;
 }
 
-/* Back chevron | popup | forward chevron — equal column gaps */
-.journey-nav-popup-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+.dashboard-panel--map .dashboard-body--journey-nav > .dashboard-panel__stage--journey {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-panel--map .dashboard-body--journey-nav > .dashboard-panel__stage--journey > .journey-layout--nav {
+  height: 100%;
+  min-height: 0;
+}
+
+.journey-nav-stage-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(transparent, transparent) padding-box,
+    linear-gradient(
+      180deg,
+      #e4e8ee 0%,
+      #b8bec8 12%,
+      #8a919c 28%,
+      #565d68 52%,
+      #3a404a 72%,
+      #252932 88%,
+      #181b20 100%
+    ) border-box;
+}
+
+.journey-nav-stage-inner::before {
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 240, 255, 0.42),
+    inset 0 0 0 2px rgba(0, 191, 255, 0.22),
+    inset 0 0 10px rgba(0, 191, 255, 0.28),
+    inset 0 0 22px rgba(0, 140, 220, 0.12),
+    inset 0 4px 14px rgba(0, 0, 0, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
+    0 0 6px rgba(0, 191, 255, 0.35),
+    0 0 16px rgba(0, 160, 230, 0.18),
+    0 0 32px rgba(0, 120, 200, 0.08);
+}
+
+.journey-nav-slide-bg {
+  position: absolute;
+  inset: var(--hmi-chrome-border);
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  background: #050608;
+  border-radius: calc(var(--hmi-radius) - 5px);
+}
+
+/* Full-bleed map canvas inside the HMI bezel */
+.journey-nav-map-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.journey-nav-map-frame .journey-nav-map-panel__lottie {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.journey-nav-map-frame .journey-nav-map-panel__lottie > div {
+  width: 100%;
+  height: 100%;
+}
+
+.journey-nav-map-frame .journey-nav-map-panel__lottie svg,
+.journey-nav-map-frame .journey-nav-map-panel__lottie canvas {
+  display: block;
+}
+
+.journey-nav-ui {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.journey-nav-ui > * {
+  pointer-events: auto;
+}
+
+/* Centered pre-animation calculating overlay */
+.journey-nav-calculating {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
   align-items: center;
-  column-gap: clamp(16px, 3vw, 24px);
+  justify-content: center;
+  pointer-events: none;
+}
+
+.journey-nav-calculating__card {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 16px);
+  min-width: clamp(220px, 42vw, 320px);
+  padding: clamp(18px, 2.4vh, 24px) clamp(22px, 3vw, 32px);
+  text-align: left;
+  background:
+    linear-gradient(180deg, rgba(38, 42, 48, 0.96) 0%, rgba(20, 22, 26, 0.98) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: clamp(14px, 1.6vw, 18px);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.58),
+    0 2px 10px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.journey-nav-calculating__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-nav-calculating__text {
+  min-width: 0;
+}
+
+.journey-nav-calculating__title {
+  margin: 0;
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: clamp(1.125rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f5f7fa;
+  text-transform: lowercase;
+}
+
+.journey-nav-calculating__subtitle {
+  margin: clamp(6px, 0.8vh, 8px) 0 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(1.0625rem, 2.4vw, 1.375rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(235, 240, 245, 0.85);
+}
+
+/* Centered GPS arrival overlay (phase 4) */
+.journey-nav-arrival {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2vh, 20px);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.journey-nav-arrival::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  pointer-events: none;
+}
+
+.journey-nav-arrival__card {
+  --gps-arrival-accent: #34c759;
+  position: relative;
+  z-index: 1;
+  width: min(100%, clamp(280px, 46vw, 380px));
+  padding: clamp(20px, 2.8vh, 28px) clamp(22px, 3vw, 32px) clamp(18px, 2.4vh, 24px);
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(38, 42, 48, 0.97) 0%, rgba(16, 18, 22, 0.99) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: clamp(16px, 1.8vw, 20px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.62),
+    0 0 0 1px rgba(52, 199, 89, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  pointer-events: auto;
+}
+
+.journey-nav-arrival__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: var(--gps-arrival-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--gps-arrival-accent) 60%, transparent);
+}
+
+.journey-nav-arrival__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(44px, 6vw, 52px);
+  height: clamp(44px, 6vw, 52px);
+  margin: 0 auto clamp(10px, 1.2vh, 14px);
+  border-radius: 50%;
+  color: var(--gps-arrival-accent);
+  background: rgba(52, 199, 89, 0.12);
+  border: 1px solid rgba(52, 199, 89, 0.35);
+}
+
+.journey-nav-arrival__icon svg,
+.journey-nav-arrival__route-icon {
+  width: clamp(24px, 3.5vw, 28px);
+  height: clamp(24px, 3.5vw, 28px);
+}
+
+.journey-nav-arrival__eyebrow {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(0.75rem, 1.2vw, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gps-arrival-accent);
+}
+
+.journey-nav-arrival__destination {
+  margin: clamp(6px, 0.8vh, 8px) 0 0;
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: clamp(1.375rem, 2.8vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f5f7fa;
+}
+
+.journey-nav-arrival__detail {
+  margin: clamp(4px, 0.6vh, 6px) 0 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(0.8125rem, 1.3vw, 0.875rem);
+  color: rgba(235, 240, 245, 0.62);
+}
+
+.journey-nav-arrival__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 14px);
+  margin-top: clamp(16px, 2vh, 22px);
+}
+
+.journey-nav-arrival__btn {
+  min-width: clamp(110px, 18vw, 140px);
+  padding: clamp(9px, 1.2vh, 11px) clamp(14px, 2vw, 18px);
+  border-radius: clamp(10px, 1.2vw, 12px);
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(0.8125rem, 1.3vw, 0.875rem);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.journey-nav-arrival__card--rerouting {
+  --gps-arrival-accent: #f3901d;
+}
+
+.journey-nav-arrival__card--rerouting::before {
+  background: var(--gps-arrival-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--gps-arrival-accent) 60%, transparent);
+}
+
+.journey-nav-arrival__card--rerouting .journey-nav-arrival__icon {
+  color: var(--gps-arrival-accent);
+  background: rgba(243, 144, 29, 0.12);
+  border-color: rgba(243, 144, 29, 0.35);
+}
+
+.journey-nav-arrival__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.journey-nav-arrival__detail--lead {
+  max-width: 30ch;
+  line-height: 1.45;
+  color: rgba(235, 240, 245, 0.78);
+}
+
+.journey-nav-arrival__btn--back {
+  color: #f5f7fa;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.journey-nav-arrival__btn--back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.journey-nav-arrival__btn--aapex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #0a0c0f;
+  background: var(--gps-arrival-accent);
+  border: 1px solid color-mix(in srgb, var(--gps-arrival-accent) 85%, transparent);
+}
+
+.journey-nav-arrival__btn--aapex:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.journey-nav-arrival__btn--next {
+  color: #0a0c0f;
+  background: var(--gps-arrival-accent);
+  border: 1px solid rgba(52, 199, 89, 0.85);
+}
+
+.journey-nav-arrival__btn--next:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+/* Lower-right slide-in CTA to Under the Hood */
+.journey-nav-hood-next {
+  position: absolute;
+  right: clamp(12px, 2vw, 28px);
+  bottom: clamp(14px, 2.2vh, 24px);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.journey-nav-hood-next__btn {
+  --gps-nav-accent: #34c759;
+  position: relative;
+  min-width: clamp(110px, 18vw, 140px);
+  padding: clamp(11px, 1.5vh, 14px) clamp(18px, 2.4vw, 24px);
+  border-radius: clamp(12px, 1.4vw, 16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(38, 42, 48, 0.96) 0%, rgba(20, 22, 26, 0.98) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #f5f7fa;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(0.875rem, 1.4vw, 0.9375rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+
+.journey-nav-hood-next__btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--gps-nav-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gps-nav-accent) 55%, transparent);
+}
+
+.journey-nav-hood-next__btn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.journey-nav-corner-nav {
+  position: absolute;
+  left: clamp(12px, 2vw, 28px);
+  right: clamp(12px, 2vw, 28px);
+  bottom: clamp(14px, 2.2vh, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(12px, 2vw, 20px);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.journey-nav-corner-nav__btn {
+  --gps-nav-accent: #007ac3;
+  position: relative;
+  min-width: clamp(96px, 16vw, 128px);
+  padding: clamp(10px, 1.3vh, 12px) clamp(18px, 2.4vw, 24px);
+  border-radius: clamp(12px, 1.4vw, 16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(38, 42, 48, 0.96) 0%, rgba(20, 22, 26, 0.98) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #f5f7fa;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(0.875rem, 1.4vw, 0.9375rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 0.15s ease,
+    filter 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.journey-nav-corner-nav__btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--gps-nav-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gps-nav-accent) 55%, transparent);
+}
+
+.journey-nav-corner-nav__btn--back {
+  --gps-nav-accent: #f3901d;
+}
+
+.journey-nav-corner-nav__btn--next {
+  --gps-nav-accent: #34c759;
+}
+
+.journey-nav-corner-nav__btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.journey-nav-corner-nav__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Popup stack */
+
+.journey-nav-popup-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(10px, 1.6vh, 16px);
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
+  margin-top: 0;
+  padding: 0 clamp(12px, 2vw, 24px) clamp(72px, 9vh, 88px);
+  box-sizing: border-box;
 }
 
-.journey-nav-popup-row > .journey-nav-chevron--left {
-  grid-column: 1;
-  justify-self: end;
-}
-
-/* Flatten wrapper so popup + right chevron share the row grid */
-.journey-nav-popup-row > .gps-popup-stage-wrapper {
-  display: contents;
-}
-
-.gps-popup-stage-wrapper > .gps-popup-stage {
-  grid-column: 2;
-  justify-self: center;
+.journey-nav-popup-row > .journey-nav-popup-overlay {
+  width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(10px, 1.8vh, 18px) 0 clamp(6px, 1vh, 10px);
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  pointer-events: none;
 }
 
-.gps-popup-stage-wrapper > .journey-nav-chevron--right {
-  grid-column: 3;
-  justify-self: start;
+.journey-nav-popup-overlay > * {
+  pointer-events: auto;
 }
 
-.gps-popup-stage-wrapper {
-  min-width: 0;
+.journey-nav-popup-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(8px, 1.1vh, 10px);
+  width: min(100%, clamp(260px, 38vw, 360px));
+  max-height: 100%;
+  overflow-x: visible;
+  overflow-y: auto;
+  scrollbar-width: none;
+  pointer-events: none;
+}
+
+.journey-nav-popup-stack::-webkit-scrollbar {
+  display: none;
+}
+
+.gps-popup-stack__item {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  pointer-events: auto;
+  transform-origin: bottom center;
+}
+
+.gps-popup-stack__item:not(:last-child) .gps-event-popup--nav::after {
+  display: none;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--nav-stacked {
+  opacity: 0.92;
+  filter: saturate(0.92);
+}
+
+.journey-nav-popup-overlay .gps-event-popup--nav-stacked .gps-event-popup__title,
+.journey-nav-popup-overlay .gps-event-popup--nav-stacked .gps-event-popup__subtitle {
+  color: rgba(235, 240, 245, 0.82);
+}
+
+.journey-nav-chevron-row .journey-nav-chevron {
+  margin: 0;
 }
 
 .journey-nav-chevron {
@@ -561,6 +2065,12 @@
   min-height: 44px;
 }
 
+.journey-nav-chevron:disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
+}
+
 .journey-nav-chevron-icon {
   width: clamp(22px, 4vw, 36px);
   height: clamp(22px, 4vw, 36px);
@@ -569,48 +2079,96 @@
 }
 
 /* Intro driving slides — text + next arrow */
-.intro-slide__motion {
+.intro-slide__body {
+  position: relative;
+  width: 100%;
   height: 100%;
+  min-height: 0;
+}
+
+.intro-slide__content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.intro-slide__motion {
+  flex: 0 0 auto;
+  height: auto;
   min-height: 0;
 }
 
 .intro-slide__row {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(12px, 2.5vw, 20px);
-  height: 100%;
+  position: relative;
+  height: clamp(9.5rem, 22vh, 13.5rem);
   min-height: 0;
+  max-height: 100%;
 }
 
 .intro-slide__text-scroll {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  padding-left: 20px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(374px, calc(100% - clamp(80px, 18vw, 120px)));
+  max-height: calc(100% - 24px);
   box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.intro-slide__welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.5vh, 14px);
+  width: 100%;
 }
 
 .intro-slide__text {
   margin: 0;
+  width: 100%;
   color: #ffffff;
-  font-size: clamp(26px, 3vw, 30px);
+  font-size: 20px;
   line-height: 1.25;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
   white-space: pre-line;
+  text-align: center;
 }
 
+.intro-slide__text--company {
+  line-height: 1.2;
+}
+
+.intro-slide__back,
 .intro-slide__next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
   gap: clamp(6px, 1.2vw, 8px);
-  align-self: flex-start;
-  margin-top: 0;
-  padding-top: 0;
+  z-index: 3;
 }
 
+.intro-slide__back {
+  left: 0;
+}
+
+.intro-slide__next {
+  right: 0;
+}
+
+.intro-slide__back-btn,
 .intro-slide__next-btn {
   display: flex;
   align-items: flex-start;
@@ -623,12 +2181,23 @@
   line-height: 0;
 }
 
+.intro-slide__back-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.intro-slide__back-btn svg,
 .intro-slide__next-btn svg {
   display: block;
   width: clamp(52px, 8.5vw, 96px);
   height: clamp(52px, 8.5vw, 96px);
 }
 
+.intro-slide__back-btn svg {
+  transform: scaleX(-1);
+}
+
+.intro-slide__back-label,
 .intro-slide__next-label {
   color: #ffffff;
   font-size: 13px;
@@ -644,7 +2213,6 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding-right: 0;
-    max-height: 100%;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -656,9 +2224,11 @@
   }
 
   .intro-slide__text {
-    font-size: clamp(22px, 5.5vw, 28px);
+    font-size: clamp(18px, 5.5vw, 20px);
+    text-align: center;
   }
 
+  .intro-slide__back-btn svg,
   .intro-slide__next-btn svg {
     width: clamp(44px, 11vw, 64px);
     height: clamp(44px, 11vw, 64px);
@@ -672,7 +2242,7 @@
   flex-direction: column;
   min-height: 0;
   position: relative;
-  z-index: 2;
+  z-index: 4;
 }
 
 .dashboard-body--journey > * {
@@ -680,29 +2250,81 @@
   min-height: 0;
   min-width: 0;
   width: 100%;
+  height: 100%;
 }
 
-/* Counter slides: sit above arch fill, centered in the black dashboard window */
+/* Nav + counter scenes share the same body framing */
+.dashboard-body--journey-nav,
 .dashboard-body--journey-counter {
-  position: relative;
-  z-index: 2;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-top: clamp(16px, 5vh, 56px);
-  padding-bottom: clamp(4px, 1vh, 12px);
+  justify-content: stretch;
+  padding-top: 0;
+  padding-bottom: clamp(8px, 1.5vh, 16px);
 }
 
 .dashboard-body--journey-nav {
-  display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  overflow: visible !important;
+  min-height: 0;
+  height: fit-content;
 }
 
-/* Your Journey — PRNDL column + main (subtitle + gauge or map) */
+.dashboard-body--journey-counter {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: visible !important;
+  min-height: 0;
+  height: fit-content;
+}
+
+.dashboard-body--journey.dashboard-body--journey-counter,
+.dashboard-body--journey.dashboard-body--journey-nav {
+  overflow: visible !important;
+}
+
+.dashboard-body--journey-counter > *,
+.dashboard-body--journey-nav > * {
+  flex: 0 1 auto;
+  height: fit-content;
+  max-height: none;
+  overflow: visible;
+}
+
+.dashboard-body--journey-nav > .dashboard-panel__stage--journey,
+.dashboard-body--journey-counter > .dashboard-panel__stage--journey {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.journey-scene-stage {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.journey-scene-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.journey-scene-layer.journey-layout--counter {
+  overflow: visible;
+}
+
+/* Your Journey — main content (subtitle + gauge or map) */
 .journey-layout {
   display: grid;
-  grid-template-columns: minmax(28px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(12px, 2vw, 20px);
   width: 100%;
   height: 100%;
@@ -712,34 +2334,97 @@
   box-sizing: border-box;
 }
 
-.journey-layout--counter {
-  align-items: center;
+.journey-layout--counter,
+.journey-layout--nav {
+  position: relative;
+  z-index: 2;
+  align-items: stretch;
   padding-bottom: 4px;
 }
 
-.journey-layout--counter .journey-layout__prndl {
-  align-self: center;
-  padding-top: 0;
+.journey-layout--counter {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+  height: fit-content;
+  min-height: 0;
+  overflow: visible;
 }
 
-.journey-layout__prndl {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-  padding-top: clamp(4px, 1vh, 10px);
-  z-index: 1;
+.journey-layout--nav {
+  overflow: visible;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-.journey-layout__prndl-inner {
+.journey-layout--nav .journey-layout__main--nav {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.journey-layout--counter .journey-layout__main {
+  display: flex;
+  flex-direction: column;
+  grid-column: unset;
+  grid-row: unset;
+  grid-template-rows: unset;
+  overflow: visible;
+  height: fit-content;
+  flex: 0 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.journey-layout__main--counter {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
+  justify-content: flex-start;
+  gap: 0;
+  height: fit-content;
+  min-height: 0;
+  min-width: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 6;
+  width: 100%;
+}
+
+.journey-layout__main--counter .journey-layout__subtitle {
+  flex: 0 0 auto;
+  width: 100%;
+  margin: clamp(0.125em, 0.5vh, 0.375em) 0 0;
+  min-height: 0;
+  max-height: none;
+  padding: 0;
+}
+
+.journey-layout__main--counter .journey-counter-panel {
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.journey-layout__counter-footer-slot {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: min(100%, 560px);
+  margin: 0 auto;
+  padding-top: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .journey-layout__main {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -747,90 +2432,66 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-}
-
-/* Counter: subtitle + gauge move together as one block */
-.journey-layout__main--counter {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  overflow: visible;
-}
-
-.journey-layout__counter-cluster {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(4px, 0.6vh, 8px);
-  width: 100%;
-  flex: 0 1 auto;
-  min-width: 0;
   position: relative;
-  z-index: 1;
-}
-
-.journey-layout__counter-cluster .journey-layout__subtitle {
-  min-height: 0;
-  max-height: none;
-  padding: 0 clamp(8px, 2vw, 16px);
-  overflow: visible;
-}
-
-.journey-layout__counter-cluster .journey-layout__gauge-row {
-  flex: 0 0 auto;
-  width: 100%;
+  z-index: 2;
 }
 
 .journey-layout__subtitle {
   grid-row: 1;
   position: relative;
+  z-index: 10;
   margin: 0;
-  padding: 0 clamp(8px, 2vw, 16px);
+  padding: 0 clamp(0.5em, 2vw, 1em);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: clamp(44px, 7vh, 64px);
-  max-height: clamp(72px, 14vh, 96px);
-  overflow: hidden;
+  min-height: clamp(2.75em, 7vh, 4em);
+  max-height: clamp(4.5em, 14vh, 6em);
+  overflow: visible;
   box-sizing: border-box;
-}
-
-.journey-layout__subtitle .journey-layout__subtitle-text {
-  flex: 0 0 auto;
+  isolation: isolate;
 }
 
 .journey-layout__subtitle-text {
+  position: relative;
+  z-index: 1;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(18px, 3vw, 25px);
+  font-size: clamp(1.125em, 3vw, 1.5625em);
   font-weight: bold;
   line-height: 1.25;
   text-align: center;
   width: 100%;
-  max-width: min(100%, 560px);
+  max-width: min(100%, 35em);
   white-space: normal;
   overflow-wrap: break-word;
   word-wrap: break-word;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
-}
-
-.journey-layout__counter-cluster .journey-layout__subtitle-text {
-  font-size: clamp(18px, 2.2vw, 24px);
+  text-shadow:
+    0 0.0625em 0.5em rgba(0, 0, 0, 0.85),
+    0 0 1.5em rgba(0, 0, 0, 0.9);
 }
 
 .journey-layout__gauge-row {
-  grid-row: 2;
-  display: grid;
-  grid-template-columns: minmax(52px, 1fr) auto minmax(52px, 1fr);
+  --journey-gauge-side-width: clamp(40px, 8vw, 56px);
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-items: center;
-  column-gap: clamp(16px, 3vw, 24px);
+  justify-content: center;
+  gap: 0;
   min-height: 0;
   min-width: 0;
   width: 100%;
-  overflow: hidden;
+  max-width: min(100%, 560px);
+  margin-inline: auto;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 1;
+  box-sizing: border-box;
+}
+
+.journey-layout__main--counter .journey-layout__gauge-row {
+  max-width: 100%;
 }
 
 .journey-layout__gauge-slot {
@@ -838,28 +2499,865 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  min-height: clamp(44px, 8vw, 56px);
+  min-height: 0;
+  flex-shrink: 0;
 }
 
 .journey-layout__gauge-slot--left {
-  grid-column: 1;
-  justify-self: end;
+  flex: 0 0 var(--journey-gauge-side-width);
+  width: var(--journey-gauge-side-width);
+  min-width: var(--journey-gauge-side-width);
+  max-width: var(--journey-gauge-side-width);
 }
 
-.journey-layout__gauge-slot--center {
-  grid-column: 2;
-  justify-self: center;
+/* Counter slide — responsive gauge + message (replaces nested gauge-slot/split layout) */
+.journey-counter-panel {
+  --journey-counter-chev: clamp(2.5rem, 8vw, 3.5rem);
+  --journey-counter-nav-gap: clamp(0.35rem, 2vw, 0.75rem);
+  --journey-counter-message-width: calc(
+    100% - 2 * var(--journey-counter-chev) - 2 * var(--journey-counter-nav-gap)
+  );
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  width: 100%;
+  max-width: min(100%, 42rem);
+  margin-inline: auto;
+  height: fit-content;
+  min-height: 0;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.journey-counter-panel__chev {
+  flex: 0 0 var(--journey-counter-chev);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--journey-counter-chev);
+  max-width: var(--journey-counter-chev);
+}
+
+.journey-counter-panel__body {
+  flex: 0 1 auto;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(0.5rem, 2vw, 1.25rem);
+  height: fit-content;
+  max-height: none;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.journey-counter-panel__gauge {
+  --journey-counter-dial-size: min(100%, clamp(9rem, 32vw, 12.5rem));
+  --journey-counter-subtitle-min-h: 2.75rem;
+  --journey-counter-stat-min-h: calc(clamp(22px, 4.5vw, 36px) * 1.25 + 0.5rem);
+  flex: 1 1 50%;
+  min-width: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(0.35em, 1.2vh, 0.75em);
+  font-size: clamp(0.875rem, 1.5vw + 0.5rem, 1rem);
+  text-align: center;
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge .journey-layout__subtitle {
+  flex: 0 0 var(--journey-counter-subtitle-min-h);
+  width: 100%;
+  min-height: var(--journey-counter-subtitle-min-h);
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge .journey-layout__subtitle-text {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  font-size: 20px;
+  text-align: center;
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge > .journey-speedometer-gauge,
+.journey-counter-panel__gauge > .journey-fuel-gauge,
+.journey-counter-panel__gauge > .journey-battery-gauge {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: var(--journey-counter-dial-size);
+  height: auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
+}
+
+/* Neutral wrapper elsewhere (e.g. Full Diagnostics); counter rules below. */
+.journey-counter-gauge__dial-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/*
+ * Journey counter: one square dial box for speedometer, fuel, and battery so
+ * slide transitions do not shift the main column vertically.
+ */
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot,
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter {
+  width: var(--journey-counter-dial-size);
+  max-width: 100%;
+  height: var(--journey-counter-dial-size);
+  flex: 0 0 var(--journey-counter-dial-size);
+  flex-shrink: 0;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot .journey-speedometer-gauge__svg,
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot .journey-fuel-gauge__svg,
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot .journey-battery-gauge__svg {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
   max-height: 100%;
+  margin: 0;
+  aspect-ratio: unset;
 }
 
-.journey-layout__gauge-slot--center > * {
-  max-height: min(100%, 220px);
-  max-width: min(100%, 220px);
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot .journey-battery-gauge__dial,
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot .journey-fuel-gauge__dial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-fuel-gauge__dial {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-fuel-gauge__dial .journey-fuel-gauge__svg {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: visible;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65));
+}
+
+.journey-fuel-gauge__pump-icon {
+  position: absolute;
+  left: 50%;
+  top: 67%;
+  width: 20%;
+  height: 20%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.journey-fuel-gauge__pump-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: invert(56%) sepia(79%) saturate(749%) hue-rotate(359deg) brightness(101%) contrast(101%);
+}
+
+.journey-fuel-gauge,
+.journey-battery-gauge,
+.journey-speedometer-gauge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+  min-width: 0;
+}
+
+.journey-battery-gauge__dial {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-battery-gauge__warning {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.journey-battery-gauge__warning-icon {
+  width: 38%;
+  height: 38%;
+  max-width: 3.25rem;
+  max-height: 3.25rem;
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.85));
+}
+
+.journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  width: 100%;
+  min-height: var(--journey-counter-stat-min-h);
+  margin: 0;
+  padding-block: clamp(2px, 0.35vh, 6px);
+  padding-inline: clamp(8px, 1.5vw, 14px);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35em;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  vertical-align: middle;
+  box-sizing: border-box;
+  color: #e8edf2;
+  font-weight: 400;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(155deg, #454545 0%, #222222 42%, #101010 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.85),
+    0 5px 16px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.journey-counter-panel__gauge .journey-speedometer-gauge__stat-below::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 7px;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, transparent 38%),
+    radial-gradient(ellipse 100% 90% at 50% -20%, rgba(255, 255, 255, 0.06), transparent 50%),
+    linear-gradient(180deg, #12151a 0%, #080a0e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.75),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 24px rgba(243, 144, 29, 0.05);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.journey-counter-panel__gauge .journey-speedometer-gauge__stat-below::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 8%;
+  right: 8%;
+  height: 42%;
+  border-radius: 6px 6px 50% 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.11) 0%,
+    rgba(255, 255, 255, 0.03) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.journey-counter-panel__gauge .journey-speedometer-gauge__stat-below .journey-speedometer-gauge__stat-value {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  flex-direction: column;
+  line-height: inherit;
+  vertical-align: middle;
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow:
+    0 0 10px rgba(243, 144, 29, 0.4),
+    0 0 20px rgba(243, 144, 29, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+.journey-counter-panel__gauge .journey-speedometer-gauge__stat-below .journey-speedometer-gauge__stat-label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  flex-direction: column;
+  padding-left: 10px;
+  line-height: inherit;
+  vertical-align: middle;
+  color: rgba(232, 237, 242, 0.92);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 12px rgba(0, 0, 0, 0.65);
+}
+
+.journey-counter-panel__aside {
+  flex: 1 1 50%;
+  min-width: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: clamp(0.5rem, 1.2vh, 0.875rem);
+  overflow: visible;
+}
+
+.journey-counter-panel__message-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--journey-counter-nav-gap);
+  width: 100%;
+  min-width: 0;
+  flex: 0 0 auto;
+  padding-block: clamp(0.65rem, 1.4vh, 1rem);
+  padding-inline: clamp(0.5rem, 1.2vw, 0.85rem);
+}
+
+.journey-counter-panel__message-row .journey-counter-panel__chev,
+.journey-counter-panel__message-row .journey-counter-panel__message {
+  position: relative;
+  z-index: 2;
+}
+
+.journey-counter-panel__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.journey-counter-panel__footer .journey-layout__counter-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  height: 55px;
+  line-height: 1.15;
+  max-width: 100%;
+  text-align: center;
+  white-space: normal;
+}
+
+.journey-counter-panel__footer-placeholder {
+  display: block;
+  width: 100%;
+  height: 55px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 641px) {
+  .journey-counter-panel__body {
+    width: 100%;
+    padding-left: 0;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    align-items: stretch;
+    align-content: stretch;
+    gap: clamp(1rem, 2vw, 1.75rem);
+    height: 100%;
+  }
+
+  .journey-layout--counter {
+    width: 100%;
+  }
+
+  .journey-layout--counter .journey-layout__main--counter {
+    gap: 0;
+    width: 100%;
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .journey-layout--counter .journey-layout__main--counter .journey-counter-panel {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    margin-inline: 0;
+  }
+
+  .journey-counter-panel__gauge {
+    --journey-counter-dial-size: min(100%, clamp(8rem, 28vw, 11rem));
+    --journey-counter-subtitle-min-h: 2.65rem;
+    --journey-counter-stat-min-h: 2.75rem;
+    grid-column: 1;
+    grid-row: 1;
+    flex: none;
+    width: 100%;
+    max-width: none;
+    align-self: stretch;
+    justify-self: center;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .journey-counter-panel__gauge > .journey-speedometer-gauge,
+  .journey-counter-panel__gauge > .journey-fuel-gauge,
+  .journey-counter-panel__gauge > .journey-battery-gauge {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .journey-counter-panel__aside {
+    grid-column: 2;
+    grid-row: 1;
+    flex: none;
+    width: 100%;
+    align-self: stretch;
+    justify-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+    min-height: 0;
+    gap: 0;
+  }
+
+  .journey-counter-panel__message-row {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .journey-counter-panel__message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    text-align: center;
+  }
+
+  .journey-counter-panel__aside .journey-counter-panel__chev {
+    align-self: center;
+  }
+
+  .journey-counter-panel__footer {
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding-top: clamp(0.35rem, 0.8vh, 0.65rem);
+  }
+
+  .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding-block: clamp(4px, 0.5vh, 8px);
+  }
+}
+
+.journey-counter-panel__message {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+  vertical-align: bottom;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-shadow:
+    0 0.0625em 0.5em rgba(0, 0, 0, 0.85),
+    0 0 1.5em rgba(0, 0, 0, 0.9);
+}
+
+.journey-counter-panel__aside .journey-gauge-chevron {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .journey-counter-panel {
+    max-width: 100%;
+  }
+
+  .journey-counter-panel__body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(0.75rem, 2.5vh, 1.25rem);
+  }
+
+  .journey-counter-panel__body {
+    padding-left: 0;
+  }
+
+  .journey-counter-panel__stat-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--journey-counter-nav-gap);
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+
+  .journey-counter-panel__stat-row-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .journey-counter-panel__stat-row .journey-speedometer-gauge__stat-below {
+    flex: 1 1 auto;
+    align-self: stretch;
+    width: 100%;
+    max-width: none;
+    margin-top: 0;
+    box-sizing: border-box;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-fuel-gauge,
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-speedometer-gauge,
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-battery-gauge {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .journey-counter-panel__stat-row .journey-counter-panel__message--mobile-stat {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .journey-counter-panel__mobile-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: clamp(0.35rem, 1vh, 0.65rem);
+  }
+
+  .journey-counter-panel__footer--mobile-inline {
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__gauge {
+    gap: clamp(0.35rem, 1.2vh, 0.75rem);
+  }
+
+  .journey-counter-panel__gauge,
+  .journey-counter-panel__aside {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .journey-counter-panel__gauge {
+    gap: clamp(0.2em, 0.6vh, 0.45em);
+    --journey-counter-dial-size: min(
+      var(--journey-counter-message-width),
+      min(44vw, 26vh, 11.5rem)
+    );
+    --journey-counter-subtitle-min-h: 2.5rem;
+    --journey-counter-stat-min-h: 2.65rem;
+  }
+
+  .journey-counter-panel__gauge > .journey-fuel-gauge,
+  .journey-counter-panel__gauge > .journey-speedometer-gauge,
+  .journey-counter-panel__gauge > .journey-battery-gauge {
+    max-width: var(--journey-counter-message-width);
+  }
+
+  .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
+    width: 100%;
+    max-width: var(--journey-counter-message-width);
+    margin-inline: auto;
+    box-sizing: border-box;
+  }
+
+  .journey-counter-panel__stat-row .journey-speedometer-gauge__stat-below {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .journey-counter-panel__message {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .journey-counter-panel__aside {
+    align-items: stretch;
+  }
+
+  .journey-counter-panel__message-row {
+    justify-content: center;
+  }
+
+  .journey-counter-panel__footer {
+    padding-top: clamp(0.35rem, 1vh, 0.65rem);
+  }
+}
+
+.journey-speedometer-gauge {
+  position: relative;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: fit-content;
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.journey-speedometer-gauge__svg {
+  display: block;
+  box-sizing: content-box;
+  width: 95%;
+  height: auto;
+  max-width: 95%;
+  margin-inline: auto;
+  aspect-ratio: 1 / 1;
+  overflow: visible;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65));
+}
+
+.full-diagnostics__stat-gauge .journey-speedometer-gauge__svg {
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.journey-speedometer-gauge__readout {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+  max-width: 40%;
+}
+
+.journey-speedometer-gauge__value {
+  color: #ffffff;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.8);
+}
+
+.journey-speedometer-gauge__label,
+.journey-speedometer-gauge__labels {
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.8);
+}
+
+.journey-speedometer-gauge__label--below {
+  margin-top: clamp(-8px, -1.5vw, -4px);
+  text-align: center;
+}
+
+.journey-speedometer-gauge__stat-below {
+  margin: clamp(2px, 0.5vh, 6px) 0 0;
+  padding: 0;
+  color: #ffffff;
+  font-weight: 400;
+  line-height: 1.15;
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.8);
+}
+
+.journey-speedometer-gauge__stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-speedometer-gauge__stat-label {
+  font-size: clamp(16px, 2.5vw, 22px);
+}
+
+.journey-speedometer-gauge__labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: clamp(-8px, -1.5vw, -4px);
+  text-align: center;
+}
+
+.journey-speedometer-gauge__label {
+  flex-shrink: 0;
 }
 
 .journey-layout__gauge-slot--right {
-  grid-column: 3;
-  justify-self: start;
+  flex: 0 0 var(--journey-gauge-side-width);
+  width: var(--journey-gauge-side-width);
+  min-width: var(--journey-gauge-side-width);
+  max-width: var(--journey-gauge-side-width);
+}
+
+.journey-layout__counter-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.5vh, 14px);
+  width: 100%;
+  margin: 0;
+  padding: 0 clamp(8px, 2vw, 16px) clamp(4px, 1vh, 8px);
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.journey-layout__counter-message {
+  margin: 0;
+  padding: 0 clamp(8px, 2vw, 16px);
+  width: 100%;
+  color: #ffffff;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 0, 0, 0.9);
+}
+
+.journey-layout__counter-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 55px;
+  margin: 0;
+  padding: 4px 12px;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #f8b04a 0%, #f3901d 38%, #e07a0c 72%, #c86808 100%) padding-box,
+    linear-gradient(180deg, #7a8088 0%, #4a5058 45%, #323740 72%, #22262c 100%) border-box;
+  color: #1a1208;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.08),
+    0 5px 10px rgba(0, 0, 0, 0.42),
+    0 10px 22px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -3px 6px rgba(120, 50, 0, 0.22),
+    inset 0 0 10px rgba(255, 210, 140, 0.12);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    filter 0.14s ease;
+}
+
+.journey-layout__counter-cta:hover {
+  filter: brightness(1.04);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.1),
+    0 6px 12px rgba(0, 0, 0, 0.46),
+    0 12px 26px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -3px 6px rgba(120, 50, 0, 0.2),
+    inset 0 0 12px rgba(255, 210, 140, 0.14);
+}
+
+.journey-layout__counter-cta:active {
+  transform: translateY(2px);
+  filter: brightness(0.96);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    inset 0 3px 8px rgba(80, 35, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.journey-layout__counter-cta:focus-visible {
+  outline: 2px solid rgba(243, 144, 29, 0.85);
+  outline-offset: 3px;
 }
 
 .journey-layout__chev-placeholder {
@@ -883,21 +3381,71 @@
   flex-shrink: 0;
 }
 
-.journey-gauge-chevron:disabled {
-  opacity: 0.25;
-  cursor: default;
-}
-
 .journey-gauge-chevron__icon {
   width: clamp(22px, 4vw, 36px);
   height: clamp(22px, 4vw, 36px);
   display: block;
 }
 
+.journey-layout__main--nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  overflow: visible;
+  padding-top: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.journey-layout__main--nav .journey-layout__nav-stage {
+  flex: 1 1 auto;
+  width: 100%;
+  align-items: stretch;
+  justify-content: flex-end;
+  padding-top: 0;
+  overflow: visible;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.journey-layout__main--nav .journey-layout__nav-footer {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.journey-layout__nav-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.5vh, 14px);
+  width: 100%;
+  max-width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 0 clamp(8px, 2vw, 16px) clamp(4px, 1vh, 8px);
+  box-sizing: border-box;
+}
+
+.journey-layout__nav-message {
+  margin: 0;
+  width: 100%;
+  color: #ffffff;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
 .journey-layout__nav-stage {
   grid-row: 2;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   min-height: 0;
   min-width: 0;
@@ -913,123 +3461,464 @@
 }
 
 @media (min-width: 900px) {
-  .dashboard-body--journey-counter {
-    padding-top: clamp(28px, 7vh, 80px);
-  }
-
   .journey-layout--counter {
-    align-items: center;
+    z-index: 3;
   }
-}
 
-.gps-popup-stage {
-  position: relative;
-  width: min(100%, 414px);
-  height: min(100%, 200px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  .journey-layout__subtitle {
+    z-index: 12;
+  }
+
+  .journey-counter-panel__gauge {
+    --journey-counter-dial-size: 200px;
+    --journey-counter-subtitle-min-h: 2.25rem;
+    --journey-counter-stat-min-h: calc(clamp(22px, 4.5vw, 36px) * 1.3 + 0.625rem);
+  }
+
+  .journey-layout__counter-footer {
+    padding-bottom: clamp(8px, 1.2vh, 12px);
+  }
 }
 
 .gps-popup-stage__content {
-  width: 100%;
+  width: auto;
+  max-width: min(100%, 360px);
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
+/* Journey nav — modern in-dash GPS instruction card (bottom-right) */
+.journey-nav-popup-overlay .gps-event-popup--nav {
+  --gps-nav-accent: #007ac3;
+  position: relative;
+  width: min(100%, clamp(240px, 34vw, 320px));
+  padding: clamp(11px, 1.5vh, 14px) clamp(12px, 1.6vw, 16px)
+    clamp(11px, 1.5vh, 14px) clamp(14px, 1.8vw, 18px);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: clamp(10px, 1.4vw, 12px);
+  box-sizing: border-box;
+  text-align: left;
+  background:
+    linear-gradient(180deg, rgba(38, 42, 48, 0.96) 0%, rgba(20, 22, 26, 0.98) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: clamp(12px, 1.4vw, 16px);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: visible;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--nav::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--gps-nav-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gps-nav-accent) 55%, transparent);
+}
+
+.journey-nav-popup-overlay .gps-event-popup--nav::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: rgba(20, 22, 26, 0.98);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--attendance {
+  --gps-nav-accent: #007ac3;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--hours {
+  --gps-nav-accent: #f3901d;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--arrived {
+  --gps-nav-accent: #34c759;
+  width: min(100%, clamp(260px, 38vw, 340px));
+}
+
+.journey-nav-popup-overlay .gps-event-popup__nav-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(32px, 4.5vw, 38px);
+  height: clamp(32px, 4.5vw, 38px);
+  margin-top: 2px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.journey-nav-popup-overlay .gps-event-popup__nav-icon img,
+.journey-nav-popup-overlay .gps-event-popup__nav-icon svg {
+  width: clamp(22px, 3.2vw, 28px);
+  height: clamp(22px, 3.2vw, 28px);
+}
+
+.journey-nav-popup-overlay .gps-event-popup__nav-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(3px, 0.6vh, 5px);
+  text-align: left;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__nav-text--center {
+  align-items: center;
+  width: 100%;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__title {
+  font-size: clamp(22px, 4.8vw, 30px);
+  line-height: 1.1;
+  color: #f5f7fa;
+  text-shadow: none;
+  letter-spacing: -0.01em;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__title--arrived {
+  font-size: clamp(20px, 4.2vw, 26px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__subtitle {
+  font-size: clamp(11px, 2.4vw, 14px);
+  line-height: 1.25;
+  color: rgba(235, 240, 245, 0.72);
+  text-transform: none;
+  text-align: left;
+  text-shadow: none;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__bar-track {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: clamp(6px, 1vh, 8px);
+  margin-top: clamp(4px, 0.8vh, 6px);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__bar-fill {
+  background: linear-gradient(90deg, #007ac3 0%, #00a8e8 100%);
+}
+
+.journey-nav-popup-overlay .gps-event-popup__media {
+  width: min(100%, 168px);
+  max-height: 52px;
+  margin: clamp(6px, 1vh, 8px) 0 0;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__subtitle--lead {
+  max-width: none;
+  margin-inline: 0;
+  text-align: left;
+  color: rgba(235, 240, 245, 0.88);
+  font-size: clamp(12px, 2.6vw, 15px);
+  line-height: 1.35;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__cta {
+  align-self: flex-start;
+  margin-top: clamp(8px, 1.2vh, 10px);
+  padding: clamp(8px, 1.2vh, 10px) clamp(14px, 2.4vw, 18px);
+  border-radius: 8px;
+  font-size: clamp(12px, 2.5vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--nav-expanded {
+  align-items: flex-start;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__nav-details {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: clamp(6px, 1vh, 8px);
+  gap: clamp(10px, 1.4vh, 12px);
+}
+
+.journey-nav-popup-overlay .gps-event-popup__nav-body {
+  margin: 0;
+  color: #ffffff;
+  font-size: calc(clamp(11px, 2.4vw, 14px) + 3px);
+  line-height: 1.35;
+  font-weight: 400;
+  text-align: left;
+}
+
+.journey-nav-popup-overlay .gps-event-popup--hours.gps-event-popup--nav-expanded .gps-event-popup__nav-body {
+  text-align: center;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__cta--nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 8px;
+  background: var(--gps-nav-accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: clamp(12px, 2.5vw, 14px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-transform: none;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__cta--nav:hover {
+  filter: brightness(1.08);
+}
+
+.journey-nav-popup-overlay .gps-event-popup__cta--nav:focus-visible {
+  outline: 2px solid var(--gps-nav-accent);
+  outline-offset: 2px;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__cta--full {
+  width: 100%;
+  align-self: stretch;
+}
+
+.journey-nav-popup-overlay .gps-event-popup__cta--center {
+  align-self: center;
+  width: min(100%, 260px);
+}
+
+/* GPS popups — centered overlay on map animation, no card chrome */
 .gps-event-popup {
-  width: min(100%, 414px);
-  min-height: 140px;
-  background: #0d0d0d;
-  border-radius: 28px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
-  padding: clamp(16px, 4vw, 24px) clamp(18px, 4.5vw, 28px);
+  width: min(100%, 360px);
+  padding: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(8px, 2vw, 14px);
+  align-items: center;
+  gap: clamp(8px, 1.8vw, 12px);
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.gps-event-popup__body,
+.gps-event-popup__subtitle,
+.gps-event-popup__cta,
+.gps-event-popup__media {
+  position: relative;
+  z-index: 1;
+}
+
+.journey-layout__nav-message-panel {
+  width: 100%;
+  padding: clamp(0.65rem, 1.4vh, 1rem) clamp(0.5rem, 1.2vw, 0.85rem);
   box-sizing: border-box;
 }
 
-.gps-event-popup__headline {
+.journey-layout__nav-message-panel .journey-layout__nav-message {
+  position: relative;
+  z-index: 2;
+  text-shadow: none;
+}
+
+.gps-event-popup__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(8px, 1.8vw, 12px);
+  width: 100%;
+  text-align: center;
+}
+
+.gps-event-popup__body--center {
+  align-items: center;
+  text-align: center;
+}
+
+.gps-event-popup__metric-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 14px);
+  width: 100%;
+  min-width: 0;
   flex-wrap: wrap;
+}
+
+.gps-event-popup__metric-row img,
+.gps-event-popup__metric-row svg {
+  flex-shrink: 0;
 }
 
 .gps-event-popup__title {
   font-family: 'Istok Web', sans-serif;
   font-weight: 700;
-  font-size: clamp(32px, 8vw, 50px);
-  line-height: 1;
-  color: #5eb8e8;
+  font-size: clamp(28px, 6.5vw, 42px);
+  line-height: 1.05;
+  color: #ffffff;
   margin: 0;
+  text-shadow:
+    0 1px 8px rgba(0, 0, 0, 0.9),
+    0 0 18px rgba(0, 0, 0, 0.75);
+}
+
+.gps-event-popup__title--arrived {
+  font-size: clamp(26px, 6vw, 35px);
+  color: #ffffff;
+  letter-spacing: 0.02em;
 }
 
 .gps-event-popup__subtitle {
   font-family: 'Istok Web', sans-serif;
   font-weight: 400;
-  font-size: clamp(18px, 4.5vw, 28px);
+  font-size: clamp(13px, 3vw, 18px);
   line-height: 1.2;
-  color: #fff;
+  color: #ffffff;
   margin: 0;
   text-transform: lowercase;
+  text-align: center;
+  text-shadow:
+    0 1px 8px rgba(0, 0, 0, 0.9),
+    0 0 18px rgba(0, 0, 0, 0.75);
 }
 
 .gps-event-popup__bar-track {
   flex: 1;
   min-width: 120px;
-  max-width: 240px;
-  height: clamp(40px, 10vw, 48px);
+  max-width: 200px;
+  height: clamp(22px, 5vw, 28px);
   background: #3b263b;
-  border-radius: 41px;
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .gps-event-popup__bar-fill {
   height: 100%;
   background: #007ac3;
-  border-radius: 41px;
+  border-radius: 999px;
+  box-sizing: content-box;
 }
 
-.gps-event-popup__row-icon {
-  display: flex;
-  align-items: center;
+.gps-event-popup--attendance {
   gap: 10px;
-  flex-wrap: wrap;
-  min-width: 0;
 }
 
-.gps-event-popup__row-icon svg {
+.gps-event-popup--attendance .gps-event-popup__body {
+  gap: 0;
+}
+
+.gps-event-popup--attendance .gps-event-popup__title {
+  font-size: clamp(24px, 5.5vw, 36px);
   flex-shrink: 0;
 }
 
-/* YOU ARRIVED popup */
-.gps-arrived-popup {
+.gps-event-popup--attendance .gps-event-popup__bar-track {
+  min-width: 140px;
+}
+
+.gps-event-popup--hours .gps-event-popup__metric-row {
   align-items: center;
-  text-align: center;
-  gap: clamp(12px, 3vw, 20px);
 }
 
-.gps-arrived-popup__title {
-  font-family: 'Istok Web', sans-serif;
-  font-weight: 700;
-  font-size: clamp(36px, 9vw, 56px);
-  line-height: 1;
-  color: #007ac3;
-  margin: 0;
-  letter-spacing: 0.02em;
-}
-
-.gps-arrived-popup__logo {
+.gps-event-popup__media {
   display: block;
-  width: min(100%, 280px);
+  width: min(100%, 200px);
+  max-height: 64px;
   height: auto;
   object-fit: contain;
   margin: 0 auto;
+}
+
+.gps-event-popup__subtitle--lead {
+  width: 100%;
+  max-width: 22em;
+  margin-inline: auto;
+  text-align: center;
+  text-transform: none;
+}
+
+.gps-event-popup__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  margin: 0;
+  padding: clamp(10px, 2vw, 12px) clamp(20px, 4vw, 28px);
+  border: none;
+  border-radius: 10px;
+  background: #f3901d;
+  color: #000000;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(13px, 3vw, 18px);
+  font-weight: 400;
+  line-height: 1.2;
+  text-transform: lowercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.2s ease, background 0.2s ease;
+}
+
+.gps-event-popup__cta:hover {
+  filter: brightness(1.08);
+}
+
+.gps-event-popup__cta:focus-visible {
+  outline: 2px solid #f3901d;
+  outline-offset: 2px;
+}
+
+.gps-event-popup--whats-next {
+  align-items: center;
+  text-align: center;
+  gap: clamp(10px, 2.2vw, 14px);
+}
+
+/* Arrived phases: keep centered popup + chevron row */
+.journey-nav-popup-row:has(.gps-event-popup--arrived) {
+  align-items: center;
+}
+
+.journey-nav-popup-row:has(.gps-event-popup--arrived) .journey-nav-chevron-row {
+  justify-content: center;
+}
+
+.journey-layout--nav .journey-layout__main:has(.gps-event-popup--arrived) {
+  overflow: visible;
+}
+
+.journey-layout--nav:has(.gps-event-popup--arrived) {
+  overflow: visible;
 }
 
 /* Tire hub — full-width roll lane, arch base */
@@ -1037,6 +3926,7 @@
   position: absolute;
   inset: 0;
   overflow: visible;
+  --hood-tire-ground-height: 42%;
 }
 
 .hood-tire-hub__black {
@@ -1046,15 +3936,61 @@
   z-index: 0;
 }
 
+/* Shop backdrop — full scene width, bottom anchored to top of grey road arch */
+.hood-tire-hub__sky-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hood-tire-hub__sky-bg-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--hood-tire-ground-height);
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hood-tire-hub__sky-bg-player svg,
+.hood-tire-hub__sky-bg-player canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .hood-tire-hub__arch-wrap {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 42%;
+  height: var(--hood-tire-ground-height);
   z-index: 1;
   pointer-events: none;
   will-change: transform;
+}
+
+/* Hood closing — grey road ground slides down over the engine (standards → tires) */
+.hood-standards-ground-close {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 12;
+  pointer-events: none;
+  will-change: transform;
+  overflow: hidden;
+}
+
+.hood-standards-ground-close .hood-tire-hub__arch {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .hood-tire-hub__arch {
@@ -1065,13 +4001,13 @@
 
 /* Full viewport width so wheels roll in/out of the screen, not a clipped box */
 .hood-tire-hub__lane {
-  position: fixed;
+  position: absolute;
   left: 0;
-  width: 100vw;
+  width: 100%;
   top: 54%;
-  height: min(82vw, 380px);
+  height: min(58vw, 272px);
   transform: translateY(-50%);
-  z-index: 21;
+  z-index: 18;
   overflow: visible;
   pointer-events: none;
 }
@@ -1084,14 +4020,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.hood-tire-hub__wheel-track--incoming,
+.hood-tire-hub__wheel-track--outgoing {
   will-change: transform;
+}
+
+.hood-tire-hub__wheel-track--active {
+  will-change: auto;
 }
 
 .hood-tire-hub__wheel-track--incoming {
   z-index: 2;
 }
 
-.hood-tire-hub__wheel-track--outgoing,
+.hood-tire-hub__wheel-track--outgoing {
+  z-index: 1;
+}
+
 .hood-tire-hub__wheel-track--active {
   z-index: 1;
 }
@@ -1101,210 +4048,403 @@
   width: 100%;
   height: 100%;
   flex-shrink: 0;
-  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.55));
+  isolation: isolate;
 }
 
 .hood-tire-wheel__asset {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: contain;
   user-select: none;
   pointer-events: none;
-}
-
-.hood-tire-wheel__badge {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.hood-tire-wheel__logo {
-  width: 42%;
-  height: 42%;
-  object-fit: contain;
-}
-
-.hood-tire-wheel__label {
-  font-family: 'Istok Web', sans-serif;
-  font-size: clamp(11px, 2.4vw, 17px);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #f3901d;
-  text-align: center;
-  line-height: 1.15;
-  padding: 0 6px;
-  max-width: 38%;
-  text-shadow: 0 0 12px rgba(243, 144, 29, 0.45);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
 }
 
 .hood-tire-hub__readout-row {
-  position: fixed;
-  left: 50%;
-  top: clamp(108px, 22vh, 32%);
-  transform: translateX(-50%);
-  z-index: 22;
+  position: absolute;
+  left: var(--hood-wheel-park-x, 50%);
+  top: 54%;
+  transform: translate(calc(-100% - var(--hood-readout-gap, 20px)), -50%);
+  z-index: 24;
+  isolation: isolate;
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-  gap: clamp(12px, 2.5vw, 28px);
-  width: min(96vw, 820px);
-  max-width: 820px;
+  align-items: center;
+  justify-content: flex-end;
+  width: var(--hood-readout-width, 340px);
+  min-width: var(--hood-readout-width, 340px);
+  max-width: var(--hood-readout-width, 340px);
+  height: var(--hood-readout-bezel-height, 486px);
+  min-height: var(--hood-readout-bezel-height, 486px);
+  max-height: var(--hood-readout-bezel-height, 486px);
   pointer-events: none;
 }
 
 .hood-tire-hub__readout {
   position: relative;
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: min(100%, 480px);
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.hood-tire-pressure-gauge {
-  position: relative;
   flex: 0 0 auto;
-  width: clamp(100px, 16vw, 168px);
-  aspect-ratio: 481 / 391;
-  margin-top: clamp(4px, 0.8vh, 10px);
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
-}
-
-.hood-tire-pressure-gauge__img {
-  display: block;
-  width: 100%;
-  height: auto;
-  user-select: none;
-  pointer-events: none;
-  /* Asset is black line art — invert to white on the dark hood scene */
-  filter: brightness(0) invert(1);
-}
-
-/* Check overlay — aligned to the four underline slots beside the dial (481×391 asset) */
-.hood-tire-pressure-gauge__checks {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.hood-tire-pressure-gauge__slot {
-  position: absolute;
+  width: var(--hood-readout-width, 340px);
+  min-width: var(--hood-readout-width, 340px);
+  max-width: var(--hood-readout-width, 340px);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(-50%);
-  height: 0;
-}
-
-/* top-left → top-right → bottom-left → bottom-right */
-.hood-tire-pressure-gauge__slot--0 {
-  top: 40%;
-  left: 52%;
-  width: 16%;
-}
-
-.hood-tire-pressure-gauge__slot--1 {
-  top: 40%;
-  left: 71%;
-  width: 16%;
-}
-
-.hood-tire-pressure-gauge__slot--2 {
-  top: 58%;
-  left: 52%;
-  width: 16%;
-}
-
-.hood-tire-pressure-gauge__slot--3 {
-  top: 58%;
-  left: 71%;
-  width: 16%;
-}
-
-.hood-tire-pressure-gauge__check {
-  font-family: 'Share Tech Mono', 'Consolas', monospace;
-  font-size: clamp(10px, 1.45vw, 14px);
-  font-weight: 700;
-  line-height: 1;
-  color: #39ff14;
-  text-shadow:
-    0 0 6px rgba(57, 255, 20, 0.95),
-    0 0 12px rgba(57, 255, 20, 0.45);
+  justify-content: flex-end;
+  pointer-events: none;
 }
 
 .hood-tire-hub__screen {
-  width: 100%;
-  max-width: min(100%, 480px);
+  width: var(--hood-readout-width, 340px);
+  min-width: var(--hood-readout-width, 340px);
+  max-width: var(--hood-readout-width, 340px);
+  height: var(--hood-readout-bezel-height, 486px);
+  min-height: var(--hood-readout-bezel-height, 486px);
+  max-height: var(--hood-readout-bezel-height, 486px);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  background:
+    linear-gradient(165deg, #636363 0%, #454545 12%, #333 38%, #252525 62%, #1c1c1c 88%, #404040 100%);
+  border-radius: 24px;
+  border: 3px solid #141414;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 0 5px #4a4a4a,
+    0 0 0 6px #1a1a1a,
+    inset 0 2px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.55),
+    0 14px 36px rgba(0, 0, 0, 0.58),
+    0 5px 10px rgba(0, 0, 0, 0.38);
+}
+
+.hood-tire-hub__screen::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 18px;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 3px 8px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hood-tire-hub__screen::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 32%, #555, #1a1a1a 70%);
+  box-shadow:
+    0 0 0 2px #383838,
+    inset 0 1px 2px rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.hood-tire-hub__screen--interactive {
+  pointer-events: auto;
 }
 
 .hood-tire-hub__screen-bezel {
-  padding: clamp(10px, 1.8vw, 14px);
-  background: linear-gradient(145deg, #3a3a3a 0%, #1a1a1a 45%, #0d0d0d 100%);
-  border-radius: 10px;
-  border: 2px solid #4a4a4a;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  padding: 12px 10px 16px;
+  background: linear-gradient(180deg, #353535 0%, #242424 45%, #181818 100%);
+  border-radius: 14px;
+  border: 2px solid #0a0a0a;
   box-shadow:
-    0 0 0 1px #0a0a0a,
-    0 6px 20px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    inset 0 3px 10px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+}
+
+.hood-tire-hub__screen-bezel::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #5a5a5a, #333);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 .hood-tire-hub__screen-glass {
-  min-height: clamp(72px, 14vh, 108px);
-  padding: clamp(14px, 2.5vw, 22px) clamp(16px, 3vw, 28px);
-  background: #050805;
-  border-radius: 6px;
-  border: 1px solid rgba(57, 255, 20, 0.35);
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 100%;
+  height: var(--hood-readout-glass-height, 426px);
+  min-height: var(--hood-readout-glass-height, 426px);
+  max-height: var(--hood-readout-glass-height, 426px);
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #fafafa 0%, #ececef 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow:
-    inset 0 0 24px rgba(57, 255, 20, 0.06),
-    0 0 18px rgba(57, 255, 20, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  overflow: hidden;
+}
+
+.hood-tire-hub__screen-glass--with-gauge {
+  gap: 8px;
+}
+
+.hood-tire-hub__screen-content {
+  flex: 0 0 211px;
+  width: 100%;
+  height: 211px;
+  min-height: var(--hood-readout-content-min-height, 156px);
+  max-height: 211px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hood-tire-hub__pressure-gauge {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 162px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  pointer-events: none;
+  padding: 4px 0;
+}
+
+.hood-tire-hub__pressure-gauge-lottie {
+  width: auto !important;
+  height: 100% !important;
+  max-width: 100%;
+}
+
+.hood-tire-hub__readout--interactive {
+  pointer-events: none;
 }
 
 .hood-tire-hub__results {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: clamp(8px, 1.5vh, 14px);
+  align-items: stretch;
+  gap: clamp(10px, 1.6vh, 14px);
   width: 100%;
+  flex: 0 0 auto;
+  min-height: 0;
+  padding-top: 4px;
+}
+
+.hood-tire-hub__stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hood-tire-hub__line--primary,
+.hood-tire-hub__line--secondary {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  width: 100%;
+}
+
+.hood-tire-hub__results--cta {
+  align-items: stretch;
+  gap: clamp(10px, 1.4vh, 14px);
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: flex-end;
 }
 
 .hood-tire-hub__line {
   margin: 0;
-  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
+  letter-spacing: -0.01em;
+  text-transform: none;
   line-height: 1.35;
-  color: #39ff14;
-  text-shadow:
-    0 0 6px rgba(57, 255, 20, 0.9),
-    0 0 14px rgba(57, 255, 20, 0.5);
+  color: #3a3a3c;
+  text-shadow: none;
 }
 
 .hood-tire-hub__line--measuring {
-  font-size: clamp(18px, 3.2vw, 26px);
+  font-size: clamp(15px, 2.4vw, 17px);
+  font-weight: 500;
+  color: #8e8e93;
   animation: hood-tire-hub-blink 1.1s step-end infinite;
 }
 
 .hood-tire-hub__line--primary {
-  font-size: clamp(20px, 3.8vw, 30px);
+  font-size: clamp(28px, 4.5vw, 36px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1c1c1e;
+}
+
+.hood-tire-hub__stat-value {
+  color: #f3901d;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hood-tire-hub__stat-value--inline {
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.hood-tire-hub__stat-label {
+  font-size: clamp(14px, 2.2vw, 17px);
+  font-weight: 500;
+  color: #636366;
+  line-height: 1.3;
 }
 
 .hood-tire-hub__line--secondary {
-  font-size: clamp(15px, 2.6vw, 22px);
+  font-size: clamp(14px, 2.2vw, 16px);
+  font-weight: 400;
+  color: #636366;
+  line-height: 1.45;
+  padding-top: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.hood-tire-hub__line--momentum {
+  font-size: clamp(14px, 2.1vw, 16px);
+  font-weight: 400;
+  color: #48484a;
+  line-height: 1.45;
+  width: 100%;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.hood-tire-hub__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: clamp(10px, 1.6vh, 12px) clamp(16px, 2.4vw, 20px);
+  width: 100%;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(14px, 2.1vw, 16px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.hood-tire-hub__btn--next {
+  background: #f3901d;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+.hood-tire-hub__btn--next:hover:not(:disabled) {
+  background: #e08010;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.hood-tire-hub__btn--next:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.hood-tire-hub__btn--next:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.hood-tire-hub__btn--stats-next {
+  align-self: flex-end;
+  width: auto;
+  min-width: 5.5rem;
+  margin-top: clamp(2px, 0.6vh, 6px);
+  border-radius: 20px;
+  padding: 10px 22px;
+}
+
+.hood-tire-hub__btn--back {
+  background: #ffffff;
   color: #f3901d;
-  text-shadow:
-    0 0 8px rgba(243, 144, 29, 0.75),
-    0 0 16px rgba(243, 144, 29, 0.35);
+  border: 1px solid rgba(243, 144, 29, 0.45);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.hood-tire-hub__btn--back:hover {
+  background: #fff8f0;
+}
+
+.hood-tire-hub__screen-nav {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(8px, 1.4vw, 12px);
+  width: 100%;
+  margin-top: clamp(4px, 0.6vh, 6px);
+}
+
+.hood-tire-hub__screen-nav .hood-tire-hub__btn--back,
+.hood-tire-hub__screen-nav .hood-tire-hub__btn--next {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.hood-tire-hub__btn--visit {
+  background: #f3901d;
+  color: #ffffff;
+  text-shadow: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+.hood-tire-hub__btn--visit:hover {
+  background: #e08010;
+}
+
+.hood-tire-hub__btn:focus-visible {
+  outline: 2px solid #f3901d;
+  outline-offset: 2px;
+}
+
+.hood-tire-hub__btn--visit:focus-visible {
+  outline-color: #f3901d;
 }
 
 @keyframes hood-tire-hub-blink {
@@ -1332,51 +4472,42 @@
 
 @media (max-width: 768px) {
   .hood-tire-hub__lane {
-    height: min(88vw, 300px);
+    height: min(75vw, 255px);
     top: 56%;
   }
 
   .hood-tire-hub__readout-row {
-    top: clamp(96px, 18vh, 28%);
-    width: 94%;
-    max-width: 400px;
-    flex-direction: column;
-    align-items: center;
+    top: 56%;
   }
 
-  .hood-tire-pressure-gauge {
-    width: clamp(88px, 28vw, 130px);
-    margin-top: 0;
+  .hood-tire-hub__line--measuring {
+    font-size: clamp(14px, 2.8vw, 16px);
   }
 
-  .hood-tire-pressure-gauge__slot--0,
-  .hood-tire-pressure-gauge__slot--2 {
-    left: 51%;
-    width: 17%;
+  .hood-tire-hub__line--primary {
+    font-size: clamp(24px, 5vw, 30px);
   }
 
-  .hood-tire-pressure-gauge__slot--1,
-  .hood-tire-pressure-gauge__slot--3 {
-    left: 70%;
-    width: 17%;
+  .hood-tire-hub__stat-label {
+    font-size: clamp(13px, 2.8vw, 15px);
   }
 
-  .hood-tire-pressure-gauge__check {
-    font-size: clamp(9px, 2.8vw, 13px);
+  .hood-tire-hub__line--secondary {
+    font-size: clamp(13px, 2.6vw, 15px);
   }
 
-  .hood-tire-hub__screen-glass {
-    min-height: 64px;
-    padding: 12px 14px;
+  .hood-tire-hub__line--momentum {
+    font-size: clamp(12px, 2.8vw, 15px);
   }
 
-  .hood-tire-wheel__label {
-    font-size: clamp(12px, 3.5vw, 18px);
+  .hood-tire-hub__btn {
+    font-size: clamp(12px, 2.8vw, 15px);
   }
 }
 
 /* Full Diagnostics — gauges top, map arch below, ACES/PIES top-right */
 .full-diagnostics {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1406,57 +4537,250 @@
   color: #9ca3af;
 }
 
+/* Top band — chevron carousel */
 .full-diagnostics__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: clamp(8px, 2vw, 20px);
-  padding: 4px clamp(10px, 2.5vw, 20px) 8px;
+  position: relative;
   flex-shrink: 0;
-  z-index: 5;
+  min-height: clamp(160px, 28vh, 220px);
+  overflow: hidden;
+  z-index: 2;
 }
 
-.full-diagnostics__gauges-cluster {
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(8px, 1.5vw, 16px);
-  flex-shrink: 0;
-}
-
-.full-diagnostics__gauges {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(6px, 1.5vw, 16px);
-  flex-shrink: 0;
-}
-
-.full-diagnostics__gauge {
-  flex-shrink: 0;
-}
-
-/* Completed Kick the Tires gauge — beside member count (desktop + mobile) */
-.full-diagnostics__tire-check {
-  display: block;
-  flex-shrink: 0;
-  width: clamp(72px, 10vw, 120px);
-  align-self: flex-end;
-}
-
-.full-diagnostics__tire-check-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  user-select: none;
+.full-diagnostics__top-lottie {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
   pointer-events: none;
-  filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
+  transition:
+    top 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.full-diagnostics__top-lottie-player {
+  width: 100%;
+  height: 100%;
+}
+
+.full-diagnostics__top-carousel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: clamp(10px, 2vw, 20px);
+  min-height: clamp(160px, 28vh, 220px);
+  padding: clamp(12px, 2vh, 20px) clamp(8px, 2vw, 16px);
+  box-sizing: border-box;
+}
+
+.full-diagnostics__top-carousel-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: clamp(120px, 22vh, 180px);
+  width: 100%;
+}
+
+.full-diagnostics__top-carousel-stage > * {
+  width: 100%;
+  max-width: min(100%, 920px);
+}
+
+.full-diagnostics__share-slide {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2.5vw, 24px);
+  width: 100%;
+  max-width: min(100%, 720px);
+  padding: 0 clamp(4px, 1vw, 8px);
+  box-sizing: border-box;
+}
+
+.full-diagnostics__share-message {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(11px, 1.8vw, 14px);
+  font-weight: 400;
+  line-height: 1.45;
+  color: #e5e7eb;
+  text-align: left;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.full-diagnostics__share-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.2vh, 12px);
+}
+
+.full-diagnostics__social-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.5vw, 14px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.full-diagnostics__social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(36px, 5vw, 44px);
+  height: clamp(36px, 5vw, 44px);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.full-diagnostics__social-link:hover {
+  background: rgba(243, 144, 29, 0.35);
+  transform: scale(1.05);
+}
+
+.full-diagnostics__social-link--linkedin {
+  color: #0a66c2;
+  background: rgba(10, 102, 194, 0.2);
+}
+
+.full-diagnostics__social-link--instagram {
+  color: #e4405f;
+  background: rgba(228, 64, 95, 0.2);
+}
+
+.full-diagnostics__social-icon-svg {
+  width: clamp(18px, 2.8vw, 22px);
+  height: clamp(18px, 2.8vw, 22px);
+  display: block;
+}
+
+.full-diagnostics__share-btn {
+  margin: 0;
+  padding: clamp(8px, 1.2vh, 10px) clamp(20px, 4vw, 28px);
+  border: none;
+  border-radius: 6px;
+  background: #f3901d;
+  color: #000;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(12px, 2vw, 14px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.full-diagnostics__share-btn:hover {
+  background: #ffb04d;
+}
+
+.full-diagnostics__share-btn:active {
+  transform: scale(0.98);
+}
+
+.full-diagnostics__chevron {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 8px;
+  margin: 0;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.full-diagnostics__chevron:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.full-diagnostics__chevron-icon {
+  width: clamp(28px, 5vw, 40px);
+  height: clamp(28px, 5vw, 40px);
+  display: block;
+}
+
+.full-diagnostics__stats-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(12px, 3vw, 28px);
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge {
+  --journey-counter-dial-size: min(100%, clamp(4.25rem, 13vw, 6.5rem));
+  --journey-counter-stat-min-h: calc(clamp(11px, 2.2vw, 16px) * 1.15 + 0.35rem);
+  flex: 0 1 clamp(72px, 18vw, 130px);
+  min-width: 0;
+  max-width: clamp(88px, 20vw, 140px);
+  align-self: stretch;
+  font-size: clamp(7px, 1.2vw, 10px);
+}
+
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge
+  .journey-speedometer-gauge__stat-below {
+  gap: 0.2em;
+  padding-inline: clamp(4px, 1vw, 8px);
+}
+
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge
+  .journey-speedometer-gauge__stat-below
+  .journey-speedometer-gauge__stat-label {
+  padding-left: 4px;
+  line-height: 1.15;
+}
+
+.full-diagnostics__tires-roll {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: clamp(6px, 1.5vw, 14px);
+  width: 100%;
+  max-width: min(100%, 920px);
+  overflow: hidden;
+}
+
+.full-diagnostics__tire-roll-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.full-diagnostics__tire-roll-img {
+  width: 100%;
+  max-width: clamp(72px, 16vw, 148px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
 }
 
 .full-diagnostics__dipsticks {
   position: relative;
-  width: clamp(140px, 22vw, 220px);
-  height: clamp(120px, 18vh, 168px);
-  flex-shrink: 0;
-  margin-top: 4px;
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
@@ -1465,14 +4789,19 @@
   bottom: 0;
 }
 
+.full-diagnostics__dipsticks--pair-art {
+  width: min(420px, 88vw);
+  height: clamp(140px, 22vw, 280px);
+}
+
 .full-diagnostics__dipstick.hood-dipstick-img--aces {
-  left: 2%;
+  left: 8%;
   width: 46%;
 }
 
 .full-diagnostics__dipstick.hood-dipstick-img--pies {
-  left: 52%;
-  width: 46%;
+  left: 54%;
+  width: 36%;
 }
 
 .full-diagnostics__map {
@@ -1481,6 +4810,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 .full-diagnostics__map-shell {
@@ -1489,156 +4819,365 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: clamp(8px, 1.5vw, 14px);
+  box-sizing: border-box;
 }
 
-.full-diagnostics__map-bg {
+/* Dipsticks rise in front of top carousel, behind map arch (step 3) */
+.full-diagnostics__dipsticks-overlay {
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  left: 0;
+  right: 0;
+  top: clamp(52px, 9vh, 68px);
+  height: clamp(160px, 28vh, 220px);
+  z-index: 6;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.full-diagnostics__dipsticks-overlay .full-diagnostics__dipsticks--pair-art {
+  width: min(420px, 88vw);
+  height: clamp(140px, 22vw, 280px);
+}
+
+.full-diagnostics__map--arch-front {
+  position: relative;
+  z-index: 7;
+}
+
+.full-diagnostics__map-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   pointer-events: none;
+  will-change: transform;
 }
 
-.full-diagnostics__map-bg .dashboard-map-arch {
+.full-diagnostics__map-stage-inner {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-diagnostics__map-ui {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.full-diagnostics__map-bg .dashboard-map-arch__svg {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
+  inset: var(--hmi-chrome-border);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+  border-radius: calc(var(--hmi-radius) - 5px);
 }
 
 .full-diagnostics__map-popup-wrap {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 clamp(10px, 2vw, 18px) clamp(12px, 2vh, 18px);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.full-diagnostics__map-popups-row.journey-nav-popup-overlay {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 16px);
+  width: 100%;
+  max-width: min(100%, 760px);
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.full-diagnostics__map-popup-slot {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: min(50%, 340px);
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.full-diagnostics__map-popups-row .gps-event-popup--nav {
+  width: 100%;
+  max-width: 100%;
+}
+
+.full-diagnostics__map-popups-row .gps-event-popup--nav::after {
+  display: none;
+}
+
+.full-diagnostics__map-popups-row .gps-event-popup--nav-expanded {
+  align-items: flex-start;
+}
+
+/* Step 2 → share: dashboard band + map exit before final scene */
+.full-diagnostics--dashboard-exiting {
+  overflow: hidden;
+}
+
+.full-diagnostics--dashboard-exiting .full-diagnostics__header {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition:
+    opacity 0.4s ease,
+    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.full-diagnostics--dashboard-exiting .full-diagnostics__top {
+  opacity: 0;
+  transform: translateY(-108%);
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease 0.06s,
+    transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.full-diagnostics--dashboard-exiting .full-diagnostics__top-lottie {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.full-diagnostics--dashboard-exiting .full-diagnostics__dipsticks-overlay {
+  opacity: 0;
+  transform: translateY(48%);
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.full-diagnostics--dashboard-exiting .full-diagnostics__map-popup-wrap {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.full-diagnostics--dashboard-exiting .full-diagnostics__map {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Last carousel slide — arch exits, content + radial glow center on screen */
+.full-diagnostics--share-focus .full-diagnostics__header {
+  position: relative;
+  z-index: 12;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.5s ease 0.12s,
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.12s;
+}
+
+.full-diagnostics--share-focus .full-diagnostics__top {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0 clamp(10px, 2.5vw, 20px) clamp(6px, 1.2vh, 12px);
-  pointer-events: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  z-index: 8;
+  overflow: visible;
 }
 
-.full-diagnostics__map-popups-row {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
+.full-diagnostics--share-focus .full-diagnostics__top--share-focus {
+  pointer-events: auto;
+}
+
+.full-diagnostics--share-focus .full-diagnostics__top-lottie--share-focus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: min(140vw, 1280px);
+  height: min(95vh, 820px);
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition:
+    top 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.55s ease 0.08s;
+}
+
+.full-diagnostics--share-focus .full-diagnostics__top-carousel {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  min-height: 0;
+  opacity: 1;
+  transform: translateY(-50%);
+  transition:
+    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.5s ease 0.1s;
+}
+
+.full-diagnostics--share-focus .full-diagnostics__top-carousel-stage {
+  min-height: 0;
+}
+
+/* Step 0 stats stay in one row — share-focus layout must not affect the stats grid */
+.full-diagnostics--share-focus .full-diagnostics__stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.full-diagnostics--share-focus .full-diagnostics__share-slide {
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: clamp(8px, 2vw, 16px);
+  gap: clamp(16px, 2.5vh, 24px);
+  max-width: min(92%, 480px);
+  text-align: center;
+}
+
+.full-diagnostics--share-focus .full-diagnostics__share-message {
+  flex: none;
   width: 100%;
-  max-width: min(100%, 720px);
+  max-width: 100%;
+  text-align: center;
+  font-size: 20px;
 }
 
-.full-diagnostics__map-popup {
-  flex: 1 1 0;
-  min-width: 0;
-  width: auto;
-  max-width: none;
-  min-height: clamp(96px, 16vh, 128px);
-  padding: clamp(10px, 2vw, 16px) clamp(12px, 2.5vw, 18px);
-  border-radius: clamp(16px, 3vw, 22px);
-  gap: clamp(6px, 1.2vw, 10px);
+.full-diagnostics--share-focus .full-diagnostics__share-actions {
+  width: 100%;
+  align-items: center;
+  gap: clamp(12px, 2vh, 18px);
 }
 
-.full-diagnostics__map-popup .gps-event-popup__title {
-  font-size: clamp(22px, 4.5vw, 36px);
+.full-diagnostics--share-focus .full-diagnostics__map {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  flex: none;
+  min-height: 0;
+  z-index: 6;
 }
 
-.full-diagnostics__map-popup .gps-event-popup__subtitle {
-  font-size: clamp(12px, 2.2vw, 18px);
+.full-diagnostics--share-focus .full-diagnostics__map-shell {
+  overflow: hidden;
 }
 
-.full-diagnostics__map-popup .gps-event-popup__bar-track {
-  min-width: 72px;
-  max-width: 140px;
-  height: clamp(28px, 5vw, 36px);
-}
-
-.full-diagnostics__map-popup .gps-event-popup__row-icon svg {
-  width: clamp(22px, 4vw, 28px);
-  height: clamp(22px, 4vw, 28px);
+.full-diagnostics__map-popup-wrap {
+  transition:
+    top 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 768px) {
-  .full-diagnostics__top {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+  .full-diagnostics__top-carousel {
+    column-gap: 6px;
+    padding-inline: 4px;
   }
 
-  .full-diagnostics__gauges-cluster {
-    display: grid;
-    grid-template-columns: auto auto auto;
-    grid-template-rows: auto auto;
-    column-gap: clamp(4px, 1.5vw, 10px);
-    row-gap: 2px;
-    justify-content: center;
+  .full-diagnostics__share-slide {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(10px, 2vh, 14px);
+  }
+
+  .full-diagnostics__share-message {
+    text-align: center;
+    font-size: clamp(10px, 2.8vw, 12px);
+  }
+
+  .full-diagnostics--share-focus .full-diagnostics__share-message {
+    font-size: 20px;
+  }
+
+  .full-diagnostics--share-focus .full-diagnostics__top-lottie--share-focus {
+    width: min(150vw, 1100px);
+    height: min(92vh, 720px);
+  }
+
+  .full-diagnostics--share-focus .full-diagnostics__share-slide {
+    max-width: min(94%, 360px);
+  }
+
+  .full-diagnostics__share-actions {
     width: 100%;
   }
 
-  .full-diagnostics__gauges {
-    display: contents;
-  }
-
-  .full-diagnostics__gauge--years {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .full-diagnostics__gauge--members {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .full-diagnostics__gauge--committee {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .full-diagnostics__tire-check {
-    grid-column: 2 / 4;
-    grid-row: 2;
-    justify-self: end;
-    align-self: start;
-    width: clamp(88px, 26vw, 128px);
-    margin-top: -2px;
-  }
-
-  .full-diagnostics__dipsticks {
-    width: min(100%, 240px);
-    margin: 0 auto;
-  }
-
-  .full-diagnostics__map-popups-row {
-    gap: clamp(6px, 1.5vw, 10px);
+  .full-diagnostics__stats-row {
+    column-gap: clamp(4px, 1.2vw, 10px);
     max-width: 100%;
   }
 
-  .full-diagnostics__map-popup {
-    min-height: clamp(80px, 12vh, 100px);
-    padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 14px);
-    border-radius: 14px;
+  .full-diagnostics__stat-gauge.journey-counter-panel__gauge {
+    --journey-counter-dial-size: min(100%, clamp(3.75rem, 11vw, 5.5rem));
+    --journey-counter-stat-min-h: calc(clamp(10px, 2vw, 13px) * 1.1 + 0.3rem);
+    flex-basis: clamp(64px, 16vw, 96px);
+    max-width: clamp(72px, 18vw, 108px);
+    font-size: clamp(6px, 1.1vw, 9px);
   }
 
-  .full-diagnostics__map-popup .gps-event-popup__title {
-    font-size: clamp(18px, 5vw, 26px);
+  .full-diagnostics__stat-gauge.journey-counter-panel__gauge
+    .journey-speedometer-gauge__stat-below
+    .journey-speedometer-gauge__stat-value {
+    font-size: clamp(10px, 2.4vw, 14px) !important;
   }
 
-  .full-diagnostics__map-popup .gps-event-popup__subtitle {
-    font-size: clamp(10px, 2.5vw, 14px);
+  .full-diagnostics__stat-gauge.journey-counter-panel__gauge
+    .journey-speedometer-gauge__stat-below
+    .journey-speedometer-gauge__stat-label {
+    font-size: clamp(6px, 1.1vw, 8px) !important;
+    padding-left: 3px;
   }
 
-  .full-diagnostics__map-popup .gps-event-popup__bar-track {
-    min-width: 48px;
-    max-width: 96px;
-    height: clamp(22px, 4vw, 28px);
+  .full-diagnostics__tire-roll-img {
+    max-width: clamp(48px, 12vw, 80px);
+  }
+
+  .full-diagnostics__dipsticks-overlay {
+    top: clamp(48px, 8vh, 60px);
+    height: clamp(150px, 26vh, 200px);
+  }
+
+  .full-diagnostics__dipsticks-overlay .full-diagnostics__dipsticks--pair-art {
+    width: min(100%, 320px);
+    height: clamp(120px, 22vh, 180px);
+  }
+
+  .full-diagnostics__map-popup-wrap {
+    padding-inline: clamp(6px, 1.5vw, 10px);
+    padding-bottom: clamp(8px, 1.5vh, 12px);
+  }
+
+  .full-diagnostics__map-popups-row.journey-nav-popup-overlay {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(8px, 1.5vh, 10px);
+  }
+
+  .full-diagnostics__map-popup-slot {
+    max-width: 100%;
+  }
+
+  .full-diagnostics__map-popups-row .gps-event-popup--nav {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -1668,32 +5207,31 @@
     0 0 20px rgba(57, 255, 20, 0.4);
 }
 
-/* Full black windshield for all Under the Hood phases */
-.hood-scene-black {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  z-index: 1;
+/* Dashboard exits downward before Under the Hood entry sequence */
+.dashboard-panel--exiting {
   pointer-events: none;
 }
 
-/* Under the Hood — title in black sky area above grey arch */
-.hood-scene-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: clamp(48px, 12vh, 120px);
-  margin: 0;
-  padding: 0 24px;
-  text-align: center;
-  font-family: 'Istok Web', sans-serif;
-  font-size: clamp(36px, 7vw, 64px);
-  font-weight: 700;
-  line-height: 1.1;
-  color: #f3901d;
-  z-index: 12;
+.dashboard-panel--hood-rising {
   pointer-events: none;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Under the Hood — hood illustration behind title + arch */
+.hood-scene-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  background: #6b6b6b;
+}
+
+.hood-scene-bg__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 @media (max-width: 1023px) {
@@ -1711,36 +5249,55 @@
 
   .journey-layout--nav .journey-layout__nav-stage {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
+    align-items: stretch;
+    justify-content: stretch;
+    flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
+    padding-top: 0;
   }
 
   .journey-nav-popup-row {
     width: 100%;
-    column-gap: clamp(10px, 2.5vw, 16px);
+    gap: clamp(10px, 2.5vw, 16px);
+    height: 100%;
+    min-height: 0;
+    max-height: none;
   }
 
-  .gps-popup-stage {
-    width: min(100%, 300px);
-    height: auto;
-    min-height: 0;
+  .journey-nav-popup-overlay .gps-event-popup--nav {
+    width: min(100%, clamp(220px, 72vw, 300px));
+  }
+
+  .journey-nav-popup-overlay .gps-event-popup--arrived {
+    width: min(100%, clamp(240px, 78vw, 320px));
   }
 
   .gps-event-popup {
     width: 100%;
     max-width: 100%;
-    min-height: 110px;
-    padding: 14px 16px;
   }
 
   .gps-event-popup__title {
-    font-size: clamp(26px, 7vw, 40px);
+    font-size: clamp(24px, 6.5vw, 38px);
   }
 
   .gps-event-popup__subtitle {
-    font-size: clamp(15px, 4vw, 22px);
+    font-size: clamp(12px, 3.2vw, 16px);
+  }
+
+  .journey-nav-popup-row:has(.gps-event-popup--arrived) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .gps-event-popup__title--arrived {
+    font-size: clamp(26px, 7vw, 32px);
+  }
+
+  .gps-event-popup__media {
+    width: min(100%, 180px);
+    max-height: 56px;
   }
 
   .map-control-btn {
@@ -1761,24 +5318,34 @@
 }
 
 @media (max-width: 479px) {
-  .gps-popup-stage {
-    width: min(100%, 260px);
-  }
-
   .journey-nav-chevron-icon {
     width: 24px;
     height: 24px;
   }
 
   .gps-event-popup {
-    border-radius: 20px;
-    min-height: 100px;
-    padding: 12px 14px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .gps-event-popup--attendance .gps-event-popup__bar-track {
+    height: 18px;
+    min-width: 100px;
+    max-width: 160px;
+  }
+
+  .gps-event-popup__title--arrived {
+    font-size: 26px;
+  }
+
+  .gps-event-popup__media {
+    max-height: 48px;
+    width: min(100%, 160px);
   }
 
   .gps-event-popup__bar-track {
     min-width: 90px;
-    max-width: 160px;
+    max-width: 140px;
   }
 }
 

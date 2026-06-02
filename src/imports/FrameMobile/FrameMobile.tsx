@@ -6,7 +6,6 @@ function Group3() {
       <svg className="absolute block inset-0 size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 125.522 42.6612">
         <g id="Group 118">
           <path d={svgPaths.p3f6e2800} fill="var(--fill-0, #737373)" id="Vector" />
-          <path d={svgPaths.p36592bb2} fill="var(--fill-0, #737373)" id="Vector_2" />
         </g>
       </svg>
     </div>
