@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence, LayoutGroup, animate, useMotionValue, useTransform } from 'motion/react';
 import Lottie from 'lottie-react';
-import carOnTrackData from '../../imports/Car_on_track.json';
+import drivingAnimationData from '../../imports/driving-animation-background.json';
 import { JourneyCounterGauge } from './JourneyCounterGauge';
+import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
 import {
   GpsPopupContent,
@@ -17,12 +18,14 @@ import {
   type HoodNavTransition,
   type HoodPhase,
 } from './MapSimulation';
-import autocareLogo from '../../assets/autocare-logo-transparent.png';
 import hourglassIcon from '../../assets/hourglass-duotone-solid-full.png';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
 import { FullDiagnosticsPanel } from './FullDiagnosticsPanel';
 
 const BRAND_ORANGE = '#f3901d';
+
+const INTRO_WELCOME_GREETING = 'Welcome,';
+const INTRO_WELCOME_COMPANY = 'Dayco Incorporated';
 
 const STARS = Array.from({ length: 90 }, (_, i) => ({
   x: `${(i * 37 + 13) % 100}%`,
@@ -31,8 +34,9 @@ const STARS = Array.from({ length: 90 }, (_, i) => ({
   opacity: 0.35 + (i % 6) * 0.1,
 }));
 
-const INTRO_WELCOME_GREETING = 'Welcome,';
-const INTRO_WELCOME_COMPANY = 'East Penn Manufacturing Company';
+const SUN_RISE_BOTTOM_Y = 48;
+const SUN_RISE_TOP_Y = -165;
+const SKY_SUNRISE_DURATION_S = 20;
 
 const FOLLOW_UP_SLIDE_TEXTS = [
   'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
@@ -42,15 +46,19 @@ const FOLLOW_UP_SLIDE_TEXTS = [
 
 /** Slide 0 = welcome; slides 1–3 = FOLLOW_UP_SLIDE_TEXTS */
 const DRIVING_SLIDE_COUNT = 1 + FOLLOW_UP_SLIDE_TEXTS.length;
-const SUN_RISE_BOTTOM_Y = 60;
-const SUN_RISE_TOP_Y = -220;
-const SKY_STEP_ANIMATION = { duration: 0.85, ease: [0.4, 0, 0.2, 1] as const };
-
-/** Intro slides → sky/sun progress 0 … 1 across welcome + follow-ups */
-function skyProgressForSlide(slideIndex: number) {
-  if (DRIVING_SLIDE_COUNT <= 1) return 1;
-  return slideIndex / (DRIVING_SLIDE_COUNT - 1);
-}
+const SKY_SUNRISE_ANIMATION = { duration: SKY_SUNRISE_DURATION_S, ease: [0.35, 0, 0.25, 1] as const };
+const INTRO_LAYOUT_TRANSITION = {
+  duration: 1.35,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+const INTRO_START_BUTTON_TRANSITION = {
+  duration: 1.75,
+  ease: [0.16, 1, 0.3, 1] as const,
+};
+const LICENSE_PLATE_EXIT_TRANSITION = {
+  duration: 1.5,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
 
 type Screen = 'journey' | 'hood' | 'diagnostics';
 
@@ -72,16 +80,6 @@ function getActiveNavCheckpoint(
   if (screen === 'hood') return isTirePhase(hoodPhase) ? 'tires' : 'hood';
   return screen;
 }
-
-// Lottie canvas: 1600×1080. Horizon (sky/tree boundary) ≈ y=486 → r=0.45.
-// With xMidYMax slice in a viewport-sized container:
-//   - portrait/square (vw < 1.481*vh): scales by height, horizon at 0.45*vh from top
-//     → bottom: 0.55*vh = 55vh
-//   - landscape/wide (vw > 1.481*vh): scales by width, anim height = 1080/1600*vw = 0.675vw
-//     → horizon from viewport top = 0.45*0.675vw − (0.675vw − vh) = vh − 0.37125vw
-//     → bottom: 0.37125vw ≈ 37vw
-// Combined: bottom: max(55vh, 37vw)
-const HORIZON_BOTTOM = 'max(55vh, 37vw)';
 
 // ── Under the Hood: oil pour + dipstick animation ─────────────────────────────
 function UnderTheHood({ embedded = false }: { embedded?: boolean }) {
@@ -360,7 +358,7 @@ function FinalScenePlaceholder() {
 }
 
 // ── Full Diagnostics dashboard layout ─────────────────────────────────────────
-function FullDiagnostics() {
+function FullDiagnostics({ onBackToStart }: { onBackToStart: () => void }) {
   return (
     <motion.div
       className="absolute inset-0 bg-black z-40 overflow-hidden"
@@ -368,7 +366,7 @@ function FullDiagnostics() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <FullDiagnosticsPanel />
+      <FullDiagnosticsPanel onBackToStart={onBackToStart} />
     </motion.div>
   );
 }
@@ -418,9 +416,6 @@ function StartButton({
       disabled={inactive}
       tabIndex={inactive ? -1 : 0}
     >
-      <span className="landing-push-start__chrome" aria-hidden />
-      <span className="landing-push-start__shine" aria-hidden />
-      <span className="landing-push-start__face" aria-hidden />
       <span className="landing-push-start__glow" aria-hidden />
       <span className="landing-push-start__label">
         <span className="landing-push-start__year">2026</span>
@@ -444,12 +439,34 @@ function PreJourneyStage({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const startFloatRef = useRef<HTMLDivElement>(null);
   const isMobileLayout = useIsCounterMobile();
-  const startLeft = phase === 'intro' && !isMobileLayout ? '21%' : '50%';
+  const startLeftRatio = phase === 'intro' && !isMobileLayout ? 0.21 : 0.5;
   const showStartButton = !(isMobileLayout && phase === 'intro');
+  const [startButtonLeftPx, setStartButtonLeftPx] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    const startFloat = startFloatRef.current;
+    if (!stage || !startFloat || !showStartButton) return;
+
+    const syncStartPosition = () => {
+      const stageWidth = stage.clientWidth;
+      const buttonWidth = startFloat.offsetWidth;
+      setStartButtonLeftPx(stageWidth * startLeftRatio - buttonWidth / 2);
+    };
+
+    syncStartPosition();
+    const observer = new ResizeObserver(syncStartPosition);
+    observer.observe(stage);
+    observer.observe(startFloat);
+    return () => observer.disconnect();
+  }, [startLeftRatio, showStartButton]);
 
   return (
     <div
+      ref={stageRef}
       className={[
         'pre-journey-stage',
         phase === 'intro' ? 'pre-journey-stage--intro' : 'pre-journey-stage--landing',
@@ -457,11 +474,16 @@ function PreJourneyStage({
     >
       {showStartButton ? (
         <motion.div
+          ref={startFloatRef}
           className="pre-journey-stage__start-float"
           initial={false}
-          animate={{ left: startLeft }}
-          style={{ x: '-50%', y: '-50%' }}
-          transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
+          animate={{
+            left: startButtonLeftPx ?? '50%',
+            x: startButtonLeftPx == null ? '-50%' : 0,
+            y: '-50%',
+          }}
+          style={{ top: '50%' }}
+          transition={INTRO_START_BUTTON_TRANSITION}
         >
           <StartButton onClick={onStart} inactive={phase === 'intro'} />
         </motion.div>
@@ -470,19 +492,19 @@ function PreJourneyStage({
         {phase === 'intro' ? (
           <motion.div
             className="pre-journey-stage__intro-col"
-            initial={{ opacity: 0, x: 28 }}
+            initial={{ opacity: 0, x: 32 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 16 }}
-            transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1], delay: 0.12 }}
+            transition={{ ...INTRO_LAYOUT_TRANSITION, delay: 0.08 }}
           >
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlide}
                 className="pre-journey-stage__intro-panel"
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.35 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.55, ease: INTRO_LAYOUT_TRANSITION.ease }}
               >
                 <div className="intro-slide__back">
                   <button
@@ -490,7 +512,7 @@ function PreJourneyStage({
                     className="intro-slide__back-btn"
                     onClick={onBack}
                     disabled={currentSlide === 0}
-                    aria-label="Previous slide"
+                    aria-label="previous slide"
                   >
                     <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
                       <path d={TURN_RIGHT_PATH} />
@@ -517,7 +539,7 @@ function PreJourneyStage({
                     type="button"
                     className="intro-slide__next-btn"
                     onClick={onNext}
-                    aria-label="Next slide"
+                    aria-label="next slide"
                   >
                     <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
                       <path d={TURN_RIGHT_PATH} />
@@ -562,8 +584,8 @@ type JourneySection =
       target: number;
       label: string;
       labelLines?: string[];
-      /** Speedometer (default) or car-style fuel level 0–100%. */
-      gaugeVariant?: 'speedometer' | 'fuel' | 'battery';
+      /** Speedometer (default), fuel, battery, or AWDA community logo button. */
+      gaugeVariant?: 'speedometer' | 'fuel' | 'battery' | 'community-logo';
       footerMessage?: string;
       footerButton?: { label: string; href: string };
     }
@@ -579,7 +601,7 @@ const JOURNEY_SECTIONS: JourneySection[] = [
   {
     type: 'counter',
     subtitle: 'Membership Tenure',
-    target: 46,
+    target: 56,
     label: 'years',
     footerMessage:
       "Thank you for your longstanding support! You're continuing a legacy of industry participation",
@@ -587,7 +609,7 @@ const JOURNEY_SECTIONS: JourneySection[] = [
   {
     type: 'counter',
     subtitle: 'Active Contacts',
-    target: 68,
+    target: 87,
     label: 'active contacts',
     gaugeVariant: 'fuel',
     footerMessage:
@@ -597,16 +619,17 @@ const JOURNEY_SECTIONS: JourneySection[] = [
   {
     type: 'counter',
     subtitle: 'Community Membership',
-    target: 59,
+    target: 88,
     label: 'community members',
+    gaugeVariant: 'community-logo',
     footerMessage:
       "WOW! You're one of our most active participants in Auto Care communities, driving our industry forward.",
-    footerButton: { label: 'Explore all communities', href: 'https://autocare.org/' },
+    footerButton: { label: 'explore all communities', href: 'https://autocare.org/' },
   },
   {
     type: 'counter',
     subtitle: 'Committee Membership',
-    target: 0,
+    target: 1,
     label: 'committee members',
     gaugeVariant: 'battery',
     footerMessage:
@@ -620,10 +643,10 @@ const JOURNEY_SECTIONS: JourneySection[] = [
     type: 'nav',
     navMessage:
       "We'd love to see more of you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.",
-    navButton: { label: 'See upcoming events', href: 'https://autocare.org/events' },
+    navButton: { label: 'see upcoming events', href: 'https://autocare.org/events' },
     webinarsMessage:
       'Are there other employees who could benefit from our robust library of on-demand content?',
-    webinarsButton: { label: 'Browse Webinar Library', href: 'https://autocare.org/education' },
+    webinarsButton: { label: 'browse webinar library', href: 'https://autocare.org/education' },
   },
 ];
 
@@ -633,18 +656,28 @@ const JOURNEY_END_GPS_PHASE = 4;
 
 const JOURNEY_COUNTER_PANEL_HEIGHT = 419;
 const JOURNEY_MAP_PANEL_MAX_HEIGHT = 520;
+const DRIVING_FOOTER_HEIGHT_PX = 96;
+const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 316;
+const DRIVING_DEFAULT_BACKDROP_BOTTOM_PX =
+  DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX + DRIVING_FOOTER_HEIGHT_PX;
 const JOURNEY_SCENE_TRANSITION = {
   duration: 0.55,
   ease: [0.4, 0, 0.2, 1] as const,
 };
+const JOURNEY_SCENE_MS = Math.round(JOURNEY_SCENE_TRANSITION.duration * 1000);
+const JOURNEY_SCENE_SLIDE_TRANSITION = {
+  duration: 0.95,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+const JOURNEY_SCENE_SLIDE_MS = Math.round(JOURNEY_SCENE_SLIDE_TRANSITION.duration * 1000);
 
 // ── GPS Nav sequence ───────────────────────────────────────────────────────────
 
 function JourneyNavCornerNav({
   onBack,
   onNext,
-  backLabel = 'Back',
-  nextLabel = 'Next',
+  backLabel = 'back',
+  nextLabel = 'next',
   nextDisabled = false,
 }: {
   onBack: () => void;
@@ -704,7 +737,7 @@ function JourneyNavCalculatingOverlay({
           <p className="journey-nav-calculating__title">
             {`calculating${'.'.repeat(dotCount)}`}
           </p>
-          <p className="journey-nav-calculating__subtitle">event Attendance</p>
+          <p className="journey-nav-calculating__subtitle">event attendance</p>
         </div>
       </div>
     </motion.div>
@@ -768,14 +801,14 @@ function JourneyNavArrivalOverlay({
               {isRerouting ? 'Re-routing to' : 'You have arrived'}
             </p>
             <p className="journey-nav-arrival__destination">
-              {isRerouting ? 'AAPEX 2027' : 'AAPEX 2026'}
+              {isRerouting ? 'AAPEX 2026' : 'AAPEX 2025'}
             </p>
             <p
               className={`journey-nav-arrival__detail${isRerouting ? ' journey-nav-arrival__detail--lead' : ''}`}
             >
               {isRerouting
                 ? 'Being at aapex is the #1 way to not only stay connected and forge new business.'
-                : 'Thank you for attending AAPEX 2026'}
+                : 'Thank you for Attending AAPEX 2025'}
             </p>
             <div className="journey-nav-arrival__actions">
               {isRerouting ? (
@@ -785,7 +818,7 @@ function JourneyNavArrivalOverlay({
                     className="journey-nav-arrival__btn journey-nav-arrival__btn--back"
                     onClick={onBack}
                   >
-                    Back
+                    back
                   </button>
                   <a
                     href="https://AAPEXshows.org"
@@ -793,7 +826,7 @@ function JourneyNavArrivalOverlay({
                     rel="noopener noreferrer"
                     className="journey-nav-arrival__btn journey-nav-arrival__btn--aapex"
                   >
-                    AAPEX 2027
+                    AAPEX 2026
                   </a>
                 </>
               ) : (
@@ -803,14 +836,14 @@ function JourneyNavArrivalOverlay({
                     className="journey-nav-arrival__btn journey-nav-arrival__btn--back"
                     onClick={onRestartSequence}
                   >
-                    Back
+                    back
                   </button>
                   <button
                     type="button"
                     className="journey-nav-arrival__btn journey-nav-arrival__btn--next"
                     onClick={onNext}
                   >
-                    Next
+                    next
                   </button>
                 </>
               )}
@@ -831,7 +864,7 @@ function JourneyNavHoodNextPopup({ onNext }: { onNext: () => void }) {
       transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
     >
       <button type="button" className="journey-nav-hood-next__btn" onClick={onNext}>
-        Next
+        next
       </button>
     </motion.div>
   );
@@ -849,9 +882,9 @@ const HOOD_ENTRY_PANEL_RISE_MS = 0.7;
 const HOOD_BACKDROP_FADE_MS = 0.7;
 
 function gpsAdvanceLabel(phase: number): string {
-  if (phase === 2) return 'Next';
-  if (phase === 3) return 'Next';
-  return 'Next';
+  if (phase === 2) return 'next';
+  if (phase === 3) return 'next';
+  return 'next';
 }
 
 const CALCULATING_VISIBLE_MS = 3000;
@@ -887,16 +920,17 @@ function GpsNavSection({
   const [mapReplayKey, setMapReplayKey] = useState(0);
   const [leavingForHood, setLeavingForHood] = useState(false);
   const [visiblePopupPhase, setVisiblePopupPhase] = useState<number | null>(
-    initialPhase >= 3 ? 3 : initialPhase >= 2 ? 2 : null,
+    initialPhase >= 3 ? 3 : 2,
   );
   const [exitingToArrival, setExitingToArrival] = useState(false);
 
   useEffect(() => {
     if (exitingToArrival) return;
-    if (phase === 2) setVisiblePopupPhase(2);
-    else if (phase === 3) setVisiblePopupPhase(3);
+    if (phase === 3) setVisiblePopupPhase(3);
+    else if (phase >= 2) setVisiblePopupPhase(2);
+    else if (phase === 1 && initialPhase === 1) setVisiblePopupPhase(2);
     else setVisiblePopupPhase(null);
-  }, [phase, exitingToArrival]);
+  }, [phase, exitingToArrival, initialPhase]);
 
   useEffect(() => {
     if (phase !== 1) return;
@@ -910,7 +944,10 @@ function GpsNavSection({
     if (initialPhase !== 1 || phase !== 1) return;
     const fadeTimer = window.setTimeout(() => setCalculatingFadeOut(true), CALCULATING_VISIBLE_MS);
     const advanceTimer = window.setTimeout(
-      () => setPhase(2),
+      () => {
+        window.dispatchEvent(new CustomEvent('journey-nav-map-repaint'));
+        setPhase(2);
+      },
       CALCULATING_VISIBLE_MS + CALCULATING_FADE_MS,
     );
     return () => {
@@ -1007,26 +1044,23 @@ function GpsNavSection({
     setPhase(4);
   };
 
-  const handleEventsMilestone = useCallback(() => {}, []);
-
-  const handleWebinarsMilestone = useCallback(() => {}, []);
-
   const attendanceDetailsReady = barW >= BAR_FILL_MAX;
   const webinarDetailsReady = hoursCount >= WEBINAR_HOURS_MAX;
   const canAdvance =
     (phase === 2 && attendanceDetailsReady) || (phase === 3 && webinarDetailsReady);
   const advanceLabel = gpsAdvanceLabel(phase);
   const showCornerNav =
-    visiblePopupPhase !== null && !exitingToArrival && phase < 4;
+    phase >= 2 && visiblePopupPhase !== null && !exitingToArrival && phase < 4;
   const evtPct = Math.round(barW);
   const showCalculating = phase === 1 && initialPhase === 1;
   const showArrivalOverlay = phase === 4 && !leavingForHood;
   const showHoodNextPopup = phase === 4 && arrivalStep === 'rerouting' && !leavingForHood;
   const showPopupStack = visiblePopupPhase !== null && !popupMinimized;
+  const popupRevealed = phase >= 2 && !exitingToArrival;
   const stackedPopupPhases = showPopupStack
     ? getJourneyNavStackPhases(visiblePopupPhase)
     : [];
-  const showNavControls = phase >= 2 && phase < 4;
+  const showNavControls = phase >= 1 && phase < 4;
   const resolvePopupDetailsReady = (popupPhase: number) =>
     popupPhase === 2 ? attendanceDetailsReady : webinarDetailsReady;
   const uiMotion = uiSceneMotion ?? {
@@ -1044,13 +1078,7 @@ function GpsNavSection({
   return (
     <div className="journey-nav-stage-inner">
       <div className="journey-nav-slide-bg" aria-hidden>
-        <JourneyNavMapAnimation
-          key={mapReplayKey}
-          initialPhase={initialPhase}
-          replayFromStart={mapReplayKey > 0}
-          onEventsMilestone={handleEventsMilestone}
-          onWebinarsMilestone={handleWebinarsMilestone}
-        />
+        <JourneyNavMapAnimation key={mapReplayKey} />
       </div>
 
       {showCalculating && (
@@ -1062,7 +1090,7 @@ function GpsNavSection({
           <JourneyNavArrivalOverlay
             key="journey-nav-arrival"
             step={arrivalStep}
-            onNext={handleGoToHoodWithTransition}
+            onNext={() => setArrivalStep('rerouting')}
             onBack={() => setArrivalStep('arrived')}
             onRestartSequence={handleRestartSequence}
           />
@@ -1084,8 +1112,13 @@ function GpsNavSection({
           {showPopupStack && (
             <motion.div
               key="journey-nav-popup-row"
-              className="journey-nav-popup-row"
-              initial={{ opacity: 1 }}
+              className={[
+                'journey-nav-popup-row',
+                popupRevealed ? '' : 'journey-nav-popup-row--pregame',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              initial={false}
               exit={{ opacity: 0 }}
               transition={{ duration: GPS_POPUP_EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
             >
@@ -1097,20 +1130,29 @@ function GpsNavSection({
                         <motion.div
                           key={popupPhase}
                           className="gps-popup-stack__item"
-                          layout="position"
-                          initial={{ opacity: 0, y: 56, scale: 0.94 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 32, scale: 0.92 }}
+                          layout={popupRevealed ? 'position' : false}
+                          initial={
+                            popupRevealed ? { opacity: 0, x: 48, y: 0, scale: 0.96 } : false
+                          }
+                          animate={
+                            popupRevealed
+                              ? { opacity: 1, x: 0, y: 0, scale: 1 }
+                              : { opacity: 0, x: 0, y: 0, scale: 1 }
+                          }
+                          exit={{ opacity: 0, x: 28, y: 0, scale: 0.94 }}
                           transition={{
                             layout: {
                               duration: 0.48,
                               ease: [0.22, 1, 0.36, 1],
                             },
                             opacity: { duration: GPS_POPUP_EXIT_MS / 1000 },
-                            y: { duration: GPS_POPUP_EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] },
+                            x: {
+                              duration: GPS_POPUP_EXIT_MS / 1000,
+                              ease: [0.22, 1, 0.36, 1],
+                            },
                             scale: {
                               duration: GPS_POPUP_EXIT_MS / 1000,
-                              ease: [0.4, 0, 0.2, 1],
+                              ease: [0.22, 1, 0.36, 1],
                             },
                           }}
                         >
@@ -1186,7 +1228,7 @@ function JourneyGaugeChevron({
       className={`journey-gauge-chevron journey-gauge-chevron--${direction}`}
       onClick={onClick}
       aria-label={
-        ariaLabel ?? (direction === 'left' ? 'Previous section' : 'Next section')
+        ariaLabel ?? (direction === 'left' ? 'previous section' : 'next section')
       }
     >
       <svg
@@ -1202,6 +1244,51 @@ function JourneyGaugeChevron({
         <path d={direction === 'left' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
       </svg>
     </button>
+  );
+}
+
+type CounterSection = Extract<JourneySection, { type: 'counter' }>;
+
+function JourneySectionCounterGauge({
+  section,
+  sectionIdx,
+  counterMobilePhase,
+  renderStatBelow,
+  hideStatBelow,
+}: {
+  section: CounterSection;
+  sectionIdx: number;
+  counterMobilePhase?: CounterMobilePhase;
+  renderStatBelow?: (stat: ReactNode) => ReactNode;
+  hideStatBelow?: boolean;
+}) {
+  const sharedProps = {
+    key: sectionIdx,
+    target: section.target,
+    label: section.label,
+    labelLines: section.labelLines,
+    animationKey: sectionIdx,
+    readoutMode: 'below' as const,
+    circleSize: '100%',
+    counterDialBox: true,
+    hideStatBelow,
+    renderStatBelow,
+  };
+
+  if (section.gaugeVariant === 'community-logo') {
+    return (
+      <CommunityLogoGauge
+        {...sharedProps}
+        href={section.footerButton?.href}
+      />
+    );
+  }
+
+  return (
+    <JourneyCounterGauge
+      {...sharedProps}
+      variant={section.gaugeVariant ?? 'speedometer'}
+    />
   );
 }
 
@@ -1273,12 +1360,18 @@ function YourJourney({
     if (!isFirst) goToPrevCounterSection();
   };
 
-  // Nav + counter scenes — crossfade on counter ↔ map, panel height slides in sync
-  const sceneMotion = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-    transition: JOURNEY_SCENE_TRANSITION,
+  // Nav + counter scenes — horizontal slide between committee and map
+  const counterSceneMotion = {
+    initial: { opacity: 1, x: '100%', y: 0 },
+    animate: { opacity: 1, x: 0, y: 0 },
+    exit: { opacity: 1, x: '100%', y: 0 },
+    transition: JOURNEY_SCENE_SLIDE_TRANSITION,
+  };
+  const mapSceneMotion = {
+    initial: { opacity: 1, x: '-100%', y: 0 },
+    animate: { opacity: 1, x: 0, y: 0 },
+    exit: { opacity: 1, x: '-100%', y: 0 },
+    transition: JOURNEY_SCENE_SLIDE_TRANSITION,
   };
 
   return (
@@ -1288,10 +1381,7 @@ function YourJourney({
       <motion.div
         key="journey-nav"
         className="journey-layout journey-layout--nav journey-scene-layer"
-        initial={false}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 1 }}
-        transition={JOURNEY_SCENE_TRANSITION}
+        {...mapSceneMotion}
       >
         <main className="journey-layout__main journey-layout__main--nav">
           <div className="journey-layout__nav-stage">
@@ -1300,7 +1390,12 @@ function YourJourney({
               initialPhase={initialGpsPhase}
               onGoToHood={onGoToHood}
               onGoBack={() => changeSectionIdx((i) => i - 1)}
-              uiSceneMotion={sceneMotion}
+              uiSceneMotion={{
+                initial: { opacity: 1 },
+                animate: { opacity: 1 },
+                exit: { opacity: 1 },
+                transition: JOURNEY_SCENE_TRANSITION,
+              }}
             />
           </div>
         </main>
@@ -1319,7 +1414,7 @@ function YourJourney({
       ]
         .filter(Boolean)
         .join(' ')}
-      {...sceneMotion}
+      {...counterSceneMotion}
     >
       <main className="journey-layout__main journey-layout__main--counter">
         <div className="journey-counter-panel">
@@ -1328,16 +1423,9 @@ function YourJourney({
               {isCounterMobile ? (
                 <>
                   <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
-                  <JourneyCounterGauge
-                    key={sectionIdx}
-                    target={section.target}
-                    label={section.label}
-                    labelLines={section.labelLines}
-                    animationKey={sectionIdx}
-                    readoutMode="below"
-                    circleSize="100%"
-                    counterDialBox
-                    variant={section.gaugeVariant ?? 'speedometer'}
+                  <JourneySectionCounterGauge
+                    section={section}
+                    sectionIdx={sectionIdx}
                     hideStatBelow={counterMobilePhase === 'message'}
                     renderStatBelow={
                       counterMobilePhase === 'gauge'
@@ -1359,7 +1447,7 @@ function YourJourney({
                                   direction="right"
                                   onClick={handleCounterMobileRightChevron}
                                   ariaLabel={
-                                    hasCounterMobileDetailStep ? 'View message' : 'Next section'
+                                    hasCounterMobileDetailStep ? 'view message' : 'next section'
                                   }
                                 />
                               </div>
@@ -1383,7 +1471,7 @@ function YourJourney({
                             <JourneyGaugeChevron
                               direction="left"
                               onClick={handleCounterMobileLeftChevron}
-                              ariaLabel="Back to gauge readout"
+                              ariaLabel="back to gauge readout"
                             />
                           </div>
                           {section.footerMessage ? (
@@ -1424,17 +1512,7 @@ function YourJourney({
               ) : (
                 <>
                   <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
-                  <JourneyCounterGauge
-                    key={sectionIdx}
-                    target={section.target}
-                    label={section.label}
-                    labelLines={section.labelLines}
-                    animationKey={sectionIdx}
-                    readoutMode="below"
-                    circleSize="100%"
-                    counterDialBox
-                    variant={section.gaugeVariant ?? 'speedometer'}
-                  />
+                  <JourneySectionCounterGauge section={section} sectionIdx={sectionIdx} />
                 </>
               )}
             </section>
@@ -1515,6 +1593,7 @@ function DashboardPanel({
   onBackToJourney,
   journeyInitialSectionIdx,
   journeyInitialGpsPhase,
+  onPanelRef,
 }: {
   currentSlide: number | null;
   onBack: () => void;
@@ -1540,6 +1619,7 @@ function DashboardPanel({
   onBackToJourney?: () => void;
   journeyInitialSectionIdx?: number;
   journeyInitialGpsPhase?: number;
+  onPanelRef?: (node: HTMLDivElement | null) => void;
 }) {
   const isFirstSlide = isLanding || currentSlide === 0;
   const showPreJourney = isLanding || (!isJourney && currentSlide !== null);
@@ -1560,13 +1640,97 @@ function DashboardPanel({
     isHoodPanelRising ||
     (isHood && !isHoodPanelRising);
   const panelRef = useRef<HTMLDivElement>(null);
+  const assignPanelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      panelRef.current = node;
+      onPanelRef?.(node);
+    },
+    [onPanelRef],
+  );
   const [mapPanelHeight, setMapPanelHeight] = useState(JOURNEY_MAP_PANEL_MAX_HEIGHT);
+  const journeyResizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isResizingJourneyPanel, setIsResizingJourneyPanel] = useState(false);
+  const [journeyResizeTarget, setJourneyResizeTarget] = useState<'counter' | 'map' | null>(
+    null,
+  );
   const journeyPanelActive = isJourney && (isCounterScene || isMapScene);
-  const journeyPanelHeight = isMapScene
-    ? mapPanelHeight
-    : isCounterScene
-      ? JOURNEY_COUNTER_PANEL_HEIGHT
-      : undefined;
+  const journeyPanelLayout: 'counter' | 'map' | null = !isJourney
+    ? null
+    : isResizingJourneyPanel && journeyResizeTarget != null
+      ? journeyResizeTarget
+      : isMapScene
+        ? 'map'
+        : 'counter';
+  const applyMapPanelLayout = journeyPanelLayout === 'map';
+  const applyCounterPanelLayout = journeyPanelLayout === 'counter';
+  const isJourneySceneTransition =
+    isResizingJourneyPanel &&
+    (journeyResizeTarget === 'map' || journeyResizeTarget === 'counter');
+  const journeyPanelHeight = journeyPanelActive
+    ? journeyPanelLayout === 'map'
+      ? mapPanelHeight
+      : JOURNEY_COUNTER_PANEL_HEIGHT
+    : undefined;
+
+  const measureMapPanelHeight = useCallback(() => {
+    const container = panelRef.current?.parentElement;
+    if (!container) return JOURNEY_MAP_PANEL_MAX_HEIGHT;
+    return Math.min(JOURNEY_MAP_PANEL_MAX_HEIGHT, container.clientHeight - 10);
+  }, []);
+
+  const beginJourneyPanelResize = useCallback(
+    (target: 'counter' | 'map') => {
+      if (target === 'map') {
+        setMapPanelHeight(measureMapPanelHeight());
+      }
+      setJourneyResizeTarget(target);
+      setIsResizingJourneyPanel(true);
+      if (journeyResizeTimerRef.current) {
+        window.clearTimeout(journeyResizeTimerRef.current);
+      }
+      journeyResizeTimerRef.current = window.setTimeout(() => {
+        journeyResizeTimerRef.current = null;
+        setIsResizingJourneyPanel(false);
+        setJourneyResizeTarget(null);
+      }, JOURNEY_SCENE_SLIDE_MS + 80);
+    },
+    [measureMapPanelHeight],
+  );
+
+  const handleJourneySectionChange = useCallback(
+    (idx: number) => {
+      const prev = journeySectionIdx;
+      const enteringMap =
+        JOURNEY_SECTIONS[idx]?.type === 'nav' &&
+        JOURNEY_SECTIONS[prev]?.type === 'counter' &&
+        prev !== idx;
+      const exitingMap =
+        JOURNEY_SECTIONS[idx]?.type === 'counter' &&
+        JOURNEY_SECTIONS[prev]?.type === 'nav' &&
+        prev !== idx;
+      if (enteringMap) {
+        beginJourneyPanelResize('map');
+      } else if (exitingMap) {
+        beginJourneyPanelResize('counter');
+      }
+      setJourneySectionIdx(idx);
+    },
+    [journeySectionIdx, beginJourneyPanelResize],
+  );
+
+  useEffect(
+    () => () => {
+      if (journeyResizeTimerRef.current) {
+        window.clearTimeout(journeyResizeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!isMapScene || isResizingJourneyPanel) return;
+    window.dispatchEvent(new CustomEvent('journey-nav-map-enter-complete'));
+  }, [isMapScene, isResizingJourneyPanel]);
   const panelAnimate = isDashboardExiting
     ? { y: '115%', opacity: 1 }
     : isHoodPanelFalling
@@ -1597,7 +1761,11 @@ function DashboardPanel({
             duration: skipPanelEnterAnimation ? 0 : 0.55,
             ease: JOURNEY_SCENE_TRANSITION.ease,
           },
-          height: JOURNEY_SCENE_TRANSITION,
+          height: journeyPanelActive
+            ? isResizingJourneyPanel
+              ? JOURNEY_SCENE_SLIDE_TRANSITION
+              : { duration: 0 }
+            : JOURNEY_SCENE_TRANSITION,
         };
   const dashboardExitingRef = useRef(false);
   const hoodPanelRisingRef = useRef(false);
@@ -1619,26 +1787,29 @@ function DashboardPanel({
     if (!container) return;
 
     const updateMapHeight = () => {
-      setMapPanelHeight(Math.min(JOURNEY_MAP_PANEL_MAX_HEIGHT, container.clientHeight - 10));
+      if (isResizingJourneyPanel) return;
+      setMapPanelHeight(measureMapPanelHeight());
     };
 
     updateMapHeight();
     const observer = new ResizeObserver(updateMapHeight);
     observer.observe(container);
     return () => observer.disconnect();
-  }, [isJourney]);
+  }, [isJourney, isResizingJourneyPanel, measureMapPanelHeight]);
 
   return (
     <motion.div
-      ref={panelRef}
+      ref={assignPanelRef}
+      layout={journeyPanelActive ? false : undefined}
       className={[
         'dashboard-panel',
         isLanding ? 'dashboard-panel--landing' : '',
         usesPanelArch ? 'dashboard-panel--arch' : '',
         isHood ? 'dashboard-panel--hood' : '',
-        isMapScene ? 'dashboard-panel--map' : '',
-        isCounterScene ? 'dashboard-panel--counter' : '',
+        applyMapPanelLayout ? 'dashboard-panel--map' : '',
+        applyCounterPanelLayout ? 'dashboard-panel--counter' : '',
         journeyPanelActive ? 'dashboard-panel--journey-resize' : '',
+        isJourneySceneTransition ? 'dashboard-panel--journey-scene-transition' : '',
         isDashboardExiting ? 'dashboard-panel--exiting' : '',
         isHoodPanelRising ? 'dashboard-panel--hood-rising' : '',
         isHoodPanelFalling ? 'dashboard-panel--exiting' : '',
@@ -1711,7 +1882,7 @@ function DashboardPanel({
             className="dashboard-panel__signal dashboard-panel__signal--left"
             onClick={onBack}
             disabled={isFirstSlide}
-            aria-label="Previous"
+            aria-label="previous"
           >
             <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
               <path d={ARROW_PATH} />
@@ -1726,7 +1897,7 @@ function DashboardPanel({
             className="dashboard-panel__signal dashboard-panel__signal--right"
             onClick={onNext}
             disabled={isLanding}
-            aria-label="Next"
+            aria-label="next"
           >
             <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
               <path d={ARROW_PATH} />
@@ -1748,7 +1919,7 @@ function DashboardPanel({
           isLanding ? 'dashboard-body--landing' : '',
           showPreJourney ? 'dashboard-body--pre-journey' : '',
           isJourney
-            ? `dashboard-body--journey${isMapScene ? ' dashboard-body--journey-nav' : ''}${isCounterScene ? ' dashboard-body--journey-counter' : ''}`
+            ? `dashboard-body--journey${applyMapPanelLayout ? ' dashboard-body--journey-nav' : ''}${applyCounterPanelLayout ? ' dashboard-body--journey-counter' : ''}`
             : '',
         ]
           .filter(Boolean)
@@ -1778,7 +1949,7 @@ function DashboardPanel({
             >
               <YourJourney
                 key={`journey-${journeyInitialSectionIdx ?? 0}-${journeyInitialGpsPhase ?? 1}`}
-                onSectionChange={setJourneySectionIdx}
+                onSectionChange={handleJourneySectionChange}
                 onGoToHood={onGoToHood}
                 initialSectionIdx={journeyInitialSectionIdx}
                 initialGpsPhase={journeyInitialGpsPhase}
@@ -1811,6 +1982,60 @@ function DashboardPanel({
 }
 
 // ── Main DrivingView ──────────────────────────────────────────────────────────
+function useDashboardPinnedBackdropBottom(
+  rootRef: React.RefObject<HTMLDivElement | null>,
+  panelRef: React.RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+  panelMounted: boolean,
+) {
+  const [bottomPx, setBottomPx] = useState(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
+
+  useLayoutEffect(() => {
+    if (!enabled) return;
+
+    let frameId = 0;
+
+    const measure = () => {
+      const root = rootRef.current;
+      if (!root) return;
+
+      const rootRect = root.getBoundingClientRect();
+      const panel = panelRef.current;
+
+      if (panel) {
+        const panelRect = panel.getBoundingClientRect();
+        setBottomPx(Math.max(DRIVING_FOOTER_HEIGHT_PX, rootRect.bottom - panelRect.top));
+        return;
+      }
+
+      setBottomPx(DRIVING_FOOTER_HEIGHT_PX);
+    };
+
+    measure();
+
+    const tick = () => {
+      measure();
+      frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+
+    const observer = new ResizeObserver(measure);
+    const root = rootRef.current;
+    if (root) observer.observe(root);
+    if (panelRef.current) observer.observe(panelRef.current);
+
+    window.addEventListener('resize', measure);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [enabled, panelMounted, rootRef, panelRef]);
+
+  return bottomPx;
+}
+
 export function DrivingView() {
   const [currentSlide, setCurrentSlide] = useState<number | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
@@ -1824,7 +2049,15 @@ export function DrivingView() {
   >('full');
   const [hoodEntryPhase, setHoodEntryPhase] = useState<HoodEntryPhase | null>(null);
   const [hoodNavTransition, setHoodNavTransition] = useState<HoodNavTransition | null>(null);
+  const [skyRunId, setSkyRunId] = useState(0);
   const pendingCheckpointRef = useRef<NavCheckpoint | null>(null);
+  const drivingRootRef = useRef<HTMLDivElement>(null);
+  const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
+  const [dashboardPanelMounted, setDashboardPanelMounted] = useState(false);
+  const assignDashboardPanelRef = useCallback((node: HTMLDivElement | null) => {
+    dashboardPanelRef.current = node;
+    setDashboardPanelMounted(!!node);
+  }, []);
 
   const screenOrder = NAV_ITEMS.map((n) => n.id);
   const activeNav = getActiveNavCheckpoint(currentScreen, hoodPhase);
@@ -1834,27 +2067,25 @@ export function DrivingView() {
 
   const nightSkyOp = useTransform(skyProgress, [0, 0.7], [1, 0]);
   const starOp = useTransform(skyProgress, [0, 0.45], [1, 0]);
-  const dawnWarmOp = useTransform(skyProgress, [0.1, 0.45, 0.75], [0, 0.85, 0]);
+  const dawnWarmOp = useTransform(skyProgress, [0.1, 0.45, 0.75], [0, 0.65, 0]);
   const daySkyOp = useTransform(skyProgress, [0, 1], [0, 1]);
-  /** Extra blue lift when sun has nearly finished rising (skyProgress → 1) */
-  const daySkyBrightOp = useTransform(skyProgress, [0.78, 1], [0, 0.48]);
+  const daySkyBrightOp = useTransform(skyProgress, [0.78, 1], [0, 0.55]);
   const sunOpacity = useTransform(skyProgress, [0, 0.08, 1], [0, 1, 1]);
   const sunYPx = useTransform(skyProgress, [0, 1], [SUN_RISE_BOTTOM_Y, SUN_RISE_TOP_Y]);
   const horizonGlowOp = useTransform(skyProgress, [0.12, 0.55, 1], [0, 1, 0.35]);
 
-  const animateSkyTo = useCallback(
-    (target: number) => {
-      const controls = animate(skyProgress, target, SKY_STEP_ANIMATION);
-      return () => controls.stop();
-    },
-    [skyProgress],
-  );
+  useEffect(() => {
+    if (skyRunId === 0) return;
+    skyProgress.set(0);
+    const controls = animate(skyProgress, 1, SKY_SUNRISE_ANIMATION);
+    return () => controls.stop();
+  }, [skyRunId, skyProgress]);
 
   useEffect(() => {
-    if (!isStarted || currentScreen) return;
-    if (currentSlide === null) return;
-    return animateSkyTo(skyProgressForSlide(currentSlide));
-  }, [currentSlide, currentScreen, isStarted, animateSkyTo]);
+    if (currentScreen === 'journey') {
+      skyProgress.set(1);
+    }
+  }, [currentScreen, skyProgress]);
 
   const handleRestart = () => {
     setIsStarted(false);
@@ -1879,7 +2110,7 @@ export function DrivingView() {
     if (currentSlide < DRIVING_SLIDE_COUNT - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      animate(skyProgress, 1, SKY_STEP_ANIMATION);
+      skyProgress.set(1);
       setCurrentSlide(null);
       setCurrentScreen('journey');
     }
@@ -2057,10 +2288,10 @@ export function DrivingView() {
   }, []);
 
   const handleStart = useCallback(() => {
-    skyProgress.set(0);
     setIsStarted(true);
     setCurrentSlide(0);
-  }, [skyProgress]);
+    setSkyRunId((n) => n + 1);
+  }, []);
 
   const isHoodScreen = currentScreen === 'hood';
   const isDiagnosticsScreen = currentScreen === 'diagnostics';
@@ -2073,120 +2304,107 @@ export function DrivingView() {
     isStarted && !isHoodScreen && !isDiagnosticsScreen && !isDiagnosticsFlow;
   const showSkyAndRoad =
     showLandingBackdrop || showDrivingBackdrop || isBackdropFadingToBlack;
+
   const showFooterNav = currentScreen && diagnosticsStage === 'full';
   const showDashboardPanel =
     !isDiagnosticsFlow &&
     !isBackdropFadingToBlack &&
     (!isStarted || currentSlide !== null || currentScreen === 'journey' || currentScreen === 'hood');
 
-  return (
-    <div className="relative w-full h-full overflow-hidden bg-black">
+  const backdropBottomPx = useDashboardPinnedBackdropBottom(
+    drivingRootRef,
+    dashboardPanelRef,
+    showSkyAndRoad,
+    dashboardPanelMounted,
+  );
 
-      {/* ── Sky gradient layers — landing (darkest) + driving slides ── */}
+  return (
+    <div
+      ref={drivingRootRef}
+      className="relative w-full h-full overflow-hidden bg-black"
+      style={
+        {
+          '--driving-backdrop-bottom': `${backdropBottomPx}px`,
+        } as React.CSSProperties
+      }
+    >
+
+      {/* ── Driving scene Lottie — band above dashboard ── */}
       {showSkyAndRoad && (
         <div
-          className="absolute inset-0"
+          className={`driving-view-backdrop${showDrivingBackdrop ? ' driving-view-backdrop--sequence' : ''}`}
           style={{
+            bottom: backdropBottomPx,
             zIndex: 2,
             pointerEvents: 'none',
           }}
+          aria-hidden
         >
-          <motion.div
-            className="absolute inset-0"
-            style={{
-              opacity: nightSkyOp,
-              background: 'linear-gradient(180deg, #000005 0%, #020818 45%, #060d22 75%, #0a1228 100%)',
-            }}
-          />
-
-          <motion.div className="absolute inset-0" style={{ opacity: starOp }}>
-            {STARS.map((s, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full bg-white"
-                style={{
-                  left: s.x,
-                  top: s.y,
-                  width: s.size,
-                  height: s.size,
-                  opacity: s.opacity,
-                }}
+          <div className="driving-view-backdrop__scene">
+            <div className="driving-view-backdrop__compositor">
+              <div className="driving-view-sky">
+                <motion.div
+                  className="driving-view-sky__layer driving-view-sky__layer--night"
+                  style={{ opacity: nightSkyOp }}
+                />
+                <motion.div className="driving-view-sky__layer driving-view-sky__stars" style={{ opacity: starOp }}>
+                  {STARS.map((s, i) => (
+                    <div
+                      key={i}
+                      className="driving-view-sky__star"
+                      style={{
+                        left: s.x,
+                        top: s.y,
+                        width: s.size,
+                        height: s.size,
+                        opacity: s.opacity,
+                      }}
+                    />
+                  ))}
+                </motion.div>
+                <motion.div
+                  className="driving-view-sky__layer driving-view-sky__layer--dawn"
+                  style={{ opacity: dawnWarmOp }}
+                />
+                <motion.div
+                  className="driving-view-sky__layer driving-view-sky__layer--day"
+                  style={{ opacity: daySkyOp }}
+                />
+                <motion.div
+                  className="driving-view-sky__layer driving-view-sky__layer--day-bright"
+                  style={{ opacity: daySkyBrightOp }}
+                />
+                <motion.div
+                  className="driving-view-sky__horizon-glow"
+                  style={{ opacity: horizonGlowOp }}
+                />
+                <motion.div
+                  className="driving-view-sky__sun"
+                  style={{
+                    y: sunYPx,
+                    opacity: sunOpacity,
+                  }}
+                />
+              </div>
+              <Lottie
+                animationData={drivingAnimationData}
+                loop
+                autoplay
+                className="driving-view-backdrop__lottie-cutout"
+                style={{ width: '100%', height: '100%' }}
+                rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+                aria-hidden
               />
-            ))}
-          </motion.div>
-
-          <motion.div
-            className="absolute inset-0"
-            style={{
-              opacity: dawnWarmOp,
-              background:
-                'linear-gradient(180deg, #0d0820 0%, #2a1848 30%, #6a3820 60%, #c86818 80%, #ffb040 100%)',
-            }}
-          />
-
-          <motion.div
-            className="absolute inset-0"
-            style={{
-              opacity: daySkyOp,
-              background:
-                'linear-gradient(180deg, #1e5a8a 0%, #3d8fd4 28%, #6bb8e8 55%, #9dd4f5 78%, #c8ebfc 100%)',
-            }}
-          />
-
-          <motion.div
-            className="absolute inset-0"
-            style={{
-              opacity: daySkyBrightOp,
-              background:
-                'linear-gradient(180deg, #3a8ec8 0%, #5eb0eb 30%, #88ccf5 58%, #b8e4fb 82%, #e2f6ff 100%)',
-            }}
-          />
-
-          {/* Horizon glow — anchored at the Lottie horizon line */}
-          <motion.div
-            className="absolute left-0 right-0"
-            style={{
-              opacity: horizonGlowOp,
-              bottom: HORIZON_BOTTOM,
-              height: '12vh',
-              background: 'radial-gradient(ellipse 120% 100% at 50% 100%, rgba(255,140,40,0.55) 0%, rgba(255,80,0,0.22) 60%, transparent 100%)',
-            }}
-          />
-
-          {/* Sun — rises from just below horizon upward */}
-          <motion.div
-            className="absolute rounded-full"
-            style={{
-              width: '70px',
-              height: '70px',
-              left: 'calc(50% - 35px)',
-              bottom: HORIZON_BOTTOM,
-              y: sunYPx,
-              opacity: sunOpacity,
-              background: 'radial-gradient(circle, #fff8e0 0%, #ffd060 35%, #ffaa20 65%, #ff7000 100%)',
-              boxShadow: '0 0 40px 16px rgba(255,160,40,0.55), 0 0 80px 32px rgba(255,120,0,0.25)',
-            }}
-          />
-        </div>
-      )}
-
-      {/* ── Road Lottie — landing + driving; keep mounted to avoid unmount crashes ── */}
-      {showSkyAndRoad && (
-        <div
-          className="absolute inset-0 overflow-hidden"
-          style={{
-            zIndex: 3,
-            pointerEvents: 'none',
-          }}
-          aria-hidden={false}
-        >
-          <Lottie
-            animationData={carOnTrackData}
-            loop
-            autoplay
-            style={{ width: '100%', height: '100%' }}
-            rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
-          />
+              <Lottie
+                animationData={drivingAnimationData}
+                loop
+                autoplay
+                className="driving-view-backdrop__lottie"
+                style={{ width: '100%', height: '100%' }}
+                rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
@@ -2271,29 +2489,62 @@ export function DrivingView() {
       )}
 
       {/* ── Main content area — dashboard panels and screens only ── */}
-      <div className="absolute top-[72px] bottom-24 left-0 right-0" style={{ zIndex: 10 }}>
-        <div className="absolute inset-0">
-          {!isStarted && (
-            <div className="landing-hero" aria-hidden={false}>
-              <div className="landing-hero__title-row">
-                <img
-                  src={autocareLogo}
-                  alt="Auto Care Association"
-                  className="landing-hero__logo"
-                  draggable={false}
-                />
-                <h1 className="landing-hero__title">Driven by You</h1>
-              </div>
-              <p className="landing-hero__subtitle">your year in review</p>
-            </div>
-          )}
+      <div className="absolute top-0 bottom-24 left-0 right-0" style={{ zIndex: 10 }}>
+        <div className="absolute inset-0 driving-view-stage">
+          <AnimatePresence>
+            {!isStarted && (
+              <motion.div
+                key="landing-hero"
+                className="landing-hero"
+                aria-hidden={false}
+                initial={{ opacity: 1, y: 0, scale: 1 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                transition={LICENSE_PLATE_EXIT_TRANSITION}
+              >
+                <div
+                  className="landing-license-plate"
+                  role="img"
+                  aria-label="DRIVEN-BY-YOU, your year in review"
+                >
+                  <div className="landing-license-plate__shadow" aria-hidden />
+                  <div className="landing-license-plate__rim" aria-hidden />
+                  <div className="landing-license-plate__surface">
+                    <div className="landing-license-plate__header">
+                      <span className="landing-license-plate__jurisdiction">AUTO CARE</span>
+                      <div className="landing-license-plate__sticker" aria-hidden>
+                        <span className="landing-license-plate__sticker-shine" />
+                        <span className="landing-license-plate__sticker-month">June</span>
+                        <span className="landing-license-plate__sticker-year">2026</span>
+                      </div>
+                    </div>
+                    <div className="landing-license-plate__body">
+                      <div className="landing-license-plate__copy">
+                        <h1 className="landing-license-plate__title">DRIVEN-BY-YOU</h1>
+                        <p className="landing-license-plate__subtitle">your year in review</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="landing-license-plate__chrome" aria-hidden />
+                  <span className="landing-license-plate__bolt landing-license-plate__bolt--tl" aria-hidden />
+                  <span className="landing-license-plate__bolt landing-license-plate__bolt--tr" aria-hidden />
+                  <span className="landing-license-plate__bolt-hole landing-license-plate__bolt-hole--bl" aria-hidden />
+                  <span className="landing-license-plate__bolt-hole landing-license-plate__bolt-hole--br" aria-hidden />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {showDashboardPanel && (
             <DashboardPanel
               key={
                 currentScreen === 'hood'
                   ? `hood-panel-${hoodSession}`
-                  : `dashboard-${isStarted ? currentScreen ?? 'slides' : 'landing'}-${currentSlide ?? 'x'}`
+                  : currentScreen === 'journey'
+                    ? 'dashboard-journey'
+                    : currentScreen === 'diagnostics'
+                      ? 'dashboard-diagnostics'
+                      : 'dashboard-pre-journey'
               }
               isLanding={!isStarted}
               currentSlide={currentSlide}
@@ -2319,12 +2570,15 @@ export function DrivingView() {
               onBackToJourney={handleBackToJourneyEnd}
               journeyInitialSectionIdx={journeyResumeSectionIdx}
               journeyInitialGpsPhase={journeyResumeGpsPhase}
+              onPanelRef={assignDashboardPanelRef}
             />
           )}
 
           {isDiagnosticsFlow && diagnosticsStage === 'transition' && <DiagnosticsTransition />}
           {isDiagnosticsFlow && diagnosticsStage === 'final' && <FinalScenePlaceholder />}
-          {currentScreen === 'diagnostics' && diagnosticsStage === 'full' && <FullDiagnostics />}
+          {currentScreen === 'diagnostics' && diagnosticsStage === 'full' && (
+            <FullDiagnostics onBackToStart={handleRestart} />
+          )}
         </div>
       </div>
     </div>

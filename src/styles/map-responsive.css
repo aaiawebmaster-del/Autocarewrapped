@@ -1,19 +1,612 @@
-/* Landing screen — title over road, push to start in dashboard body */
-.landing-hero {
+/* Driving scene — Lottie backdrop pinned to the dashboard top edge */
+.driving-view-backdrop {
+  --driving-content-top: 0;
   position: absolute;
-  top: clamp(8%, 12vh, 18%);
+  top: var(--driving-content-top);
   left: 0;
   right: 0;
+  /* bottom is set inline from dashboard layout measurements */
+  background: #000000;
+  overflow: hidden;
+}
+
+.driving-view-backdrop__scene {
+  position: absolute;
+  inset: 0;
+}
+
+.driving-view-backdrop__compositor {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+
+.driving-view-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
+}
+
+.driving-view-sky__layer {
+  position: absolute;
+  inset: 0;
+}
+
+.driving-view-sky__layer--night {
+  background: linear-gradient(180deg, #000005 0%, #020818 45%, #060d22 75%, #0a1228 100%);
+}
+
+.driving-view-sky__stars {
+  inset: 0;
+}
+
+.driving-view-sky__star {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.driving-view-sky__layer--dawn {
+  background: linear-gradient(
+    180deg,
+    #0d0820 0%,
+    #2a1848 30%,
+    #6a3820 60%,
+    #c86818 80%,
+    #ffb040 100%
+  );
+}
+
+.driving-view-sky__layer--day {
+  background: linear-gradient(
+    180deg,
+    #1e5a8a 0%,
+    #3d8fd4 28%,
+    #6bb8e8 55%,
+    #9dd4f5 78%,
+    #c8ebfc 100%
+  );
+}
+
+.driving-view-sky__layer--day-bright {
+  background: linear-gradient(
+    180deg,
+    #3a8ec8 0%,
+    #5eb0eb 30%,
+    #88ccf5 58%,
+    #b8e4fb 82%,
+    #e2f6ff 100%
+  );
+}
+
+.driving-view-sky__horizon-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 38%;
+  background: radial-gradient(
+    ellipse 120% 100% at 50% 100%,
+    rgba(255, 140, 40, 0.45) 0%,
+    rgba(255, 80, 0, 0.16) 60%,
+    transparent 100%
+  );
+}
+
+.driving-view-sky__sun {
+  position: absolute;
+  width: clamp(48px, 8vw, 70px);
+  height: clamp(48px, 8vw, 70px);
+  left: 50%;
+  bottom: 18%;
+  margin-left: calc(clamp(48px, 8vw, 70px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8e0 0%, #ffd060 35%, #ffaa20 65%, #ff7000 100%);
+  box-shadow:
+    0 0 24px 8px rgba(255, 160, 40, 0.35),
+    0 0 48px 16px rgba(255, 120, 0, 0.15);
+}
+
+/* Punch sky out wherever the Lottie artwork is opaque */
+.driving-view-backdrop__lottie-cutout {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: destination-out;
+}
+
+.driving-view-backdrop__lottie-cutout svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.driving-view-backdrop__lottie {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.driving-view-backdrop__lottie svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Landing screen — license plate hero over road, push to start in dashboard body */
+.driving-view-stage {
+  --landing-dashboard-height: 316px;
+  --landing-plate-gap: 15px;
+}
+
+.landing-hero {
+  position: absolute;
+  top: clamp(6px, 1.2vh, 14px);
+  left: 0;
+  right: 0;
+  bottom: calc(var(--driving-backdrop-bottom, 412px) - 6rem + var(--landing-plate-gap));
   z-index: 12;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(6px, 1.2vh, 12px);
+  justify-content: flex-start;
   pointer-events: none;
-  text-align: center;
-  padding: 0 16px;
+  padding: clamp(6px, 1.2vh, 14px) clamp(12px, 3vw, 24px) 0;
 }
 
+.landing-license-plate {
+  --plate-radius: clamp(7px, 1.1vw, 11px);
+  --plate-header-h: clamp(18px, 4.2vw, 28px);
+  --plate-aspect: 2.05 / 1;
+  --plate-brand-orange: #f3901d;
+  --plate-font: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, clamp(280px, 58vw, 560px));
+  max-height: 100%;
+  aspect-ratio: var(--plate-aspect);
+  height: auto;
+  border-radius: var(--plate-radius);
+  transform: perspective(1100px) rotateX(2.5deg);
+  filter: drop-shadow(0 clamp(10px, 2vh, 18px) clamp(22px, 3.5vh, 36px) rgba(0, 0, 0, 0.62))
+    drop-shadow(0 clamp(3px, 0.6vh, 6px) clamp(8px, 1.2vh, 14px) rgba(0, 0, 0, 0.38));
+}
+
+.landing-license-plate__shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: clamp(-10px, -1.4vh, -6px);
+  height: clamp(8px, 1.2vh, 14px);
+  border-radius: 50%;
+  background: radial-gradient(ellipse 100% 100% at 50% 50%, rgba(0, 0, 0, 0.55) 0%, transparent 72%);
+  filter: blur(clamp(3px, 0.5vw, 6px));
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing-license-plate__rim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 clamp(2px, 0.32vw, 3px) rgba(255, 255, 255, 0.42),
+    inset 0 0 0 clamp(3px, 0.48vw, 5px) rgba(0, 0, 0, 0.22),
+    inset 0 0 0 clamp(4px, 0.62vw, 6px) rgba(255, 255, 255, 0.12),
+    inset 0 0 0 clamp(5px, 0.78vw, 7px) #101214,
+    0 0 0 clamp(1px, 0.18vw, 2px) rgba(255, 255, 255, 0.18),
+    0 0 0 clamp(2px, 0.35vw, 4px) #060708;
+}
+
+.landing-license-plate__surface {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.landing-license-plate__chrome {
+  position: absolute;
+  inset: clamp(5px, 0.78vw, 7px);
+  border-radius: calc(var(--plate-radius) - 3px);
+  pointer-events: none;
+  z-index: 6;
+  background:
+    linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.14) 14%,
+      transparent 28%,
+      transparent 72%,
+      rgba(255, 255, 255, 0.08) 86%,
+      rgba(0, 0, 0, 0.05) 100%
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.92;
+}
+
+.landing-license-plate__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--plate-header-h);
+  padding: clamp(3px, 0.55vh, 6px) clamp(12px, 2.2vw, 18px);
+  overflow: hidden;
+  background-color: #dce6f2;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.08) 22%,
+      rgba(0, 0, 0, 0.03) 50%,
+      rgba(255, 255, 255, 0.1) 78%,
+      rgba(255, 255, 255, 0.45) 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 0,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    linear-gradient(180deg, #eef3f9 0%, #d4e0ed 38%, #b8c9dc 72%, #a8bbcf 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.landing-license-plate__header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 120% at 18% -40%, rgba(255, 255, 255, 0.45) 0%, transparent 58%),
+    repeating-linear-gradient(
+      112deg,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.9;
+}
+
+.landing-license-plate__header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.18) 20%, rgba(0, 0, 0, 0.18) 80%, transparent);
+  pointer-events: none;
+}
+
+.landing-license-plate__jurisdiction {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  text-align: center;
+  font-family: var(--plate-font);
+  font-size: clamp(10px, 1.75vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #0f2844;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85),
+    0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.landing-license-plate__sticker {
+  position: absolute;
+  right: clamp(10px, 1.8vw, 16px);
+  top: 50%;
+  z-index: 2;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(38px, 6.5vw, 52px);
+  padding: clamp(2px, 0.35vh, 3px) clamp(6px, 1vw, 9px) clamp(3px, 0.45vh, 4px);
+  border-radius: clamp(2px, 0.35vw, 3px);
+  overflow: hidden;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(255, 255, 255, 0.08) 18%,
+      transparent 42%
+    ),
+    linear-gradient(180deg, #ffe566 0%, #f0c820 38%, #d9a80a 72%, #bf8f06 100%);
+  border: 1px solid rgba(0, 0, 0, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  transform: translateY(-50%) perspective(200px) rotateX(8deg);
+}
+
+.landing-license-plate__sticker-shine {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.55) 42%,
+      transparent 58%
+    );
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.landing-license-plate__sticker-month {
+  position: relative;
+  z-index: 1;
+  font-family: var(--plate-font);
+  font-size: clamp(5px, 0.95vw, 8px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #123456;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  text-transform: capitalize;
+}
+
+.landing-license-plate__sticker-year {
+  position: relative;
+  z-index: 1;
+  font-family: var(--plate-font);
+  font-size: clamp(9px, 1.55vw, 13px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+  color: #0a2238;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.landing-license-plate__body {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: clamp(4px, 0.9vw, 10px) clamp(8px, 1.8vw, 16px) clamp(6px, 1.2vw, 12px);
+  overflow: hidden;
+  background-color: #d8dde5;
+  background-image:
+    radial-gradient(ellipse 95% 60% at 50% 115%, rgba(0, 0, 0, 0.09) 0%, transparent 58%),
+    linear-gradient(
+      108deg,
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.16) 14%,
+      transparent 32%,
+      transparent 68%,
+      rgba(255, 255, 255, 0.12) 84%,
+      rgba(255, 255, 255, 0.35) 100%
+    ),
+    repeating-linear-gradient(
+      -12deg,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 3px,
+      rgba(0, 0, 0, 0.016) 3px,
+      rgba(0, 0, 0, 0.016) 4px,
+      transparent 4px,
+      transparent 7px
+    ),
+    repeating-linear-gradient(
+      78deg,
+      rgba(0, 0, 0, 0.012) 0,
+      rgba(0, 0, 0, 0.012) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(172deg, #fafbfd 0%, #eef2f7 12%, #e2e8f0 32%, #d4dbe4 58%, #c8d0db 82%, #bcc5d1 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.07);
+}
+
+.landing-license-plate__body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.48;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.65) 0, rgba(255, 255, 255, 0.65) 0.5px, transparent 0.65px),
+    radial-gradient(circle at 44% 68%, rgba(0, 0, 0, 0.07) 0, rgba(0, 0, 0, 0.07) 0.5px, transparent 0.65px),
+    radial-gradient(circle at 76% 38%, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0.5) 0.5px, transparent 0.65px);
+  background-size: 6px 6px, 6px 6px, 6px 6px;
+}
+
+.landing-license-plate__body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 88px 88px;
+}
+
+.landing-license-plate__copy {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.45vw, 5px);
+  padding: clamp(2px, 0.5vw, 6px) 0;
+  text-align: center;
+}
+
+.landing-license-plate__title {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  font-family: 'License Plate', var(--plate-font);
+  font-size: clamp(30px, 8.4vw, 74px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  color: #152433;
+  text-transform: uppercase;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.35px rgba(0, 0, 0, 0.08);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.98),
+    0 2px 0 rgba(255, 255, 255, 0.55),
+    0 3px 0 rgba(255, 255, 255, 0.18),
+    0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 -2px 0 rgba(0, 0, 0, 0.08),
+    1px 2px 2px rgba(0, 0, 0, 0.14),
+    -1px 0 1px rgba(255, 255, 255, 0.35);
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.65));
+}
+
+.landing-license-plate__subtitle {
+  margin: 0;
+  width: 100%;
+  font-family: var(--plate-font);
+  font-size: clamp(13px, 2.85vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: lowercase;
+  text-align: center;
+  color: #0f4a37;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.landing-license-plate__bolt {
+  position: absolute;
+  z-index: 7;
+  width: clamp(10px, 1.45vw, 14px);
+  height: clamp(10px, 1.45vw, 14px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 26%, #eceff3 0%, #9aa0aa 22%, #5a6068 58%, #2a2d34 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.65),
+    inset 0 1px 1px rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.42);
+}
+
+.landing-license-plate__bolt::before {
+  content: '';
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3a3d44 0%, #121316 100%);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.65);
+}
+
+.landing-license-plate__bolt::after {
+  content: '';
+  position: absolute;
+  inset: 42% 22%;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #1a1c20 0%, #4a4e56 50%, #1a1c20 100%);
+  transform: rotate(32deg);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.45);
+}
+
+.landing-license-plate__bolt--tl {
+  top: clamp(5px, 0.9vh, 8px);
+  left: clamp(7px, 1.3vw, 12px);
+}
+
+.landing-license-plate__bolt--tr {
+  top: clamp(5px, 0.9vh, 8px);
+  right: clamp(7px, 1.3vw, 12px);
+}
+
+.landing-license-plate__bolt-hole {
+  position: absolute;
+  z-index: 2;
+  width: clamp(6px, 0.95vw, 9px);
+  height: clamp(6px, 0.95vw, 9px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #1a1d22 0%, #060708 72%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  opacity: 0.75;
+}
+
+.landing-license-plate__bolt-hole--bl {
+  bottom: clamp(7px, 1vh, 10px);
+  left: clamp(14px, 2.5vw, 22px);
+}
+
+.landing-license-plate__bolt-hole--br {
+  bottom: clamp(7px, 1vh, 10px);
+  right: clamp(14px, 2.5vw, 22px);
+}
+
+@media (max-width: 480px) {
+  .landing-license-plate {
+    width: min(100%, clamp(260px, 88vw, 420px));
+  }
+
+  .landing-license-plate__title {
+    letter-spacing: 0.03em;
+    font-size: clamp(24px, 7.4vw, 46px);
+  }
+
+  .landing-license-plate__subtitle {
+    font-size: clamp(12px, 2.6vw, 20px);
+    letter-spacing: 0.14em;
+  }
+}
+
+/* Legacy hero classes — retained for any downstream references */
 .landing-hero__title-row {
   --landing-title-font-size: clamp(28px, 6.5vw, 72px);
   display: flex;
@@ -58,6 +651,7 @@
 
 .landing-push-start {
   --landing-start-size: clamp(9rem, 32vw, 12.5rem);
+  --hmi-chrome-border: clamp(10px, 2.2vw, 16px);
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -69,56 +663,96 @@
   height: auto;
   min-width: 0;
   padding: 0;
-  border: none;
+  box-sizing: border-box;
+  border: var(--hmi-chrome-border) solid transparent;
+  border-color: transparent;
   border-radius: 50%;
-  background: transparent;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  background:
+    linear-gradient(transparent, transparent) padding-box,
+    var(--hmi-chrome-bevel) border-box;
   cursor: pointer;
   flex-shrink: 0;
   overflow: hidden;
   transition: transform 0.18s ease;
-}
-
-.landing-push-start__chrome {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    conic-gradient(from 210deg at 50% 50%, #9a9aa4 0deg, #5c5c66 70deg, #24242a 160deg, #101014 250deg, #6a6a74 320deg, #9a9aa4 360deg),
-    linear-gradient(145deg, #7a7a84 0%, #3a3a42 38%, #16161a 72%, #08080a 100%);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.9),
-    0 0 0 2px rgba(255, 255, 255, 0.14),
-    0 10px 28px rgba(0, 0, 0, 0.55),
-    inset 0 3px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -4px 10px rgba(0, 0, 0, 0.55);
+    0 10px 28px rgba(0, 0, 0, 0.58),
+    0 0 18px rgba(0, 175, 240, 0.1),
+    inset 0 calc(var(--hmi-chrome-border) * 0.45) calc(var(--hmi-chrome-border) * 0.25) rgba(0, 0, 0, 0.5);
 }
 
-.landing-push-start__shine {
+.landing-push-start::before {
+  content: '';
   position: absolute;
-  inset: 0;
+  inset: var(--hmi-chrome-border);
   border-radius: 50%;
+  border: 1px solid rgba(0, 198, 255, 0.45);
   background:
-    radial-gradient(ellipse 90% 55% at 32% 18%, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.08) 38%, transparent 62%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.22) 0%, transparent 42%);
+    radial-gradient(
+      ellipse 85% 70% at 50% 38%,
+      rgba(14, 20, 32, 0.92) 0%,
+      rgba(6, 10, 18, 0.97) 55%,
+      rgba(2, 4, 10, 0.99) 100%
+    ),
+    var(--hmi-chrome-pinstripe),
+    var(--hmi-chrome-interior);
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 191, 255, 0.22),
+    inset 0 0 14px rgba(0, 191, 255, 0.28),
+    inset 0 0 28px rgba(0, 150, 220, 0.1),
+    inset 0 14px 24px rgba(0, 0, 0, 0.65),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.42);
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
-.landing-push-start__face {
+/* Convex glass lens over the interior face — label sits beneath (z-index 3) */
+.landing-push-start::after {
+  content: '';
   position: absolute;
-  inset: 0;
-  width: 86%;
-  height: 86%;
-  margin: auto;
+  inset: var(--hmi-chrome-border);
   border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
   background:
-    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.2), transparent 48%),
-    radial-gradient(circle at 78% 82%, rgba(243, 144, 29, 0.08), transparent 42%),
-    linear-gradient(180deg, #22242c 0%, #101218 55%, #06070a 100%);
+    radial-gradient(
+      ellipse 68% 42% at 50% 10%,
+      rgba(255, 255, 255, 0.48) 0%,
+      rgba(255, 255, 255, 0.16) 32%,
+      rgba(255, 255, 255, 0.03) 52%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 92% 58% at 50% -4%,
+      rgba(255, 255, 255, 0.24) 0%,
+      rgba(255, 255, 255, 0.06) 38%,
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0.07) 22%,
+      rgba(255, 255, 255, 0.02) 38%,
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 88% 36% at 50% 102%,
+      rgba(0, 0, 0, 0.32) 0%,
+      rgba(0, 0, 0, 0.08) 42%,
+      transparent 68%
+    ),
+    linear-gradient(
+      168deg,
+      rgba(220, 238, 255, 0.07) 0%,
+      rgba(180, 200, 220, 0.03) 42%,
+      rgba(255, 255, 255, 0.015) 100%
+    );
   box-shadow:
-    inset 0 2px 12px rgba(255, 255, 255, 0.08),
-    inset 0 -2px 12px rgba(0, 0, 0, 0.8),
-    inset 0 0 20px rgba(0, 0, 0, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 2px 10px rgba(255, 255, 255, 0.1),
+    inset 0 -4px 14px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .landing-push-start__glow {
@@ -130,41 +764,42 @@
   box-shadow: 0 0 32px rgba(243, 144, 29, 0.45);
   transition: opacity 0.25s ease;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .landing-push-start__label {
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  inset: 21%;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3em;
-  width: 100%;
-  height: 100%;
-  padding: 0 14%;
+  gap: 0.28em;
+  padding: 18% 6% 0;
+  transform: translateY(-20px);
   box-sizing: border-box;
   color: #ffffff;
   font-family: 'Istok Web', sans-serif;
-  line-height: 1;
+  line-height: 1.05;
   text-align: center;
   text-shadow:
     0 0 14px rgba(243, 144, 29, 0.4),
-    0 1px 3px rgba(0, 0, 0, 0.95);
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 -1px 0 rgba(0, 0, 0, 0.35);
   pointer-events: none;
+  filter: saturate(0.92) brightness(0.94);
 }
 
-.landing-push-start__year,
-.landing-push-start__action {
-  font-size: clamp(14px, 2.2vw, 20px);
+.landing-push-start__year {
+  font-size: clamp(11px, 1.65vw, 15px);
   font-weight: 700;
   letter-spacing: 0.06em;
 }
 
 .landing-push-start__divider {
   display: block;
-  width: clamp(28px, 42%, 52px);
+  width: clamp(20px, 72%, 36px);
   height: 1px;
   flex-shrink: 0;
   background: linear-gradient(
@@ -177,7 +812,8 @@
 }
 
 .landing-push-start__action {
-  font-size: clamp(13px, 2vw, 18px);
+  font-size: clamp(15px, 2.6vw, 22px);
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -187,19 +823,14 @@
   opacity: 1;
 }
 
-.landing-push-start:hover .landing-push-start__face,
-.landing-push-start:focus-visible .landing-push-start__face {
-  box-shadow:
-    inset 0 0 22px rgba(243, 144, 29, 0.28),
-    inset 0 2px 12px rgba(255, 255, 255, 0.12),
-    inset 0 -2px 12px rgba(0, 0, 0, 0.8);
+.landing-push-start:hover,
+.landing-push-start:focus-visible {
+  filter: brightness(1.06);
 }
 
-.landing-push-start:hover .landing-push-start__shine,
-.landing-push-start:focus-visible .landing-push-start__shine {
-  background:
-    radial-gradient(ellipse 90% 55% at 32% 18%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 38%, transparent 62%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.3) 0%, transparent 42%);
+.landing-push-start:focus-visible {
+  outline: 2px solid rgba(243, 144, 29, 0.55);
+  outline-offset: 3px;
 }
 
 .landing-push-start:active {
@@ -294,14 +925,56 @@
   height: 100%;
 }
 
-/* Premium automotive HMI screen — intro panel, journey message row, nav map stage */
+/* ── Premium automotive HMI chrome bezel (shared frame system) ──
+   Mimics physical dashboard trim: tubular polished molding, dark rabbet
+   groove, inner rolled lip, and backlit gauge-ring illumination. */
+:root {
+  --hmi-chrome-bevel: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #eef1f6 7%,
+    #c4cad4 17%,
+    #9098a4 27%,
+    #5c6470 40%,
+    #323840 50%,
+    #1a1e24 58%,
+    #2a3038 68%,
+    #525a66 78%,
+    #909aa6 88%,
+    #d0d6de 95%,
+    #f4f6f8 100%
+  );
+  --hmi-chrome-pinstripe: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.018) 0,
+    rgba(255, 255, 255, 0.018) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  --hmi-chrome-interior: linear-gradient(
+    180deg,
+    rgba(8, 12, 20, 0.96) 0%,
+    rgba(4, 7, 14, 0.98) 50%,
+    rgba(2, 3, 8, 0.99) 100%
+  );
+}
+
+.hmi-chrome-frame,
 .pre-journey-stage__intro-panel,
 .journey-counter-panel__message-row,
 .journey-nav-stage-inner,
 .full-diagnostics__map-stage-inner,
 .journey-layout__nav-message-panel {
-  --hmi-chrome-border: clamp(8px, 1.1vw, 12px);
+  --hmi-chrome-border: clamp(9px, 1.25vw, 14px);
   --hmi-radius: clamp(12px, 1.6vw, 16px);
+  --hmi-chrome-padding-fill: linear-gradient(
+    180deg,
+    rgba(6, 10, 18, 0.98) 0%,
+    rgba(2, 4, 10, 0.99) 100%
+  );
+  --hmi-chrome-inner-inset: var(--hmi-chrome-border);
+  --hmi-chrome-inner-radius: calc(var(--hmi-radius) - 5px);
+  --hmi-chrome-gloss-radius: calc(var(--hmi-radius) - 6px);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -309,26 +982,15 @@
   border-radius: var(--hmi-radius);
   border: var(--hmi-chrome-border) solid transparent;
   background:
-    linear-gradient(180deg, rgba(6, 8, 12, 0.98) 0%, rgba(2, 3, 6, 0.99) 100%) padding-box,
-    linear-gradient(
-      180deg,
-      #e4e8ee 0%,
-      #b8bec8 12%,
-      #8a919c 28%,
-      #565d68 52%,
-      #3a404a 72%,
-      #252932 88%,
-      #181b20 100%
-    ) border-box;
+    var(--hmi-chrome-padding-fill) padding-box,
+    var(--hmi-chrome-bevel) border-box;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.92),
-    0 6px 18px rgba(0, 0, 0, 0.55),
-    0 0 14px rgba(0, 155, 220, 0.1),
-    0 0 28px rgba(0, 120, 200, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+    0 14px 36px rgba(0, 0, 0, 0.58),
+    0 0 18px rgba(0, 175, 240, 0.1),
+    inset 0 calc(var(--hmi-chrome-border) * 0.45) calc(var(--hmi-chrome-border) * 0.25) rgba(0, 0, 0, 0.5);
 }
 
+.hmi-chrome-frame::before,
 .pre-journey-stage__intro-panel::before,
 .journey-counter-panel__message-row::before,
 .journey-nav-stage-inner::before,
@@ -336,32 +998,21 @@
 .journey-layout__nav-message-panel::before {
   content: '';
   position: absolute;
-  inset: calc(var(--hmi-chrome-border) - 2px);
-  border-radius: calc(var(--hmi-radius) - 4px);
-  border: 1px solid rgba(0, 191, 255, 0.72);
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.012) 0,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(180deg, rgba(14, 18, 24, 0.92) 0%, rgba(4, 6, 10, 0.96) 100%);
+  inset: var(--hmi-chrome-inner-inset);
+  border-radius: var(--hmi-chrome-inner-radius);
+  border: 1px solid rgba(0, 198, 255, 0.45);
+  background: var(--hmi-chrome-pinstripe), var(--hmi-chrome-interior);
   box-shadow:
-    inset 0 0 0 1px rgba(220, 240, 255, 0.42),
     inset 0 0 0 2px rgba(0, 191, 255, 0.22),
-    inset 0 0 10px rgba(0, 191, 255, 0.28),
-    inset 0 0 22px rgba(0, 140, 220, 0.12),
-    inset 0 4px 14px rgba(0, 0, 0, 0.65),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
-    0 0 6px rgba(0, 191, 255, 0.35),
-    0 0 16px rgba(0, 160, 230, 0.18),
-    0 0 32px rgba(0, 120, 200, 0.08);
+    inset 0 0 14px rgba(0, 191, 255, 0.28),
+    inset 0 0 28px rgba(0, 150, 220, 0.1),
+    inset 0 14px 24px rgba(0, 0, 0, 0.65),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.42);
   pointer-events: none;
   z-index: 0;
 }
 
+.hmi-chrome-frame::after,
 .pre-journey-stage__intro-panel::after,
 .journey-counter-panel__message-row::after,
 .journey-nav-stage-inner::after,
@@ -369,19 +1020,34 @@
 .journey-layout__nav-message-panel::after {
   content: '';
   position: absolute;
-  top: calc(var(--hmi-chrome-border) + 1px);
-  left: 10%;
-  right: 10%;
-  height: 38%;
-  border-radius: calc(var(--hmi-radius) - 6px) calc(var(--hmi-radius) - 6px) 50% 50%;
+  top: calc(var(--hmi-chrome-border) + 14px);
+  left: 8%;
+  right: 8%;
+  height: 32%;
+  border-radius: var(--hmi-chrome-gloss-radius) var(--hmi-chrome-gloss-radius) 48% 48%;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.06) 42%,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.01) 60%,
     transparent 100%
   );
   pointer-events: none;
   z-index: 1;
+}
+
+/* Map stages: transparent padding so animation fills the bezel interior */
+.journey-nav-stage-inner,
+.full-diagnostics__map-stage-inner {
+  --hmi-chrome-padding-fill: linear-gradient(transparent, transparent);
+  --hmi-chrome-interior: transparent;
+}
+
+/* Text/message panels: chrome lives on the border only; interior is ::before */
+.pre-journey-stage__intro-panel,
+.journey-counter-panel__message-row,
+.journey-layout__nav-message-panel {
+  --hmi-chrome-padding-fill: linear-gradient(transparent, transparent);
 }
 
 .pre-journey-stage__intro-panel {
@@ -750,12 +1416,32 @@
   justify-content: flex-start;
   width: 100%;
   height: min(520px, calc(100% - 10px));
-  max-height: calc(100vh - 72px - 6rem - 10px);
+  max-height: calc(100vh - 6rem - 10px);
   overflow: visible;
 }
 
 .dashboard-panel--journey-resize {
-  max-height: calc(100vh - 72px - 6rem - 10px);
+  max-height: calc(100vh - 6rem - 10px);
+}
+
+/* Let Framer Motion drive height during counter ↔ map slide (avoids CSS 419/520 snap). */
+.dashboard-panel--journey-resize.dashboard-panel--counter,
+.dashboard-panel--journey-resize.dashboard-panel--map {
+  height: auto;
+  min-height: 0;
+}
+
+.dashboard-panel--journey-resize.dashboard-panel--journey-scene-transition {
+  overflow: clip;
+}
+
+.dashboard-panel--journey-resize.dashboard-panel--journey-scene-transition
+  .dashboard-panel__body.dashboard-body--journey {
+  overflow: hidden;
+}
+
+.dashboard-panel--journey-resize.dashboard-panel--journey-scene-transition .journey-scene-stage {
+  overflow: hidden;
 }
 
 .dashboard-panel--counter .dashboard-panel__body.dashboard-body--journey-counter,
@@ -889,9 +1575,11 @@
   pointer-events: none;
   overflow: visible;
   margin: 0 auto;
-  --hood-dipstick-pies-width: clamp(200px, 24vw, 280px);
-  /* ACES viewBox is wider vs artwork — scale width so cap matches PIES */
-  --hood-dipstick-aces-width: clamp(255px, 30.6vw, 358px);
+  /* Shared pair slot width (PIES); ACES scales wider to match rendered height (viewBox 400×1600 vs 312×1509) */
+  --hood-dipstick-pair-width: clamp(200px, 24vw, 280px);
+  --hood-dipstick-aces-scale: calc(1509 / 1248);
+  --hood-dipstick-pies-width: var(--hood-dipstick-pair-width);
+  --hood-dipstick-aces-width: calc(var(--hood-dipstick-pair-width) * 1509 / 1248);
 }
 
 .hood-standards-dipsticks-group {
@@ -904,13 +1592,17 @@
   pointer-events: none;
 }
 
-/* Centered ACES + PIES pair */
+/* Centered ACES + PIES pair — matched visual height via width scale (no fixed height; keeps rise animation) */
+.hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--aces,
+.hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--pies {
+  height: auto;
+  translate: none;
+}
+
 .hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--aces {
   left: 0;
   right: auto;
   width: var(--hood-dipstick-aces-width);
-  /* ACES artboard has more headroom above the cap — nudge up so caps align with PIES */
-  translate: 0 calc(-100% * (62 / 1600 - 28 * 252 / (251 * 1600)));
 }
 
 .hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--pies {
@@ -1068,12 +1760,38 @@
 }
 
 .hood-standards-popup__nav {
+  position: relative;
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
   gap: clamp(6px, 1.2vw, 10px);
   width: 100%;
   min-height: 31px;
+}
+
+.hood-standards-popup__nav-icons {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  height: 100%;
+  max-height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hood-standards-popup__nav-icon {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .hood-standards-popup__btn {
@@ -1098,6 +1816,8 @@
 .hood-standards-popup__btn--next {
   margin-left: auto;
   align-self: stretch;
+  position: relative;
+  z-index: 1;
   background: #39ff14;
   color: #0a0a0a;
   border: none;
@@ -1114,6 +1834,8 @@
 }
 
 .hood-standards-popup__btn--back {
+  position: relative;
+  z-index: 1;
   background: #0a0a0a;
   color: #39ff14;
   border: 2px solid #39ff14;
@@ -1196,6 +1918,8 @@
 }
 
 .hood-standards-popup__cta {
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   min-width: 0;
   background: #39ff14;
@@ -1261,32 +1985,75 @@
     font-size: clamp(11px, 2.8vw, 16px);
   }
 
+  /* Let dipsticks use full size inside the arch (row may extend slightly past narrow viewports) */
+  .hood-engine-stack {
+    overflow: visible;
+  }
+
   .hood-dipsticks-row {
-    width: min(600px, 92vw);
-    height: min(520px, 96vh);
+    /* Same row + token scale as desktop (ACES left / PIES right — no overlap) */
+    width: clamp(440px, 76vw, 640px);
+    max-width: none;
+    height: min(640px, 84vh);
+    --hood-dipstick-gap: clamp(8px, 2.5vw, 14px);
+    --hood-dipstick-pair-width: clamp(200px, 24vw, 280px);
+    --hood-dipstick-pies-width: var(--hood-dipstick-pair-width);
+    --hood-dipstick-aces-width: calc(var(--hood-dipstick-pair-width) * 1509 / 1248);
+  }
+
+  /* ACES left / PIES right — full desktop widths, separated by row width (no overlap) */
+  .hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--pies {
+    left: auto;
+    right: 0;
+    max-width: none;
+  }
+
+  .hood-standards-dipsticks-group .hood-dipsticks-pair .hood-dipstick-img--aces {
+    left: 0;
+    right: auto;
+    max-width: none;
   }
 
   .hood-dipsticks-row--triple {
-    width: min(748px, 78vw);
-  }
-
-  .hood-dipsticks-row--triple .hood-dipstick-img--ishop {
-    left: calc(33.33% + 4px);
-  }
-
-  .hood-dipsticks-row--triple .hood-dipstick-img--superspec {
-    left: calc(66.66% + 8px);
+    width: 748px;
+    max-width: none;
+    --hood-dipstick-triple-gap: clamp(6px, 2vw, 10px);
+    --hood-dipstick-triple-slot: clamp(180px, 22vw, 256px);
   }
 
   .hood-dipsticks-row--triple .hood-dipstick-img--ipo {
     left: 0;
+    right: auto;
+    width: var(--hood-dipstick-triple-slot);
+    max-width: none;
   }
 
-  .hood-dipsticks-row--triple .hood-dipstick-img--ipo,
-  .hood-dipsticks-row--triple .hood-dipstick-img--ishop,
+  .hood-dipsticks-row--triple .hood-dipstick-img--ishop {
+    left: calc(var(--hood-dipstick-triple-slot) + var(--hood-dipstick-triple-gap));
+    right: auto;
+    width: var(--hood-dipstick-triple-slot);
+    max-width: none;
+  }
+
   .hood-dipsticks-row--triple .hood-dipstick-img--superspec {
-    width: calc(33.33% - 8px);
-    max-width: 256px;
+    left: auto;
+    right: 0;
+    width: var(--hood-dipstick-triple-slot);
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hood-dipsticks-row {
+    --hood-dipstick-gap: clamp(6px, 2vw, 10px);
+  }
+
+  .hood-dipsticks-row--triple {
+    --hood-dipstick-triple-gap: clamp(4px, 1.5vw, 8px);
+  }
+
+  .hood-standards-dipsticks-group {
+    padding-bottom: clamp(6%, 12vh, 18%);
   }
 }
 
@@ -1473,9 +2240,9 @@
   min-width: 0;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(8px, 1.5vh, 16px) 0;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: clamp(8px, 1.5vh, 16px) 0 0;
   overflow: visible;
 }
 
@@ -1502,44 +2269,11 @@
   display: flex;
   flex-direction: column;
   justify-content: stretch;
-  isolation: isolate;
   overflow: hidden;
-  background:
-    linear-gradient(transparent, transparent) padding-box,
-    linear-gradient(
-      180deg,
-      #e4e8ee 0%,
-      #b8bec8 12%,
-      #8a919c 28%,
-      #565d68 52%,
-      #3a404a 72%,
-      #252932 88%,
-      #181b20 100%
-    ) border-box;
 }
 
 .journey-nav-stage-inner::before {
   z-index: 2;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.012) 0,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    transparent;
-  box-shadow:
-    inset 0 0 0 1px rgba(220, 240, 255, 0.42),
-    inset 0 0 0 2px rgba(0, 191, 255, 0.22),
-    inset 0 0 10px rgba(0, 191, 255, 0.28),
-    inset 0 0 22px rgba(0, 140, 220, 0.12),
-    inset 0 4px 14px rgba(0, 0, 0, 0.65),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
-    0 0 6px rgba(0, 191, 255, 0.35),
-    0 0 16px rgba(0, 160, 230, 0.18),
-    0 0 32px rgba(0, 120, 200, 0.08);
 }
 
 .journey-nav-slide-bg {
@@ -1548,8 +2282,11 @@
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
-  background: #050608;
+  background: linear-gradient(180deg, #0a1424 0%, #050608 100%);
   border-radius: calc(var(--hmi-radius) - 5px);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
 /* Full-bleed map canvas inside the HMI bezel */
@@ -1578,15 +2315,23 @@
 .journey-nav-map-frame .journey-nav-map-panel__lottie svg,
 .journey-nav-map-frame .journey-nav-map-panel__lottie canvas {
   display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-nav-popup-row--pregame {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .journey-nav-ui {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 3;
   width: 100%;
-  flex: 1 1 auto;
   min-height: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1655,6 +2400,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   color: rgba(235, 240, 245, 0.85);
+  text-transform: lowercase;
 }
 
 /* Centered GPS arrival overlay (phase 4) */
@@ -1771,6 +2517,7 @@
   font-size: clamp(0.8125rem, 1.3vw, 0.875rem);
   font-weight: 600;
   letter-spacing: 0.03em;
+  text-transform: lowercase;
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -1842,12 +2589,12 @@
   transform: translateY(-1px);
 }
 
-/* Lower-right slide-in CTA to Under the Hood */
+/* Lower-right slide-in CTA to Under the Hood — above arrival overlay on rerouting */
 .journey-nav-hood-next {
   position: absolute;
   right: clamp(12px, 2vw, 28px);
   bottom: clamp(14px, 2.2vh, 24px);
-  z-index: 4;
+  z-index: 6;
   pointer-events: none;
 }
 
@@ -1871,7 +2618,7 @@
   font-size: clamp(0.875rem, 1.4vw, 0.9375rem);
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   cursor: pointer;
   pointer-events: auto;
   transition:
@@ -1929,7 +2676,7 @@
   font-size: clamp(0.875rem, 1.4vw, 0.9375rem);
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   cursor: pointer;
   pointer-events: auto;
   transition:
@@ -2136,7 +2883,7 @@
   margin: 0;
   width: 100%;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.25;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
   white-space: pre-line;
@@ -2307,14 +3054,19 @@
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .journey-scene-layer {
   position: absolute;
   inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   min-height: 0;
+  will-change: transform;
+  transform-origin: left center;
 }
 
 .journey-scene-layer.journey-layout--counter {
@@ -2354,12 +3106,12 @@
 }
 
 .journey-layout--nav {
-  overflow: visible;
+  overflow: hidden;
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: stretch;
 }
 
 .journey-layout--nav .journey-layout__main--nav {
@@ -2598,7 +3350,8 @@
 
 .journey-counter-panel__gauge > .journey-speedometer-gauge,
 .journey-counter-panel__gauge > .journey-fuel-gauge,
-.journey-counter-panel__gauge > .journey-battery-gauge {
+.journey-counter-panel__gauge > .journey-battery-gauge,
+.journey-counter-panel__gauge > .community-logo-gauge {
   flex: 0 0 auto;
   width: 100%;
   max-width: var(--journey-counter-dial-size);
@@ -2658,6 +3411,190 @@
   justify-content: center;
 }
 
+/* AWDA community logo — glossy rectangular button in counter dial slot */
+.community-logo-gauge__button {
+  --community-logo-aspect: 300 / 126;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: clamp(5px, 0.9vw, 8px);
+  border: none;
+  border-radius: clamp(8px, 1.2vw, 12px);
+  cursor: pointer;
+  text-decoration: none;
+  background: linear-gradient(
+    180deg,
+    #e4e8ee 0%,
+    #b8bec8 14%,
+    #8a919c 32%,
+    #565d68 56%,
+    #3a404a 74%,
+    #252932 88%,
+    #181b20 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 0 0 2px rgba(255, 255, 255, 0.12),
+    0 8px 22px rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(3, 86, 146, 0.55),
+    0 0 28px rgba(3, 86, 146, 0.38),
+    0 0 44px rgba(0, 191, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.community-logo-gauge__button:hover,
+.community-logo-gauge__button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 0 0 2px rgba(255, 255, 255, 0.2),
+    0 12px 28px rgba(0, 0, 0, 0.6),
+    0 0 22px rgba(3, 86, 146, 0.72),
+    0 0 40px rgba(3, 86, 146, 0.48),
+    0 0 56px rgba(0, 191, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.community-logo-gauge__button:hover .community-logo-gauge__logo svg,
+.community-logo-gauge__button:focus-visible .community-logo-gauge__logo svg {
+  filter:
+    drop-shadow(0 0 3px rgba(3, 86, 146, 1))
+    drop-shadow(0 0 8px rgba(3, 86, 146, 0.95))
+    drop-shadow(0 0 18px rgba(3, 86, 146, 0.75))
+    drop-shadow(0 0 32px rgba(0, 191, 255, 0.45));
+}
+
+.community-logo-gauge__button:active {
+  transform: translateY(1px);
+}
+
+.community-logo-gauge__chrome {
+  position: absolute;
+  inset: clamp(4px, 0.7vw, 6px);
+  z-index: 4;
+  border-radius: clamp(5px, 0.85vw, 9px);
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 240, 255, 0.75),
+    inset 0 0 0 2px rgba(0, 191, 255, 0.42),
+    inset 0 0 14px rgba(3, 86, 146, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 10px rgba(3, 86, 146, 0.5),
+    0 0 20px rgba(0, 191, 255, 0.28);
+}
+
+.community-logo-gauge__face {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(calc(var(--journey-counter-dial-size, 12rem) * 0.84), 100%);
+  max-height: calc(var(--journey-counter-dial-size, 12rem) * 0.48);
+  aspect-ratio: var(--community-logo-aspect);
+  border-radius: clamp(4px, 0.65vw, 7px);
+  overflow: hidden;
+  line-height: 0;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #fafbfc 0%, #eef2f6 48%, #e4eaf0 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 2px rgba(3, 86, 146, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.92),
+    inset 0 0 18px rgba(255, 255, 255, 0.55),
+    0 0 0 1px rgba(3, 86, 146, 0.4),
+    0 0 12px rgba(3, 86, 146, 0.5),
+    0 0 24px rgba(3, 86, 146, 0.32);
+}
+
+.community-logo-gauge__face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(3, 86, 146, 0.28),
+    inset 0 0 0 2px rgba(0, 191, 255, 0.18),
+    inset 0 2px 8px rgba(255, 255, 255, 0.65),
+    inset 0 0 12px rgba(3, 86, 146, 0.12);
+}
+
+.community-logo-gauge__logo {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.community-logo-gauge__logo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter:
+    drop-shadow(0 0 2px rgba(3, 86, 146, 1))
+    drop-shadow(0 0 6px rgba(3, 86, 146, 0.85))
+    drop-shadow(0 0 14px rgba(3, 86, 146, 0.6))
+    drop-shadow(0 0 24px rgba(0, 191, 255, 0.35));
+}
+
+.community-logo-gauge__gloss {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.82) 0%,
+      rgba(255, 255, 255, 0.35) 14%,
+      transparent 32%,
+      transparent 62%,
+      rgba(255, 255, 255, 0.12) 82%,
+      rgba(3, 86, 146, 0.04) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      transparent 38%
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.92;
+}
+
+.community-logo-gauge__shine {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 92% 55% at 50% -12%, rgba(255, 255, 255, 0.95) 0%, transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, transparent 42%),
+    linear-gradient(0deg, rgba(3, 86, 146, 0.05) 0%, transparent 28%);
+  opacity: 1;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge__button {
+  padding: clamp(3px, 0.55vw, 5px);
+  border-radius: clamp(6px, 0.9vw, 9px);
+  box-sizing: border-box;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge__face {
+  aspect-ratio: var(--community-logo-aspect);
+}
+
 .journey-fuel-gauge__dial {
   position: relative;
   width: 100%;
@@ -2696,7 +3633,8 @@
 
 .journey-fuel-gauge,
 .journey-battery-gauge,
-.journey-speedometer-gauge {
+.journey-speedometer-gauge,
+.community-logo-gauge {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -2705,6 +3643,21 @@
   max-width: 100%;
   height: fit-content;
   min-width: 0;
+}
+
+.journey-counter-panel__gauge .community-logo-gauge__button {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+}
+
+.journey-counter-panel__gauge .community-logo-gauge__face {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .journey-battery-gauge__dial {
@@ -2721,6 +3674,23 @@
   justify-content: center;
   pointer-events: none;
   z-index: 2;
+}
+
+.journey-battery-gauge--warning-active .journey-battery-gauge__warning-icon {
+  animation: journey-battery-warning-flash 0.7s ease-in-out infinite;
+}
+
+@keyframes journey-battery-warning-flash {
+  0%,
+  100% {
+    opacity: 0.35;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.55));
+  }
+
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1));
+  }
 }
 
 .journey-battery-gauge__warning-icon {
@@ -2947,7 +3917,8 @@
 
   .journey-counter-panel__gauge > .journey-speedometer-gauge,
   .journey-counter-panel__gauge > .journey-fuel-gauge,
-  .journey-counter-panel__gauge > .journey-battery-gauge {
+  .journey-counter-panel__gauge > .journey-battery-gauge,
+  .journey-counter-panel__gauge > .community-logo-gauge {
     flex: 1 1 auto;
     min-height: 0;
     height: auto;
@@ -3079,7 +4050,8 @@
 
   .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-fuel-gauge,
   .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-speedometer-gauge,
-  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-battery-gauge {
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-battery-gauge,
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .community-logo-gauge {
     width: 100%;
     max-width: 100%;
   }
@@ -3128,7 +4100,8 @@
 
   .journey-counter-panel__gauge > .journey-fuel-gauge,
   .journey-counter-panel__gauge > .journey-speedometer-gauge,
-  .journey-counter-panel__gauge > .journey-battery-gauge {
+  .journey-counter-panel__gauge > .journey-battery-gauge,
+  .journey-counter-panel__gauge > .community-logo-gauge {
     max-width: var(--journey-counter-message-width);
   }
 
@@ -3315,6 +4288,7 @@
   text-align: center;
   text-decoration: none;
   vertical-align: middle;
+  text-transform: lowercase;
   cursor: pointer;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
   box-shadow:
@@ -3390,8 +4364,8 @@
 .journey-layout__main--nav {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: 0;
   overflow: visible;
   padding-top: 0;
@@ -3404,7 +4378,7 @@
   flex: 1 1 auto;
   width: 100%;
   align-items: stretch;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding-top: 0;
   overflow: visible;
   min-height: 0;
@@ -3690,7 +4664,7 @@
   line-height: 1.2;
   letter-spacing: 0.02em;
   text-decoration: none;
-  text-transform: none;
+  text-transform: lowercase;
   cursor: pointer;
   transition: filter 0.2s ease;
 }
@@ -4078,7 +5052,7 @@
   align-items: center;
   justify-content: flex-end;
   width: var(--hood-readout-width, 340px);
-  min-width: var(--hood-readout-width, 340px);
+  min-width: max(var(--hood-readout-width, 340px), 272px);
   max-width: var(--hood-readout-width, 340px);
   height: var(--hood-readout-bezel-height, 486px);
   min-height: var(--hood-readout-bezel-height, 486px);
@@ -4090,7 +5064,7 @@
   position: relative;
   flex: 0 0 auto;
   width: var(--hood-readout-width, 340px);
-  min-width: var(--hood-readout-width, 340px);
+  min-width: max(var(--hood-readout-width, 340px), 272px);
   max-width: var(--hood-readout-width, 340px);
   display: flex;
   justify-content: flex-end;
@@ -4099,18 +5073,19 @@
 
 .hood-tire-hub__screen {
   width: var(--hood-readout-width, 340px);
-  min-width: var(--hood-readout-width, 340px);
+  min-width: max(var(--hood-readout-width, 340px), 272px);
   max-width: var(--hood-readout-width, 340px);
   height: var(--hood-readout-bezel-height, 486px);
   min-height: var(--hood-readout-bezel-height, 486px);
   max-height: var(--hood-readout-bezel-height, 486px);
+  aspect-ratio: 340 / 486;
   flex-shrink: 0;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  padding: 14px;
+  padding: var(--hood-readout-screen-padding, 14px);
   background:
     linear-gradient(165deg, #636363 0%, #454545 12%, #333 38%, #252525 62%, #1c1c1c 88%, #404040 100%);
   border-radius: 24px;
@@ -4166,7 +5141,7 @@
   flex: 1 1 auto;
   width: 100%;
   min-height: 0;
-  padding: 12px 10px 16px;
+  padding: var(--hood-readout-bezel-padding, 12px 10px 16px);
   background: linear-gradient(180deg, #353535 0%, #242424 45%, #181818 100%);
   border-radius: 14px;
   border: 2px solid #0a0a0a;
@@ -4220,11 +5195,11 @@
 }
 
 .hood-tire-hub__screen-content {
-  flex: 0 0 211px;
+  flex: 0 0 var(--hood-readout-content-height, 211px);
   width: 100%;
-  height: 211px;
+  height: var(--hood-readout-content-height, 211px);
   min-height: var(--hood-readout-content-min-height, 156px);
-  max-height: 211px;
+  max-height: var(--hood-readout-content-height, 211px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -4234,10 +5209,26 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.hood-tire-check-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 10px rgba(57, 255, 20, 0.65));
+}
+
+.hood-tire-check-badge__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .hood-tire-hub__pressure-gauge {
+  position: relative;
   flex: 0 0 auto;
   width: 100%;
-  height: 162px;
+  height: var(--hood-readout-gauge-slot, 162px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4245,10 +5236,40 @@
   padding: 4px 0;
 }
 
+.hood-tire-hub__gauge-check {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hood-tire-hub__gauge-check .hood-tire-check-badge {
+  width: clamp(56px, 38%, 84px);
+  height: clamp(56px, 38%, 84px);
+}
+
 .hood-tire-hub__pressure-gauge-lottie {
   width: auto !important;
   height: 100% !important;
   max-width: 100%;
+}
+
+.hood-tire-hub__pressure-gauge--tire-art {
+  padding: 6px 8px;
+}
+
+.hood-tire-hub__pressure-gauge-tire {
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
 }
 
 .hood-tire-hub__readout--interactive {
@@ -4613,6 +5634,7 @@
   line-height: 1.45;
   color: #e5e7eb;
   text-align: left;
+  white-space: pre-line;
   overflow-wrap: normal;
   word-break: normal;
 }
@@ -4620,9 +5642,11 @@
 .full-diagnostics__share-actions {
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
-  gap: clamp(8px, 1.2vh, 12px);
+  justify-content: center;
+  gap: clamp(8px, 1.2vw, 12px);
 }
 
 .full-diagnostics__social-row {
@@ -4672,7 +5696,7 @@
 
 .full-diagnostics__share-btn {
   margin: 0;
-  padding: clamp(8px, 1.2vh, 10px) clamp(20px, 4vw, 28px);
+  padding: clamp(8px, 1.2vh, 10px) clamp(16px, 3vw, 24px);
   border: none;
   border-radius: 6px;
   background: #f3901d;
@@ -4680,10 +5704,10 @@
   font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
   font-size: clamp(12px, 2vw, 14px);
   font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 
 .full-diagnostics__share-btn:hover {
@@ -4692,6 +5716,17 @@
 
 .full-diagnostics__share-btn:active {
   transform: scale(0.98);
+}
+
+.full-diagnostics__share-btn--back {
+  background: transparent;
+  color: #f3901d;
+  border: 1px solid rgba(243, 144, 29, 0.65);
+}
+
+.full-diagnostics__share-btn--back:hover {
+  background: rgba(243, 144, 29, 0.12);
+  border-color: #f3901d;
 }
 
 .full-diagnostics__chevron {
@@ -4720,36 +5755,144 @@
 }
 
 .full-diagnostics__stats-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  justify-content: center;
-  gap: clamp(12px, 3vw, 28px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  justify-items: center;
+  gap: clamp(8px, 2vw, 22px);
   width: 100%;
-  flex-wrap: wrap;
+  max-width: min(100%, 720px);
+  margin-inline: auto;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge {
-  --journey-counter-dial-size: min(100%, clamp(4.25rem, 13vw, 6.5rem));
-  --journey-counter-stat-min-h: calc(clamp(11px, 2.2vw, 16px) * 1.15 + 0.35rem);
-  flex: 0 1 clamp(72px, 18vw, 130px);
+  --journey-counter-dial-size: clamp(4.25rem, 13vw, 6.5rem);
+  --journey-counter-stat-min-h: calc(clamp(11px, 2.2vw, 16px) * 2.2 + 0.4rem);
+  /* Journey counter @media (min-width: 641px) pins gauges to grid 1/1 — reset for 4-up row */
+  grid-column: auto;
+  grid-row: auto;
+  flex: none;
+  align-self: start;
+  justify-self: center;
+  width: 100%;
   min-width: 0;
-  max-width: clamp(88px, 20vw, 140px);
-  align-self: stretch;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: calc(var(--journey-counter-dial-size) + var(--journey-counter-stat-min-h));
   font-size: clamp(7px, 1.2vw, 10px);
+}
+
+/* Keep gauge markup in a real box — display:contents broke dial SVG rendering in the stats grid. */
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge > .journey-speedometer-gauge,
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge > .journey-fuel-gauge,
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge > .journey-battery-gauge,
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge > .community-logo-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge .journey-counter-gauge__dial-slot {
+  flex: 0 0 var(--journey-counter-dial-size);
+  width: var(--journey-counter-dial-size);
+  height: var(--journey-counter-dial-size);
+  min-height: var(--journey-counter-dial-size);
+  max-width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.full-diagnostics__stat-gauge .journey-fuel-gauge__dial,
+.full-diagnostics__stat-gauge .journey-battery-gauge__dial {
+  width: 100%;
+  height: 100%;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge__button {
+  width: min(100%, calc(var(--journey-counter-dial-size) * 0.94));
+  height: min(100%, calc(var(--journey-counter-dial-size) * 0.72));
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge__face {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge
   .journey-speedometer-gauge__stat-below {
+  flex: 0 0 var(--journey-counter-stat-min-h);
+  width: 100%;
+  height: var(--journey-counter-stat-min-h);
+  min-height: var(--journey-counter-stat-min-h);
+  max-height: var(--journey-counter-stat-min-h);
+  margin: 0;
   gap: 0.2em;
+  padding-block: clamp(3px, 0.45vh, 6px);
   padding-inline: clamp(4px, 1vw, 8px);
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+}
+
+.full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot .journey-speedometer-gauge__svg,
+.full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot .journey-fuel-gauge__svg,
+.full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot .journey-battery-gauge__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: unset;
+}
+
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge
+  .journey-speedometer-gauge__stat-below
+  .journey-speedometer-gauge__stat-value {
+  position: relative;
+  z-index: 2;
+  display: inline;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  line-height: 1.15;
+  vertical-align: baseline;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge
   .journey-speedometer-gauge__stat-below
   .journey-speedometer-gauge__stat-label {
-  padding-left: 4px;
+  position: relative;
+  z-index: 2;
+  display: inline;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-left: 0;
   line-height: 1.15;
+  text-align: left;
+  vertical-align: baseline;
+  white-space: normal;
+  overflow: visible;
+  hyphens: auto;
 }
 
 .full-diagnostics__tires-roll {
@@ -4763,10 +5906,21 @@
 }
 
 .full-diagnostics__tire-roll-slot {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
+}
+
+.full-diagnostics__tire-check {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: clamp(20px, 5.5vw, 30px);
+  height: clamp(20px, 5.5vw, 30px);
+  transform: translate(-18%, -18%);
 }
 
 .full-diagnostics__tire-roll-img {
@@ -5056,13 +6210,17 @@
   width: 100%;
   max-width: 100%;
   text-align: center;
-  font-size: 20px;
+  font-size: clamp(14px, 2.4vw, 18px);
+  line-height: 1.5;
 }
 
 .full-diagnostics--share-focus .full-diagnostics__share-actions {
   width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: clamp(12px, 2vh, 18px);
+  gap: clamp(10px, 2vw, 14px);
 }
 
 .full-diagnostics--share-focus .full-diagnostics__map {
@@ -5104,7 +6262,8 @@
   }
 
   .full-diagnostics--share-focus .full-diagnostics__share-message {
-    font-size: 20px;
+    font-size: clamp(13px, 3.4vw, 17px);
+    line-height: 1.5;
   }
 
   .full-diagnostics--share-focus .full-diagnostics__top-lottie--share-focus {
@@ -5126,10 +6285,10 @@
   }
 
   .full-diagnostics__stat-gauge.journey-counter-panel__gauge {
-    --journey-counter-dial-size: min(100%, clamp(3.75rem, 11vw, 5.5rem));
-    --journey-counter-stat-min-h: calc(clamp(10px, 2vw, 13px) * 1.1 + 0.3rem);
-    flex-basis: clamp(64px, 16vw, 96px);
-    max-width: clamp(72px, 18vw, 108px);
+    --journey-counter-dial-size: clamp(3.75rem, 11vw, 5.5rem);
+    --journey-counter-stat-min-h: calc(clamp(10px, 2vw, 13px) * 2.15 + 0.35rem);
+    width: 100%;
+    max-width: 100%;
     font-size: clamp(6px, 1.1vw, 9px);
   }
 
@@ -5247,6 +6406,19 @@
     padding: 8px 0;
   }
 
+  /* Keep the left edge of the map visible; clip overflow on the right. */
+  .journey-nav-slide-bg,
+  .journey-nav-map-frame,
+  .journey-nav-map-frame .journey-nav-map-panel__lottie {
+    overflow: hidden;
+  }
+
+  .journey-nav-map-frame .journey-nav-map-panel__lottie svg,
+  .journey-nav-map-frame .journey-nav-map-panel__lottie canvas {
+    left: 0;
+    right: auto;
+  }
+
   .journey-layout--nav .journey-layout__nav-stage {
     display: flex;
     align-items: stretch;
@@ -5351,6 +6523,7 @@
 
 @media (min-width: 1024px) {
   .journey-nav-map-cluster {
-    justify-content: center;
+    justify-content: flex-start;
+    align-items: stretch;
   }
 }

@@ -11,21 +11,32 @@ export const JOURNEY_GAUGE_LABEL_FONT = 'clamp(11px, 1.6vw, 14px)';
 export const DIAGNOSTICS_GAUGE_VALUE_FONT = 'clamp(11px, 2.2vw, 19px)';
 export const DIAGNOSTICS_GAUGE_LABEL_FONT = 'clamp(7px, 1.2vw, 10px)';
 
-const GAUGE_MIN_ANGLE = -135;
-const GAUGE_MAX_ANGLE = 135;
-const GAUGE_SWEEP = GAUGE_MAX_ANGLE - GAUGE_MIN_ANGLE;
+/** Bottom arc — 0 left, 100 right (standard dashboard speedometer sweep). */
+const SPEEDO_MIN_ANGLE = 180;
+const SPEEDO_MAX_ANGLE = 360;
+const SPEEDO_SWEEP = SPEEDO_MAX_ANGLE - SPEEDO_MIN_ANGLE;
 
 /** Bottom semicircle — empty (E) left to full (F) right, 180° sweep. */
 const FUEL_MIN_ANGLE = 180;
 const FUEL_MAX_ANGLE = 360;
 const FUEL_SWEEP = FUEL_MAX_ANGLE - FUEL_MIN_ANGLE;
 const FUEL_LABEL_FONT_SIZE = 14;
-
 const BATTERY_WARNING_DELAY_MS = 750;
 
-function valueToAngle(value: number) {
+function speedoValueToAngle(value: number) {
   const clamped = Math.max(0, Math.min(100, value));
-  return GAUGE_MIN_ANGLE + (clamped / 100) * GAUGE_SWEEP;
+  return SPEEDO_MIN_ANGLE + (clamped / 100) * SPEEDO_SWEEP;
+}
+
+/** Needle SVG points up (−90°); rotate to sit on the bottom arc angle. */
+function speedoNeedleRotation(angle: number) {
+  return angle + 90;
+}
+
+function speedoLabelRotation(value: number, angle: number) {
+  if (value === 0) return 90;
+  if (value === 100) return -90;
+  return angle + 90;
 }
 
 function fuelPercentToAngle(percent: number) {
@@ -39,6 +50,44 @@ function polarToCartesian(cx: number, cy: number, radius: number, angleDeg: numb
     x: cx + Math.cos(rad) * radius,
     y: cy + Math.sin(rad) * radius,
   };
+}
+
+function gaugeArcLargeFlag(startAngle: number, endAngle: number) {
+  return Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+}
+
+function buildGaugeArcD(
+  cx: number,
+  cy: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+  largeArc = gaugeArcLargeFlag(startAngle, endAngle),
+) {
+  const start = polarToCartesian(cx, cy, radius, startAngle);
+  const end = polarToCartesian(cx, cy, radius, endAngle);
+  const sweep = endAngle >= startAngle ? 1 : 0;
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArc} ${sweep} ${end.x} ${end.y}`;
+}
+
+function buildSpeedometerNeedleD(
+  cx: number,
+  cy: number,
+  tipR: number,
+  tailInset: number,
+) {
+  const tipY = cy - tipR;
+  const tailY = cy + tailInset;
+  const bladeHalf = 1.35;
+  const hubHalf = 4.8;
+  return [
+    `M ${cx - bladeHalf} ${tailY}`,
+    `L ${cx} ${tipY}`,
+    `L ${cx + bladeHalf} ${tailY}`,
+    `L ${cx + hubHalf} ${tailY + 4.5}`,
+    `L ${cx - hubHalf} ${tailY + 4.5}`,
+    'Z',
+  ].join(' ');
 }
 
 function GaugeDialSlot({
@@ -113,13 +162,14 @@ export function JourneyCounterGauge({
   onCountCompleteRef.current = onCountComplete;
 
   const displayValue = target >= 1000 ? Math.round(gaugeValue).toLocaleString() : String(Math.round(gaugeValue));
-  const needleAngle = valueToAngle(gaugeValue);
+  const needleAngle = speedoValueToAngle(gaugeValue);
   const fillPercent = Math.min(Math.max(target, 0), 100);
+  const batterySegmentCount = 4;
   const needleTarget =
     variant === 'fuel'
       ? fillPercent
       : variant === 'battery'
-        ? 0
+        ? Math.min(Math.max(target, 0), batterySegmentCount)
         : Math.min(Math.max(target, 0), 100);
   const fuelFillAngle = fuelPercentToAngle(gaugeValue);
 
@@ -133,14 +183,15 @@ export function JourneyCounterGauge({
   const cx = 120;
   const cy = 120;
   const outerR = 96;
-  const trackR = 78;
-  const tickOuterR = 88;
-  const tickMajorInnerR = 74;
-  const tickMinorInnerR = 80;
-  const labelR = 66;
-  /** Needle tip sits on the active arc (same radius as track). */
+  const faceR = 86;
+  const trackR = 76;
+  const tickOuterR = 82;
+  const tickMajorInnerR = 68;
+  const tickMinorInnerR = 74;
+  const labelR = 58;
   const needleTipR = trackR;
-  const needleTailInset = 10;
+  const needleTailInset = 12;
+  const gaugeArcD = buildGaugeArcD(cx, cy, trackR, SPEEDO_MIN_ANGLE, SPEEDO_MAX_ANGLE, 0);
 
   useEffect(() => {
     setGaugeValue(0);
@@ -161,7 +212,10 @@ export function JourneyCounterGauge({
     }
     setBatteryWarningActive(false);
     const timer = window.setTimeout(() => setBatteryWarningActive(true), BATTERY_WARNING_DELAY_MS);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      setBatteryWarningActive(false);
+    };
   }, [variant, animationKey]);
 
   const rootClassName = [
@@ -170,6 +224,7 @@ export function JourneyCounterGauge({
       : variant === 'battery'
         ? 'journey-battery-gauge'
         : 'journey-speedometer-gauge',
+    variant === 'battery' && batteryWarningActive ? 'journey-battery-gauge--warning-active' : '',
     className,
   ]
     .filter(Boolean)
@@ -342,7 +397,8 @@ export function JourneyCounterGauge({
     const outerR = 96;
     const bodyW = 112;
     const bodyH = 78;
-    const segmentCount = 4;
+    const segmentCount = batterySegmentCount;
+    const filledSegments = Math.round(gaugeValue);
     const segmentGap = 6;
     const segmentH = (bodyH - segmentGap * (segmentCount + 1)) / segmentCount;
     const terminalW = 12;
@@ -403,29 +459,42 @@ export function JourneyCounterGauge({
                   stroke="#666"
                   strokeWidth="1"
                 />
-                <rect
+                <motion.rect
                   x={bodyLeft}
                   y={bodyTop}
                   width={bodyW}
                   height={bodyH}
                   rx="8"
                   fill="#141414"
-                  stroke={batteryWarningActive ? '#ef4444' : '#444'}
+                  stroke="#444"
                   strokeWidth="2"
+                  animate={
+                    batteryWarningActive
+                      ? { stroke: ['#444', '#ef4444', '#fca5a5', '#ef4444', '#444'] }
+                      : { stroke: '#444' }
+                  }
+                  transition={
+                    batteryWarningActive
+                      ? { stroke: { duration: 0.85, repeat: Infinity, ease: 'easeInOut' } }
+                      : { duration: 0.2 }
+                  }
                 />
-                {Array.from({ length: segmentCount }, (_, i) => (
-                  <rect
-                    key={i}
-                    x={bodyLeft + segmentGap}
-                    y={bodyTop + segmentGap + i * (segmentH + segmentGap)}
-                    width={bodyW - segmentGap * 2}
-                    height={segmentH}
-                    rx="2"
-                    fill="#252525"
-                    stroke="#333"
-                    strokeWidth="1"
-                  />
-                ))}
+                {Array.from({ length: segmentCount }, (_, i) => {
+                  const isFilled = i >= segmentCount - filledSegments;
+                  return (
+                    <rect
+                      key={i}
+                      x={bodyLeft + segmentGap}
+                      y={bodyTop + segmentGap + i * (segmentH + segmentGap)}
+                      width={bodyW - segmentGap * 2}
+                      height={segmentH}
+                      rx="2"
+                      fill={isFilled ? BRAND_ORANGE : '#252525'}
+                      stroke={isFilled ? '#e07a10' : '#333'}
+                      strokeWidth="1"
+                    />
+                  );
+                })}
               </g>
             </svg>
 
@@ -434,11 +503,11 @@ export function JourneyCounterGauge({
                 className="journey-battery-gauge__warning"
                 role="img"
                 aria-label="Low battery warning"
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: [0.35, 1, 0.35], scale: 1 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: [0, 1, 0], scale: [0.92, 1.04, 1] }}
                 transition={{
-                  opacity: { duration: 0.85, repeat: Infinity, ease: 'easeInOut' },
-                  scale: { duration: 0.25 },
+                  opacity: { duration: 0.7, repeat: Infinity, ease: 'easeInOut' },
+                  scale: { duration: 0.7, repeat: Infinity, ease: 'easeInOut' },
                 }}
               >
                 <svg viewBox="0 0 48 48" className="journey-battery-gauge__warning-icon" aria-hidden>
@@ -480,17 +549,34 @@ export function JourneyCounterGauge({
         aria-hidden
       >
         <defs>
+          <clipPath id={`${uid}-speedo-housing`}>
+            <path d="M 22 122 A 98 98 0 0 1 218 122 L 232 240 L 8 240 Z" />
+          </clipPath>
           <linearGradient id={`${uid}-bezel`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3a3a3a" />
-            <stop offset="45%" stopColor="#1a1a1a" />
+            <stop offset="0%" stopColor="#4a4a4a" />
+            <stop offset="40%" stopColor="#2a2a2a" />
             <stop offset="100%" stopColor="#0a0a0a" />
           </linearGradient>
+          <linearGradient id={`${uid}-bezel-accent`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#444" />
+            <stop offset="50%" stopColor={BRAND_ORANGE} />
+            <stop offset="100%" stopColor="#444" />
+          </linearGradient>
+          <radialGradient id={`${uid}-face`} cx="50%" cy="88%" r="65%">
+            <stop offset="0%" stopColor="#1c1c1c" />
+            <stop offset="55%" stopColor="#101010" />
+            <stop offset="100%" stopColor="#060606" />
+          </radialGradient>
           <linearGradient id={`${uid}-needle`} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#ff8c42" />
             <stop offset="100%" stopColor={BRAND_ORANGE} />
           </linearGradient>
-          <filter id={`${uid}-glow`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <linearGradient id={`${uid}-glass`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.12)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
+          <filter id={`${uid}-arc-glow`} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.2" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -498,103 +584,133 @@ export function JourneyCounterGauge({
           </filter>
         </defs>
 
-        {/* Outer bezel */}
-        <circle cx={cx} cy={cy} r={outerR} fill={`url(#${uid}-bezel)`} stroke="#444" strokeWidth="1.5" />
-        <circle cx={cx} cy={cy} r={outerR - 6} fill="none" stroke="#2a2a2a" strokeWidth="1" />
-
-        {/* Track groove */}
-        <path
-          d={`M ${polarToCartesian(cx, cy, trackR, GAUGE_MIN_ANGLE).x} ${polarToCartesian(cx, cy, trackR, GAUGE_MIN_ANGLE).y} A ${trackR} ${trackR} 0 1 1 ${polarToCartesian(cx, cy, trackR, GAUGE_MAX_ANGLE).x} ${polarToCartesian(cx, cy, trackR, GAUGE_MAX_ANGLE).y}`}
-          fill="none"
-          stroke="#0c0c0c"
-          strokeWidth="14"
-          strokeLinecap="round"
-        />
-        <path
-          d={`M ${polarToCartesian(cx, cy, trackR, GAUGE_MIN_ANGLE).x} ${polarToCartesian(cx, cy, trackR, GAUGE_MIN_ANGLE).y} A ${trackR} ${trackR} 0 1 1 ${polarToCartesian(cx, cy, trackR, GAUGE_MAX_ANGLE).x} ${polarToCartesian(cx, cy, trackR, GAUGE_MAX_ANGLE).y}`}
-          fill="none"
-          stroke="#222"
-          strokeWidth="10"
-          strokeLinecap="round"
-        />
-
-        {/* Active arc */}
-        {gaugeValue > 0.5 && (
-          <motion.path
-            key={`arc-${animationKey ?? target}`}
-            d={`M ${polarToCartesian(cx, cy, trackR, GAUGE_MIN_ANGLE).x} ${polarToCartesian(cx, cy, trackR, GAUGE_MIN_ANGLE).y} A ${trackR} ${trackR} 0 0 1 ${polarToCartesian(cx, cy, trackR, needleAngle).x} ${polarToCartesian(cx, cy, trackR, needleAngle).y}`}
+        <g clipPath={`url(#${uid}-speedo-housing)`}>
+          <circle cx={cx} cy={cy} r={outerR} fill={`url(#${uid}-bezel)`} stroke="#444" strokeWidth="1.5" />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={outerR}
             fill="none"
-            stroke={BRAND_ORANGE}
-            strokeWidth="8"
-            strokeLinecap="round"
-            filter={`url(#${uid}-glow)`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.95 }}
-            transition={{ duration: 0.3 }}
+            stroke={`url(#${uid}-bezel-accent)`}
+            strokeWidth="2"
+            opacity="0.55"
           />
-        )}
+          <circle cx={cx} cy={cy} r={faceR} fill={`url(#${uid}-face)`} stroke="#2a2a2a" strokeWidth="1" />
 
-        {/* Tick marks 0–100 */}
-        {Array.from({ length: 51 }, (_, i) => {
-          const value = i * 2;
-          const angle = valueToAngle(value);
-          const isMajor = value % 10 === 0;
-          const innerR = isMajor ? tickMajorInnerR : tickMinorInnerR;
-          const outer = polarToCartesian(cx, cy, tickOuterR, angle);
-          const inner = polarToCartesian(cx, cy, innerR, angle);
-          const inOrangeZone = value >= 80;
-          return (
-            <line
-              key={value}
-              x1={outer.x}
-              y1={outer.y}
-              x2={inner.x}
-              y2={inner.y}
-              stroke={isMajor ? (inOrangeZone ? '#e85d04' : '#ccc') : '#555'}
-              strokeWidth={isMajor ? 2 : 1}
+          {/* High-range zone tint */}
+          <path
+            d={buildGaugeArcD(cx, cy, trackR + 1, speedoValueToAngle(80), SPEEDO_MAX_ANGLE)}
+            fill="none"
+            stroke="rgba(243, 144, 29, 0.12)"
+            strokeWidth="16"
+            strokeLinecap="butt"
+          />
+
+          {/* Scale channel */}
+          <path d={gaugeArcD} fill="none" stroke="#0c0c0c" strokeWidth="14" strokeLinecap="round" />
+          <path d={gaugeArcD} fill="none" stroke="#222" strokeWidth="10" strokeLinecap="round" />
+
+          {/* Active arc — same radius & angle as needle tip */}
+          {gaugeValue > 0.5 && (
+            <motion.path
+              key={`arc-${animationKey ?? target}`}
+              d={buildGaugeArcD(cx, cy, trackR, SPEEDO_MIN_ANGLE, needleAngle)}
+              fill="none"
+              stroke={BRAND_ORANGE}
+              strokeWidth="8"
               strokeLinecap="round"
+              filter={`url(#${uid}-arc-glow)`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.95 }}
+              transition={{ duration: 0.3 }}
             />
-          );
-        })}
+          )}
 
-        {/* Scale numbers */}
-        {[0, 20, 40, 60, 80, 100].map((value) => {
-          const angle = valueToAngle(value);
-          const pos = polarToCartesian(cx, cy, labelR, angle);
-          return (
-            <text
-              key={value}
-              x={pos.x}
-              y={pos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill={value >= 80 ? '#e85d04' : '#888'}
-              fontSize="9"
-              fontWeight="600"
-              fontFamily="system-ui, sans-serif"
-            >
-              {value}
-            </text>
-          );
-        })}
+          {/* Tick marks */}
+          {Array.from({ length: 51 }, (_, i) => {
+            const value = i * 2;
+            const angle = speedoValueToAngle(value);
+            const isMajor = value % 10 === 0;
+            const innerR = isMajor ? tickMajorInnerR : tickMinorInnerR;
+            const outer = polarToCartesian(cx, cy, tickOuterR, angle);
+            const inner = polarToCartesian(cx, cy, innerR, angle);
+            const inOrangeZone = value >= 80;
+            return (
+              <line
+                key={value}
+                x1={outer.x}
+                y1={outer.y}
+                x2={inner.x}
+                y2={inner.y}
+                stroke={isMajor ? (inOrangeZone ? '#e85d04' : '#ccc') : '#555'}
+                strokeWidth={isMajor ? 2 : 1}
+                strokeLinecap="round"
+              />
+            );
+          })}
 
-        {/* Needle — same angle & radius as motion.path arc endpoint */}
-        <g style={{ transform: `rotate(${needleAngle}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
-          <line
-            x1={cx}
-            y1={cy + needleTailInset}
-            x2={cx}
-            y2={cy - needleTipR}
-            stroke={`url(#${uid}-needle)`}
-            strokeWidth="3"
+          {/* Scale numerals — 0 & 100 upright toward bottom of dial */}
+          {[0, 20, 40, 60, 80, 100].map((value) => {
+            const angle = speedoValueToAngle(value);
+            const pos = polarToCartesian(cx, cy, labelR, angle);
+            const rotate = speedoLabelRotation(value, angle);
+            return (
+              <text
+                key={value}
+                x={pos.x}
+                y={pos.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={value >= 80 ? '#e85d04' : '#888'}
+                fontSize="9"
+                fontWeight="600"
+                fontFamily="system-ui, sans-serif"
+                transform={`rotate(${rotate}, ${pos.x}, ${pos.y})`}
+              >
+                {value}
+              </text>
+            );
+          })}
+
+          {/* Subtle upper lens highlight */}
+          <path
+            d={buildGaugeArcD(cx, cy, faceR - 8, 250, 290)}
+            fill="none"
+            stroke={`url(#${uid}-glass)`}
+            strokeWidth="10"
             strokeLinecap="round"
+            opacity="0.5"
           />
-        </g>
 
-        {/* Hub cap */}
-        <circle cx={cx} cy={cy} r="14" fill="#1a1a1a" stroke="#444" strokeWidth="1.5" />
-        <circle cx={cx} cy={cy} r="8" fill={BRAND_ORANGE} />
-        <circle cx={cx} cy={cy} r="3.5" fill="#111" />
+          {/* Needle — tip lands on orange arc endpoint */}
+          <g
+            style={{
+              transform: `rotate(${speedoNeedleRotation(needleAngle)}deg)`,
+              transformOrigin: `${cx}px ${cy}px`,
+            }}
+          >
+            <path
+              d={buildSpeedometerNeedleD(cx, cy, needleTipR, needleTailInset)}
+              fill={`url(#${uid}-needle)`}
+              stroke="#8a3d08"
+              strokeWidth="0.35"
+              strokeLinejoin="round"
+            />
+            <ellipse
+              cx={cx}
+              cy={cy + needleTailInset + 3}
+              rx="5.5"
+              ry="2.2"
+              fill="#1a1a1a"
+              stroke="#333"
+              strokeWidth="0.5"
+            />
+          </g>
+
+          <circle cx={cx} cy={cy} r="14" fill="#1a1a1a" stroke="#444" strokeWidth="1.5" />
+          <circle cx={cx} cy={cy} r="8" fill={BRAND_ORANGE} />
+          <circle cx={cx} cy={cy} r="3.5" fill="#111" />
+        </g>
         </svg>
       </GaugeDialSlot>
 

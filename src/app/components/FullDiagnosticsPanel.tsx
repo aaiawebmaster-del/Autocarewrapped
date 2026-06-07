@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TIRE_PHASE_ORDER, type TirePhase } from './MapSimulation';
+import { HoodTireCheckBadge, TIRE_PHASE_ORDER, type TirePhase } from './MapSimulation';
 import {
   JourneyCounterGauge,
   DIAGNOSTICS_GAUGE_VALUE_FONT,
   DIAGNOSTICS_GAUGE_LABEL_FONT,
 } from './JourneyCounterGauge';
+import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
-import { GpsPopupContent, BAR_FILL_MAX } from './GpsNavPopupContent';
+import { GpsPopupContent, BAR_FILL_MAX, WEBINAR_HOURS_MAX } from './GpsNavPopupContent';
 import acesDipstickImage from '../../assets/dipstick-aces.svg?url';
 import piesDipstickImage from '../../assets/dipstick-pies.svg?url';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
@@ -20,21 +21,20 @@ const TOP_STEP_MAX = 3;
 const DASHBOARD_EXIT_MS = 900;
 const SHARE_REVEAL_BUFFER_MS = 120;
 
-const DIAGNOSTICS_SHARE_MESSAGE =
-  'This year, you navigated industry challenges, accelerated professional growth, and connected with fellow leaders across the auto care community.';
+const DIAGNOSTICS_SHARE_MESSAGE = `Every mile counts.
 
-const DIAGNOSTICS_SOCIAL_LINKS = [
-  { id: 'x', label: 'X (Twitter)', href: 'https://x.com/intent/tweet' },
-  { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/sharing/share-offsite/' },
-  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/' },
-] as const;
+This year, you navigated industry challenges, accelerated professional growth, and connected with fellow leaders across the auto care community.
+
+The road you traveled — and the momentum you helped build for the year ahead is no small feat.
+
+Buckle up. There's much more to come!`;
 
 /** First four Your Journey counter slides — same gauge variants as the journey panel. */
 const JOURNEY_COUNTER_STATS = [
-  { target: 46, label: 'years', animationKey: 'diag-years', delay: 0, gaugeVariant: 'speedometer' as const },
-  { target: 68, label: 'active contacts', animationKey: 'diag-contacts', delay: 200, gaugeVariant: 'fuel' as const },
-  { target: 59, label: 'community members', animationKey: 'diag-community', delay: 400, gaugeVariant: 'speedometer' as const },
-  { target: 0, label: 'committee members', animationKey: 'diag-committee', delay: 600, gaugeVariant: 'battery' as const },
+  { target: 56, label: 'years', animationKey: 'diag-years', delay: 0, gaugeVariant: 'speedometer' as const },
+  { target: 87, label: 'active contacts', animationKey: 'diag-contacts', delay: 200, gaugeVariant: 'fuel' as const },
+  { target: 88, label: 'community members', animationKey: 'diag-community', delay: 400, gaugeVariant: 'community-logo' as const },
+  { target: 1, label: 'committee members', animationKey: 'diag-committee', delay: 600, gaugeVariant: 'battery' as const },
 ] as const;
 
 const TIRE_ROLL_IMAGES: Record<TirePhase, string> = {
@@ -98,18 +98,32 @@ function DiagnosticsJourneyStatsRow() {
           className="journey-counter-panel__gauge full-diagnostics__stat-gauge"
           aria-label={stat.label}
         >
-          <JourneyCounterGauge
-            target={stat.target}
-            label={stat.label}
-            animationKey={stat.animationKey}
-            delay={stat.delay}
-            readoutMode="below"
-            circleSize="100%"
-            counterDialBox
-            variant={stat.gaugeVariant}
-            valueFontSize={DIAGNOSTICS_GAUGE_VALUE_FONT}
-            labelFontSize={DIAGNOSTICS_GAUGE_LABEL_FONT}
-          />
+          {stat.gaugeVariant === 'community-logo' ? (
+            <CommunityLogoGauge
+              target={stat.target}
+              label={stat.label}
+              animationKey={stat.animationKey}
+              delay={stat.delay}
+              readoutMode="below"
+              circleSize="100%"
+              counterDialBox
+              valueFontSize={DIAGNOSTICS_GAUGE_VALUE_FONT}
+              labelFontSize={DIAGNOSTICS_GAUGE_LABEL_FONT}
+            />
+          ) : (
+            <JourneyCounterGauge
+              target={stat.target}
+              label={stat.label}
+              animationKey={stat.animationKey}
+              delay={stat.delay}
+              readoutMode="below"
+              circleSize="100%"
+              counterDialBox
+              variant={stat.gaugeVariant}
+              valueFontSize={DIAGNOSTICS_GAUGE_VALUE_FONT}
+              labelFontSize={DIAGNOSTICS_GAUGE_LABEL_FONT}
+            />
+          )}
         </section>
       ))}
     </motion.div>
@@ -143,6 +157,10 @@ function DiagnosticsTiresRoll() {
             className={`full-diagnostics__tire-roll-img full-diagnostics__tire-roll-img--${phase}`}
             draggable={false}
           />
+          <HoodTireCheckBadge
+            className="full-diagnostics__tire-check"
+            delay={0.55 + i * 0.12}
+          />
         </motion.div>
       ))}
     </motion.div>
@@ -172,38 +190,7 @@ function DiagnosticsDipstick({
   );
 }
 
-function DiagnosticsSocialIcon({ id }: { id: (typeof DIAGNOSTICS_SOCIAL_LINKS)[number]['id'] }) {
-  if (id === 'x') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden className="full-diagnostics__social-icon-svg">
-        <path
-          fill="currentColor"
-          d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-        />
-      </svg>
-    );
-  }
-  if (id === 'linkedin') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden className="full-diagnostics__social-icon-svg">
-        <path
-          fill="currentColor"
-          d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-        />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="full-diagnostics__social-icon-svg">
-      <path
-        fill="currentColor"
-        d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"
-      />
-    </svg>
-  );
-}
-
-function DiagnosticsShareSlide() {
+function DiagnosticsShareSlide({ onBackToStart }: { onBackToStart: () => void }) {
   const handleShare = async () => {
     const shareData = {
       title: 'My Auto Care Wrapped',
@@ -237,23 +224,15 @@ function DiagnosticsShareSlide() {
     >
       <p className="full-diagnostics__share-message">{DIAGNOSTICS_SHARE_MESSAGE}</p>
       <div className="full-diagnostics__share-actions">
-        <div className="full-diagnostics__social-row" role="list">
-          {DIAGNOSTICS_SOCIAL_LINKS.map((link) => (
-            <a
-              key={link.id}
-              href={link.href}
-              className={`full-diagnostics__social-link full-diagnostics__social-link--${link.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={link.label}
-              role="listitem"
-            >
-              <DiagnosticsSocialIcon id={link.id} />
-            </a>
-          ))}
-        </div>
         <button type="button" className="full-diagnostics__share-btn" onClick={handleShare}>
-          share
+          Share with your team
+        </button>
+        <button
+          type="button"
+          className="full-diagnostics__share-btn full-diagnostics__share-btn--back"
+          onClick={onBackToStart}
+        >
+          Back to the start
         </button>
       </div>
     </motion.div>
@@ -289,7 +268,6 @@ function DiagnosticsAcesPiesBehindArch() {
 }
 
 const EVENT_BAR_FILL_MS = 2000;
-const DIAG_WEBINAR_HOURS = 54;
 
 function DiagnosticsMapEngagement({
   archHidden,
@@ -320,7 +298,7 @@ function DiagnosticsMapEngagement({
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / EVENT_BAR_FILL_MS, 1);
-      setWebinarHours(Math.round((1 - (1 - p) ** 3) * DIAG_WEBINAR_HOURS));
+      setWebinarHours(Math.round((1 - (1 - p) ** 3) * WEBINAR_HOURS_MAX));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -338,10 +316,7 @@ function DiagnosticsMapEngagement({
       >
         <div className="journey-nav-stage-inner full-diagnostics__map-stage-inner">
           <div className="journey-nav-slide-bg" aria-hidden>
-            <JourneyNavMapAnimation
-              initialPhase={2}
-              replayFromStart
-            />
+            <JourneyNavMapAnimation />
           </div>
           {showPopups ? (
             <div className="full-diagnostics__map-ui">
@@ -393,10 +368,12 @@ function DiagnosticsTopCarousel({
   step,
   onStepChange,
   shareFocus,
+  onBackToStart,
 }: {
   step: number;
   onStepChange: (next: number) => void;
   shareFocus: boolean;
+  onBackToStart: () => void;
 }) {
   const canGoBack = step > 0;
   const canGoForward = step < TOP_STEP_MAX;
@@ -416,7 +393,9 @@ function DiagnosticsTopCarousel({
           <AnimatePresence mode="wait">
             {step === 0 && <DiagnosticsJourneyStatsRow key="stats" />}
             {step === 1 && <DiagnosticsTiresRoll key="tires" />}
-            {shareFocus && step === TOP_STEP_MAX && <DiagnosticsShareSlide key="share" />}
+            {shareFocus && step === TOP_STEP_MAX && (
+              <DiagnosticsShareSlide key="share" onBackToStart={onBackToStart} />
+            )}
           </AnimatePresence>
         </div>
         <DiagnosticsCarouselChevron
@@ -438,7 +417,7 @@ function DiagnosticsTopCarousel({
   );
 }
 
-export function FullDiagnosticsPanel() {
+export function FullDiagnosticsPanel({ onBackToStart }: { onBackToStart: () => void }) {
   const [topStep, setTopStep] = useState(0);
   const [shareReveal, setShareReveal] = useState(false);
 
@@ -480,6 +459,7 @@ export function FullDiagnosticsPanel() {
         step={topStep}
         onStepChange={setTopStep}
         shareFocus={shareFocus}
+        onBackToStart={onBackToStart}
       />
 
       {showDipsticksOverlay ? <DiagnosticsAcesPiesBehindArch /> : null}

@@ -36,6 +36,8 @@ import iconPlus from '../../assets/map-controls/plus-solid-full.png';
 import iconMinus from '../../assets/map-controls/minus-solid-full.png';
 import circleChevronLeft from '../../assets/circle-chevron-left-solid-full.png';
 import circleChevronRight from '../../assets/circle-chevron-right-solid-full.png';
+import hoodPcdbIcon from '../../assets/hood-pcdb-icon.png';
+import hoodVcdbIcon from '../../assets/hood-vcdb-icon.png';
 
 export const DASHBOARD_ARCH_PATH = svgPaths.p33654d00;
 export const MAP_CANVAS_DARK = '#151a22';
@@ -73,14 +75,14 @@ function getTireCheckImageIndex(completedCount: number): number {
   return Math.min(Math.max(completedCount, 0), TIRE_CHECK_SEQUENCE.length - 1);
 }
 
-export const TRENDLENS_USER_COUNT = 4;
-export const TRENDLENS_CONTACT_PCT = 6;
-export const DEMANDINDEX_PRODUCT_GROUPS = 7;
+export const TRENDLENS_USER_COUNT = 7;
+export const TRENDLENS_CONTACT_PCT = 8;
+export const DEMANDINDEX_PRODUCT_GROUPS = 8;
 export const DEMANDINDEX_PRODUCT_GROUPS_TOTAL = 200;
-export const FACTBOOK_USER_COUNT = 0;
-export const FACTBOOK_CONTACT_PCT = 0;
-export const ACADEMY_USER_COUNT = 3;
-export const ACADEMY_COURSES_COMPLETED = 3;
+export const FACTBOOK_USER_COUNT = 4;
+export const FACTBOOK_CONTACT_PCT = 5;
+export const ACADEMY_USER_COUNT = 2;
+export const ACADEMY_COURSES_COMPLETED = 2;
 
 function getNextTirePhase(phase: TirePhase): TirePhase | null {
   const i = TIRE_PHASE_ORDER.indexOf(phase);
@@ -158,13 +160,34 @@ const HOOD_WHEEL_MAX_PX = 272; /* ~15% smaller than 320px */
 const HOOD_READOUT_GAP_PX = 20;
 const HOOD_READOUT_WIDTH_DESKTOP = 340;
 const HOOD_READOUT_WIDTH_MOBILE = 272;
+const HOOD_READOUT_MIN_WIDTH = HOOD_READOUT_WIDTH_MOBILE;
 const HOOD_READOUT_GAUGE_SLOT_PX = 162;
 /** Fixed content area below gauge — same on every tire so the screen never resizes. */
 const HOOD_READOUT_CONTENT_SLOT_PX = 156;
+const HOOD_READOUT_SCREEN_CONTENT_PX = 211;
 const HOOD_READOUT_BEZEL_HEIGHT_PX =
   168 + HOOD_READOUT_GAUGE_SLOT_PX + HOOD_READOUT_CONTENT_SLOT_PX;
 const HOOD_READOUT_GLASS_HEIGHT_PX =
   108 + HOOD_READOUT_GAUGE_SLOT_PX + HOOD_READOUT_CONTENT_SLOT_PX;
+
+/** Scale tablet chrome proportionally from the 340×486 design width. */
+function hoodReadoutDimensions(widthPx: number) {
+  const readoutWidth = Math.min(
+    HOOD_READOUT_WIDTH_DESKTOP,
+    Math.max(HOOD_READOUT_MIN_WIDTH, widthPx),
+  );
+  const scale = readoutWidth / HOOD_READOUT_WIDTH_DESKTOP;
+  return {
+    readoutWidth,
+    readoutBezelHeight: Math.round(HOOD_READOUT_BEZEL_HEIGHT_PX * scale),
+    readoutGlassHeight: Math.round(HOOD_READOUT_GLASS_HEIGHT_PX * scale),
+    readoutGaugeSlot: Math.round(HOOD_READOUT_GAUGE_SLOT_PX * scale),
+    readoutContentMin: Math.round(HOOD_READOUT_CONTENT_SLOT_PX * scale),
+    readoutContentHeight: Math.round(HOOD_READOUT_SCREEN_CONTENT_PX * scale),
+    readoutScreenPadding: Math.round(14 * scale),
+    readoutBezelPadding: `${Math.round(12 * scale)}px ${Math.round(10 * scale)}px ${Math.round(16 * scale)}px`,
+  };
+}
 const VISIT_TRENDLENS_HREF = 'https://www.autocare.org/trendlens';
 const LEARN_DEMANDINDEX_HREF = 'https://www.autocare.org/demandindex';
 const FACTBOOK_2027_HREF = 'https://www.autocare.org/factbook';
@@ -232,10 +255,10 @@ function useWheelLaneMetrics() {
     offLeft: -HOOD_WHEEL_MAX_PX,
     parkX: 400,
     offRight: 1200,
-    readoutWidth: HOOD_READOUT_WIDTH_DESKTOP,
-    readoutBezelHeight: HOOD_READOUT_BEZEL_HEIGHT_PX,
-    readoutGlassHeight: HOOD_READOUT_GLASS_HEIGHT_PX,
+    ...hoodReadoutDimensions(HOOD_READOUT_WIDTH_DESKTOP),
     readoutGap: HOOD_READOUT_GAP_PX,
+    isMobile:
+      typeof window !== 'undefined' && window.innerWidth <= HOOD_TIRE_LAYOUT_BREAKPOINT,
   });
 
   useLayoutEffect(() => {
@@ -247,9 +270,12 @@ function useWheelLaneMetrics() {
       let groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
       const maxGroupWidth = laneW - 24;
       if (groupWidth > maxGroupWidth) {
-        readoutWidth = Math.max(180, maxGroupWidth - HOOD_READOUT_GAP_PX - wheelW);
+        readoutWidth = maxGroupWidth - HOOD_READOUT_GAP_PX - wheelW;
         groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
       }
+      const readout = hoodReadoutDimensions(readoutWidth);
+      readoutWidth = readout.readoutWidth;
+      groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
       const groupLeft = Math.round(
         Math.max(12, Math.min((laneW - groupWidth) / 2, laneW - groupWidth - 12)),
       );
@@ -261,10 +287,9 @@ function useWheelLaneMetrics() {
         offLeft: -wheelW,
         parkX,
         offRight: laneW,
-        readoutWidth,
-        readoutBezelHeight: HOOD_READOUT_BEZEL_HEIGHT_PX,
-        readoutGlassHeight: HOOD_READOUT_GLASS_HEIGHT_PX,
         readoutGap: HOOD_READOUT_GAP_PX,
+        isMobile,
+        ...readout,
       });
     };
     update();
@@ -558,6 +583,20 @@ function HoodStandardsPopup({
                   >
                     back
                   </button>
+                  <div className="hood-standards-popup__nav-icons" aria-hidden>
+                    <img
+                      className="hood-standards-popup__nav-icon"
+                      src={hoodPcdbIcon}
+                      alt=""
+                      draggable={false}
+                    />
+                    <img
+                      className="hood-standards-popup__nav-icon"
+                      src={hoodVcdbIcon}
+                      alt=""
+                      draggable={false}
+                    />
+                  </div>
                   {isVip && (
                     <a
                       href={EXPLORE_VIP_HREF}
@@ -679,6 +718,43 @@ function HoodCountUp({
   return <>{display}</>;
 }
 
+/** Green completion check — tablet gauge overlay and Full Diagnostics tire row. */
+export function HoodTireCheckBadge({
+  className,
+  delay = 0,
+}: {
+  className?: string;
+  delay?: number;
+}) {
+  return (
+    <motion.span
+      className={['hood-tire-check-badge', className].filter(Boolean).join(' ')}
+      aria-hidden
+      initial={{ opacity: 0, scale: 0.35 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.4 }}
+      transition={{
+        type: 'spring',
+        stiffness: 420,
+        damping: 22,
+        delay,
+      }}
+    >
+      <svg viewBox="0 0 48 48" className="hood-tire-check-badge__svg" aria-hidden>
+        <circle cx="24" cy="24" r="22" fill="#39ff14" stroke="#bbf7d0" strokeWidth="2" />
+        <path
+          d="M14 25 L20 31 L34 16"
+          fill="none"
+          stroke="#0a0a0a"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </motion.span>
+  );
+}
+
 function HoodTireWheel({ tirePhase }: { tirePhase: TirePhase }) {
   return (
     <div className={`hood-tire-wheel hood-tire-wheel--${tirePhase}`}>
@@ -759,6 +835,7 @@ function HoodTireHubReadout({
   tirePhase,
   counterActive,
   screenVisible,
+  tabletShowsTireArt = false,
   onReadoutReady,
   onNavigateToTire,
   onFinishTireSequence,
@@ -766,6 +843,8 @@ function HoodTireHubReadout({
   tirePhase: TirePhase;
   counterActive: boolean;
   screenVisible: boolean;
+  /** Mobile: show the active tire SVG in the tablet instead of the gauge Lottie. */
+  tabletShowsTireArt?: boolean;
   onReadoutReady?: () => void;
   onNavigateToTire?: (target: TirePhase) => void;
   onFinishTireSequence?: () => void;
@@ -803,6 +882,7 @@ function HoodTireHubReadout({
     readoutPhase === 'counting' || readoutPhase === 'secondary' || readoutPhase === 'cta';
   const showCta = readoutPhase === 'cta' && ctaConfig;
   const showStatsNext = hasCta && readoutPhase === 'secondary';
+  const showGaugeCheck = readoutPhase === 'secondary' || readoutPhase === 'cta';
   const readoutInteractive =
     hasCta && (readoutPhase === 'secondary' || readoutPhase === 'cta');
 
@@ -830,15 +910,47 @@ function HoodTireHubReadout({
           }
         >
           {showPressureGauge && (
-            <div className="hood-tire-hub__pressure-gauge" aria-hidden>
-              <Lottie
-                key={tirePhase}
-                animationData={tireGaugeData}
-                loop={false}
-                autoplay
-                className="hood-tire-hub__pressure-gauge-lottie"
-                rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
-              />
+            <div
+              className={`hood-tire-hub__pressure-gauge${tabletShowsTireArt ? ' hood-tire-hub__pressure-gauge--tire-art' : ''}`}
+              aria-hidden
+            >
+              {tabletShowsTireArt ? (
+                <img
+                  key={tirePhase}
+                  src={TIRE_WHEEL_IMAGES[tirePhase]}
+                  alt=""
+                  className="hood-tire-hub__pressure-gauge-tire"
+                  draggable={false}
+                />
+              ) : (
+                <Lottie
+                  key={tirePhase}
+                  animationData={tireGaugeData}
+                  loop={false}
+                  autoplay
+                  className="hood-tire-hub__pressure-gauge-lottie"
+                  rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
+                />
+              )}
+              <AnimatePresence>
+                {showGaugeCheck ? (
+                  <motion.div
+                    key="gauge-check"
+                    className="hood-tire-hub__gauge-check"
+                    aria-hidden
+                    initial={{ opacity: 0, scale: 0.35 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.4 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 420,
+                      damping: 22,
+                    }}
+                  >
+                    <HoodTireCheckBadge />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
           )}
           {readoutPhase === 'idle' ? null : (
@@ -963,7 +1075,22 @@ function HoodTireHubScene({
 }) {
   const [introStep, setIntroStep] = useState<TireIntroStep>(playIntro ? 'ground' : 'done');
   const groundExitReportedRef = useRef(false);
-  const { offLeft, parkX, offRight, wheelW, readoutWidth, readoutBezelHeight, readoutGlassHeight, readoutGap } =
+  const {
+    offLeft,
+    parkX,
+    offRight,
+    wheelW,
+    readoutWidth,
+    readoutBezelHeight,
+    readoutGlassHeight,
+    readoutGaugeSlot,
+    readoutContentMin,
+    readoutContentHeight,
+    readoutScreenPadding,
+    readoutBezelPadding,
+    readoutGap,
+    isMobile,
+  } =
     useWheelLaneMetrics();
   const counterActive =
     !isRolling && (introStep === 'counter' || introStep === 'done');
@@ -1029,7 +1156,11 @@ function HoodTireHubScene({
     '--hood-readout-width': `${readoutWidth}px`,
     '--hood-readout-bezel-height': `${readoutBezelHeight}px`,
     '--hood-readout-glass-height': `${readoutGlassHeight}px`,
-    '--hood-readout-content-min-height': `${HOOD_READOUT_CONTENT_SLOT_PX}px`,
+    '--hood-readout-gauge-slot': `${readoutGaugeSlot}px`,
+    '--hood-readout-content-min-height': `${readoutContentMin}px`,
+    '--hood-readout-content-height': `${readoutContentHeight}px`,
+    '--hood-readout-screen-padding': `${readoutScreenPadding}px`,
+    '--hood-readout-bezel-padding': readoutBezelPadding,
     '--hood-readout-gap': `${readoutGap}px`,
   } as CSSProperties;
 
@@ -1105,6 +1236,7 @@ function HoodTireHubScene({
             tirePhase={phase}
             counterActive={counterActive}
             screenVisible={screenVisible}
+            tabletShowsTireArt={isMobile}
             onReadoutReady={onReadoutReady}
             onNavigateToTire={onNavigateToTire}
             onFinishTireSequence={onFinishTireSequence}

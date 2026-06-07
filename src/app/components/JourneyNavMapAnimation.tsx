@@ -1,186 +1,223 @@
-import { useCallback, useEffect, useRef } from 'react';
-import Lottie, { type LottieRefCurrentProps } from 'lottie-react';
-import mapAnimationData from '../../imports/map-animation.json';
+import { memo, useEffect, useRef } from 'react';
+import lottie from 'lottie-web';
+import mapAnimationData from '../../imports/gps-navigation-map.json';
 
 const MAP_ANIM_META = mapAnimationData as { op: number; fr: number };
 const MAP_ANIM_FPS = MAP_ANIM_META.fr;
-const MAP_FRAME_END = MAP_ANIM_META.op - 1;
-/** Frame milestones for GPS popup timing only — never pauses playback. */
-const MAP_EVENTS_PLAY_SECONDS = 7;
-const MAP_WEBINARS_PLAY_SECONDS = 4;
-const mapFrameAt = (seconds: number) => Math.round(seconds * MAP_ANIM_FPS);
-const MAP_FRAME_EVENTS_END = mapFrameAt(MAP_EVENTS_PLAY_SECONDS);
-const MAP_FRAME_WEBINARS_END = mapFrameAt(
-  MAP_EVENTS_PLAY_SECONDS + MAP_WEBINARS_PLAY_SECONDS,
-);
-/** Bottom-anchored cover fit — matches other journey map panels. */
-const MAP_ANIM_PRESERVE_ASPECT = 'xMidYMax slice' as const;
+const MAP_FRAME_END = Math.floor(MAP_ANIM_META.op - 1);
+/** Center-anchored cover fit — keeps frame 0 in view without bottom snap on resize. */
+const MAP_ANIM_PRESERVE_ASPECT_DESKTOP = 'xMidYMid slice' as const;
+const MAP_ANIM_PRESERVE_ASPECT_MOBILE = 'xMinYMid slice' as const;
+const MOBILE_MAP_MEDIA_QUERY = '(max-width: 768px)';
+/** Wait for dashboard panel height to settle before starting playback. */
+const STABLE_SIZE_MS = 450;
+/** Matches DrivingView map panel slide-in (`JOURNEY_SCENE_SLIDE_MS`). */
+const MAP_ENTRY_FALLBACK_MS = 1050;
 
-export function JourneyNavMapAnimation({
-  initialPhase,
-  replayFromStart,
-  onEventsMilestone,
-  onWebinarsMilestone,
-}: {
-  initialPhase: number;
-  replayFromStart: boolean;
-  onEventsMilestone?: () => void;
-  onWebinarsMilestone?: () => void;
-}) {
-  const lottieRef = useRef<LottieRefCurrentProps>(null);
+function getMapPreserveAspectRatio() {
+  if (typeof window === 'undefined') return MAP_ANIM_PRESERVE_ASPECT_DESKTOP;
+  return window.matchMedia(MOBILE_MAP_MEDIA_QUERY).matches
+    ? MAP_ANIM_PRESERVE_ASPECT_MOBILE
+    : MAP_ANIM_PRESERVE_ASPECT_DESKTOP;
+}
+
+function applyMapPreserveAspectRatio(container: HTMLDivElement) {
+  const svg = container.querySelector('svg');
+  if (svg) {
+    svg.setAttribute('preserveAspectRatio', getMapPreserveAspectRatio());
+  }
+}
+
+function JourneyNavMapAnimationInner() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const startedRef = useRef(false);
-  const enterFrameHandlerRef = useRef<(() => void) | null>(null);
-  const eventsFiredRef = useRef(false);
-  const webinarsFiredRef = useRef(false);
-  const onEventsMilestoneRef = useRef(onEventsMilestone);
-  const onWebinarsMilestoneRef = useRef(onWebinarsMilestone);
-  onEventsMilestoneRef.current = onEventsMilestone;
-  onWebinarsMilestoneRef.current = onWebinarsMilestone;
-
-  const detachEnterFrameHandler = useCallback(() => {
-    const anim = lottieRef.current?.animationItem;
-    const handler = enterFrameHandlerRef.current;
-    if (anim && handler) {
-      anim.removeEventListener('enterFrame', handler);
-    }
-    enterFrameHandlerRef.current = null;
-  }, []);
-
-  const fireMilestonesThrough = useCallback((frame: number) => {
-    if (frame >= MAP_FRAME_EVENTS_END && !eventsFiredRef.current) {
-      eventsFiredRef.current = true;
-      onEventsMilestoneRef.current?.();
-    }
-    if (frame >= MAP_FRAME_WEBINARS_END && !webinarsFiredRef.current) {
-      webinarsFiredRef.current = true;
-      onWebinarsMilestoneRef.current?.();
-    }
-  }, []);
-
-  const sizeLottie = useCallback(() => {
-    const anim = lottieRef.current?.animationItem;
-    const el = containerRef.current;
-    if (!anim || !el) return false;
-
-    const rect = el.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
-    if (width < 8 || height < 8) return false;
-
-    anim.resize(width, height);
-    return true;
-  }, []);
-
-  const beginMapPlayback = useCallback(() => {
-    if (startedRef.current) return true;
-
-    const anim = lottieRef.current?.animationItem;
-    if (!anim || !sizeLottie()) return false;
-
-    startedRef.current = true;
-    eventsFiredRef.current = false;
-    webinarsFiredRef.current = false;
-    detachEnterFrameHandler();
-
-    if (!replayFromStart && initialPhase >= 4) {
-      fireMilestonesThrough(MAP_FRAME_END);
-      anim.goToAndStop(MAP_FRAME_END, true);
-      return true;
-    }
-
-    const onEnterFrame = () => {
-      fireMilestonesThrough(Math.round(anim.currentFrame));
-    };
-
-    enterFrameHandlerRef.current = onEnterFrame;
-    anim.addEventListener('enterFrame', onEnterFrame);
-    anim.resetSegments(true);
-    anim.goToAndStop(0, true);
-    anim.play();
-    return true;
-  }, [
-    detachEnterFrameHandler,
-    fireMilestonesThrough,
-    initialPhase,
-    replayFromStart,
-    sizeLottie,
-  ]);
-
-  const beginMapPlaybackRef = useRef(beginMapPlayback);
-  beginMapPlaybackRef.current = beginMapPlayback;
-
-  const handleComplete = useCallback(() => {
-    const anim = lottieRef.current?.animationItem;
-    if (!anim) return;
-    if (Math.round(anim.currentFrame) < MAP_FRAME_END - 1) return;
-    detachEnterFrameHandler();
-    fireMilestonesThrough(MAP_FRAME_END);
-    anim.goToAndStop(MAP_FRAME_END, true);
-  }, [detachEnterFrameHandler, fireMilestonesThrough]);
 
   useEffect(() => {
-    startedRef.current = false;
-    eventsFiredRef.current = false;
-    webinarsFiredRef.current = false;
+    const container = containerRef.current;
+    if (!container) return;
 
-    let cancelled = false;
-    let attempts = 0;
+    let finished = false;
+    let playbackStarted = false;
+    let playStartMs = 0;
+    let manualRafId = 0;
+    let stableTimer: ReturnType<typeof setTimeout> | null = null;
+    let entryFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastPaintedFrame = -1;
+    let entryReleased = false;
+    const lastSizeRef = { w: 0, h: 0 };
 
-    const tryStart = () => {
-      if (cancelled || startedRef.current) return true;
-      if (!lottieRef.current?.animationItem) return false;
-      return beginMapPlaybackRef.current();
-    };
-
-    if (tryStart()) {
-      return () => {
-        cancelled = true;
-        detachEnterFrameHandler();
-      };
-    }
-
-    const intervalId = window.setInterval(() => {
-      attempts += 1;
-      if (tryStart() || attempts > 250) {
-        window.clearInterval(intervalId);
-      }
-    }, 32);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-      detachEnterFrameHandler();
-    };
-  }, [detachEnterFrameHandler]);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const observer = new ResizeObserver(() => {
-      sizeLottie();
+    const anim = lottie.loadAnimation({
+      container,
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      animationData: mapAnimationData,
+      rendererSettings: {
+        preserveAspectRatio: getMapPreserveAspectRatio(),
+        progressiveLoad: false,
+        hideOnTransparent: true,
+      },
     });
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [sizeLottie]);
+    const paintFrame = (frame: number) => {
+      const clamped = Math.max(0, Math.min(frame, MAP_FRAME_END));
+      anim.goToAndStop(clamped, true);
+      applyMapPreserveAspectRatio(container);
+      lastPaintedFrame = clamped;
+    };
+
+    const finishAtEnd = () => {
+      if (finished) return;
+      finished = true;
+      paintFrame(MAP_FRAME_END);
+    };
+
+    const holdAtStartFrame = () => {
+      if (playbackStarted || finished) return;
+      if (!sizeToContainer()) return;
+      paintFrame(0);
+    };
+
+    const sizeToContainer = () => {
+      const rect = container.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      if (width < 8 || height < 8) return false;
+
+      if (width === lastSizeRef.w && height === lastSizeRef.h) {
+        return true;
+      }
+
+      const frameBefore = playbackStarted ? lastPaintedFrame : 0;
+
+      lastSizeRef.w = width;
+      lastSizeRef.h = height;
+      anim.resize(width, height);
+      applyMapPreserveAspectRatio(container);
+
+      if (playbackStarted && frameBefore >= 0) {
+        paintFrame(frameBefore);
+      } else if (!playbackStarted) {
+        holdAtStartFrame();
+      }
+
+      return true;
+    };
+
+    const tickManualPlayback = () => {
+      if (finished || !playbackStarted) return;
+
+      const elapsedSec = (performance.now() - playStartMs) / 1000;
+      const targetFrame = Math.min(
+        Math.floor(elapsedSec * MAP_ANIM_FPS),
+        MAP_FRAME_END,
+      );
+
+      if (targetFrame >= MAP_FRAME_END) {
+        finishAtEnd();
+        return;
+      }
+
+      if (targetFrame !== lastPaintedFrame) {
+        paintFrame(targetFrame);
+      }
+
+      manualRafId = requestAnimationFrame(tickManualPlayback);
+    };
+
+    const startPlayback = () => {
+      if (finished || playbackStarted) return;
+      if (!sizeToContainer()) return;
+
+      playbackStarted = true;
+      playStartMs = performance.now();
+      paintFrame(0);
+      manualRafId = requestAnimationFrame(tickManualPlayback);
+    };
+
+    const releaseMapEntry = () => {
+      if (entryReleased) return;
+      entryReleased = true;
+      holdAtStartFrame();
+      schedulePlaybackStart();
+    };
+
+    const schedulePlaybackStart = () => {
+      if (playbackStarted || finished || !entryReleased) return;
+      if (!sizeToContainer()) return;
+
+      if (stableTimer) {
+        window.clearTimeout(stableTimer);
+      }
+
+      stableTimer = window.setTimeout(() => {
+        stableTimer = null;
+        startPlayback();
+      }, STABLE_SIZE_MS);
+    };
+
+    const onDomLoaded = () => {
+      holdAtStartFrame();
+      schedulePlaybackStart();
+    };
+
+    anim.addEventListener('DOMLoaded', onDomLoaded);
+
+    if (anim.isLoaded) {
+      holdAtStartFrame();
+      schedulePlaybackStart();
+    }
+
+    const observer = new ResizeObserver(() => {
+      sizeToContainer();
+      schedulePlaybackStart();
+    });
+    observer.observe(container);
+
+    const onEnterComplete = () => {
+      releaseMapEntry();
+    };
+    window.addEventListener('journey-nav-map-enter-complete', onEnterComplete);
+    entryFallbackTimer = window.setTimeout(releaseMapEntry, MAP_ENTRY_FALLBACK_MS);
+
+    const onRepaintRequest = () => {
+      if (!playbackStarted || finished) return;
+      paintFrame(lastPaintedFrame);
+    };
+    window.addEventListener('journey-nav-map-repaint', onRepaintRequest);
+
+    const mobileMapQuery = window.matchMedia(MOBILE_MAP_MEDIA_QUERY);
+    const onMobileMapQueryChange = () => {
+      applyMapPreserveAspectRatio(container);
+      if (playbackStarted && !finished) {
+        paintFrame(lastPaintedFrame);
+      } else if (!playbackStarted) {
+        holdAtStartFrame();
+      }
+    };
+    mobileMapQuery.addEventListener('change', onMobileMapQueryChange);
+
+    return () => {
+      if (stableTimer) {
+        window.clearTimeout(stableTimer);
+      }
+      if (entryFallbackTimer) {
+        window.clearTimeout(entryFallbackTimer);
+      }
+      cancelAnimationFrame(manualRafId);
+      observer.disconnect();
+      window.removeEventListener('journey-nav-map-enter-complete', onEnterComplete);
+      window.removeEventListener('journey-nav-map-repaint', onRepaintRequest);
+      mobileMapQuery.removeEventListener('change', onMobileMapQueryChange);
+      anim.removeEventListener('DOMLoaded', onDomLoaded);
+      anim.destroy();
+    };
+  }, []);
 
   return (
-    <div ref={containerRef} className="journey-nav-map-frame">
-      <Lottie
-        lottieRef={lottieRef}
-        animationData={mapAnimationData}
-        renderer="canvas"
-        loop={false}
-        autoplay={false}
-        onComplete={handleComplete}
-        className="journey-nav-map-panel__lottie"
-        rendererSettings={{
-          preserveAspectRatio: MAP_ANIM_PRESERVE_ASPECT,
-          clearCanvas: true,
-        }}
-      />
+    <div className="journey-nav-map-frame" aria-hidden>
+      <div ref={containerRef} className="journey-nav-map-panel__lottie" />
     </div>
   );
 }
+
+export const JourneyNavMapAnimation = memo(JourneyNavMapAnimationInner);

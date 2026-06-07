@@ -1,17 +1,18 @@
 import { motion } from 'motion/react';
 
-export const BAR_FILL_MAX = 13;
-export const WEBINAR_HOURS_MAX = 22;
+/** In-person event attendance target (percent). */
+export const BAR_FILL_MAX = 25;
+export const WEBINAR_HOURS_MAX = 38;
 
 export const ATTENDANCE_NAV_BODY =
   'Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.';
 export const ATTENDANCE_NAV_CTA = {
-  label: 'See upcoming events',
+  label: 'see upcoming events',
   href: 'https://autocare.org/events',
 };
 export const WEBINAR_NAV_BODY = 'See what you missed and view our webinars on-demand.';
 export const WEBINAR_NAV_CTA = {
-  label: 'Go To Webinar Library',
+  label: 'browse webinar library',
   href: 'https://autocare.org/education',
 };
 
