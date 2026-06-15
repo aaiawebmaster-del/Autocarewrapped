@@ -650,7 +650,7 @@
 }
 
 .landing-push-start {
-  --landing-start-size: clamp(9rem, 32vw, 12.5rem);
+  --landing-start-size: clamp(9rem, 32vw, 250px);
   --hmi-chrome-border: clamp(10px, 2.2vw, 16px);
   position: relative;
   isolation: isolate;
@@ -660,8 +660,9 @@
   width: var(--landing-start-size);
   max-width: 100%;
   aspect-ratio: 1;
-  height: auto;
+  height: var(--landing-start-size);
   min-width: 0;
+  margin-top: 50px;
   padding: 0;
   box-sizing: border-box;
   border: var(--hmi-chrome-border) solid transparent;
@@ -868,7 +869,7 @@
 }
 
 .pre-journey-stage {
-  --landing-start-size: clamp(9rem, 32vw, 12.5rem);
+  --landing-start-size: clamp(9rem, 32vw, 250px);
   --journey-counter-dial-size: min(100%, var(--landing-start-size));
   position: relative;
   width: 100%;
@@ -1126,44 +1127,92 @@
 .dashboard-panel--arch .dashboard-panel-arch {
   background:
     radial-gradient(ellipse 100% 70% at 50% 0%, rgba(243, 144, 29, 0.07), transparent 58%),
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.028) 0.55px, transparent 0.7px),
+    radial-gradient(circle at 76% 64%, rgba(0, 0, 0, 0.032) 0.5px, transparent 0.65px),
+    radial-gradient(circle at 44% 88%, rgba(255, 255, 255, 0.02) 0.5px, transparent 0.62px),
+    repeating-linear-gradient(
+      112deg,
+      rgba(255, 255, 255, 0.014) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      22deg,
+      rgba(0, 0, 0, 0.02) 0 1px,
+      transparent 1px 5px
+    ),
     linear-gradient(180deg, #2e2e34 0%, #141418 45%, #070708 100%);
+  background-size:
+    100% 100%,
+    6px 6px,
+    7px 7px,
+    5px 5px,
+    auto,
+    auto,
+    100% 100%;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.14),
     inset 0 -12px 28px rgba(0, 0, 0, 0.55);
+}
+
+.dashboard-panel--arch .dashboard-panel-arch__svg {
+  position: relative;
+  z-index: 1;
 }
 
 .dashboard-panel--arch .dashboard-panel__arch-fill {
   fill: url(#dashboard-panel-arch-gradient);
 }
 
+.dashboard-panel--arch .dashboard-panel__arch-grain {
+  mix-blend-mode: soft-light;
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.dashboard-panel--arch .dashboard-panel__arch-weave {
+  mix-blend-mode: overlay;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
 .dashboard-panel--arch .dashboard-panel-arch::before {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 18%, transparent 42%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(0, 0, 0, 0.12), transparent 55%),
     repeating-linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.015) 0,
-      rgba(255, 255, 255, 0.015) 1px,
+      rgba(255, 255, 255, 0.022) 0,
+      rgba(255, 255, 255, 0.022) 1px,
       transparent 1px,
       transparent 3px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.018) 0,
+      rgba(0, 0, 0, 0.018) 1px,
+      transparent 1px,
+      transparent 4px
     );
   mix-blend-mode: soft-light;
-  opacity: 0.55;
+  opacity: 0.62;
 }
 
 .dashboard-panel--arch .dashboard-panel-arch::after {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
   background:
     radial-gradient(ellipse 80% 55% at 50% 8%, rgba(243, 144, 29, 0.09), transparent 62%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0%, transparent 38%);
+    linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0%, transparent 38%),
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 70%);
+  opacity: 0.95;
 }
 
 .dashboard-panel--arch::before {
@@ -1186,11 +1235,75 @@
   opacity: 0.7;
 }
 
-.dashboard-panel--arch .dashboard-panel__clock,
-.dashboard-panel--arch .dashboard-panel__weather {
-  text-shadow:
-    0 0 10px rgba(243, 144, 29, 0.25),
-    0 1px 4px rgba(0, 0, 0, 0.85);
+.dashboard-panel--arch .dashboard-prndl {
+  filter: drop-shadow(0 0 10px rgba(243, 144, 29, 0.18));
+}
+
+.dashboard-prndl {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-prndl__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.45vw, 4px);
+  min-width: clamp(9.5rem, 22vw, 11.5rem);
+  padding: clamp(4px, 0.65vh, 6px) clamp(10px, 1.6vw, 14px);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(28, 30, 34, 0.98) 0%, rgba(10, 11, 13, 0.99) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.dashboard-prndl__gear {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(1.15rem, 2.8vw, 1.45rem);
+  padding: clamp(2px, 0.35vh, 3px) clamp(3px, 0.5vw, 5px);
+  border-radius: clamp(4px, 0.55vw, 6px);
+  color: rgba(255, 255, 255, 0.28);
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(11px, 1.9vw, 15px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  transition: color 0.32s ease;
+}
+
+.dashboard-prndl__highlight {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(243, 144, 29, 0.95) 0%, rgba(196, 98, 12, 0.98) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 200, 120, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.35),
+    0 0 12px rgba(243, 144, 29, 0.55),
+    0 0 24px rgba(243, 144, 29, 0.22);
+}
+
+.dashboard-prndl__gear-label {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-prndl__gear--active {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
 }
 
 /* Dashboard map simulation + GPS popup */
@@ -1277,7 +1390,7 @@
   height: 100%;
 }
 
-/* Center cluster (arrows + clock) stays fixed; gas/tire sit in side columns */
+/* Center cluster (arrows + PRNDL) stays fixed; gas/tire sit in side columns */
 .dashboard-panel__nav {
   position: absolute;
   left: 0;
@@ -1309,14 +1422,6 @@
 
 .dashboard-panel__nav-flank--right {
   justify-self: start;
-}
-
-.dashboard-panel__clock,
-.dashboard-panel__weather {
-  color: #ffffff;
-  font-weight: bold;
-  font-size: clamp(13px, 2.5vw, 20px);
-  flex-shrink: 0;
 }
 
 .dashboard-panel__signal {
@@ -2321,25 +2426,494 @@
   height: 100%;
 }
 
+/* GPS map control overlay — above animation, below popups/modals */
+.gps-ui-controls {
+  --gps-controls-edge: clamp(8px, 1.5vw, 16px);
+  --gps-controls-bottom: clamp(58px, 8.5vh, 82px);
+  --gps-controls-btn-size: clamp(34px, 6.8vw, 44px);
+  --gps-controls-zoom-top: 50%;
+  position: absolute;
+  inset: var(--hmi-chrome-border);
+  z-index: 2;
+  pointer-events: none;
+  border-radius: calc(var(--hmi-radius) - 5px);
+  overflow: hidden;
+}
+
+.gps-ui-controls__cluster {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  gap: clamp(6px, 1vw, 10px);
+}
+
+.gps-ui-controls__cluster--top-left {
+  top: var(--gps-controls-edge);
+  left: var(--gps-controls-edge);
+}
+
+.gps-ui-controls__cluster--top-right {
+  top: var(--gps-controls-edge);
+  right: var(--gps-controls-edge);
+}
+
+.gps-ui-controls__cluster--zoom {
+  top: var(--gps-controls-zoom-top);
+  right: var(--gps-controls-edge);
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: clamp(5px, 0.9vw, 8px);
+}
+
+.gps-ui-controls__cluster--bottom-left {
+  bottom: var(--gps-controls-bottom);
+  left: var(--gps-controls-edge);
+}
+
+.gps-ui-controls__cluster--bottom-right {
+  bottom: var(--gps-controls-bottom);
+  right: var(--gps-controls-edge);
+}
+
+.gps-ui-controls__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--gps-controls-btn-size);
+  height: var(--gps-controls-btn-size);
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: clamp(10px, 1.15vw, 12px);
+  background:
+    linear-gradient(180deg, rgba(34, 40, 50, 0.84) 0%, rgba(14, 18, 24, 0.9) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(236, 242, 248, 0.94);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+.gps-ui-controls__btn:hover {
+  border-color: rgba(0, 198, 255, 0.42);
+  filter: brightness(1.06);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.52),
+    0 0 14px rgba(0, 175, 240, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.gps-ui-controls__btn:focus-visible {
+  outline: 2px solid rgba(0, 198, 255, 0.72);
+  outline-offset: 2px;
+}
+
+.gps-ui-controls__btn:active {
+  transform: scale(0.94);
+}
+
+.gps-ui-controls__btn-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(18px, 3.6vw, 22px);
+  height: clamp(18px, 3.6vw, 22px);
+}
+
+.gps-ui-controls__btn-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.gps-ui-controls__btn-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gps-ui-controls__cluster--zoom .gps-ui-controls__btn--zoom-in {
+  border-bottom-left-radius: clamp(5px, 0.7vw, 7px);
+  border-bottom-right-radius: clamp(5px, 0.7vw, 7px);
+}
+
+.gps-ui-controls__cluster--zoom .gps-ui-controls__btn--zoom-out {
+  border-top-left-radius: clamp(5px, 0.7vw, 7px);
+  border-top-right-radius: clamp(5px, 0.7vw, 7px);
+}
+
+.full-diagnostics__map-stage-inner .gps-ui-controls {
+  --gps-controls-bottom: clamp(14px, 2.2vh, 22px);
+}
+
+@media (max-width: 1023px) {
+  .gps-ui-controls {
+    --gps-controls-zoom-top: 42%;
+    --gps-controls-bottom: clamp(52px, 7.8vh, 72px);
+  }
+}
+
+@media (max-width: 768px) {
+  .gps-ui-controls {
+    --gps-controls-edge: clamp(6px, 1.8vw, 12px);
+    --gps-controls-btn-size: clamp(32px, 8.8vw, 38px);
+    --gps-controls-zoom-top: 36%;
+    --gps-controls-bottom: clamp(48px, 7.2vh, 64px);
+  }
+
+  .journey-nav-ui {
+    --gps-controls-edge: clamp(6px, 1.8vw, 12px);
+    --gps-controls-btn-size: clamp(32px, 8.8vw, 38px);
+  }
+
+  .gps-ui-controls__cluster--top-left,
+  .gps-ui-controls__cluster--top-right {
+    top: clamp(6px, 1.2vh, 10px);
+  }
+}
+
+@media (max-width: 479px) {
+  .gps-ui-controls {
+    --gps-controls-btn-size: 32px;
+    --gps-controls-zoom-top: 32%;
+    --gps-controls-bottom: clamp(44px, 6.8vh, 58px);
+  }
+
+  .journey-nav-ui {
+    --gps-controls-btn-size: 32px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .gps-ui-controls {
+    --gps-controls-edge: clamp(12px, 1.1vw, 18px);
+    --gps-controls-zoom-top: 46%;
+  }
+
+  .journey-nav-ui {
+    --gps-controls-edge: clamp(12px, 1.1vw, 18px);
+  }
+}
+
 .journey-nav-popup-row--pregame {
   visibility: hidden;
   pointer-events: none;
 }
 
 .journey-nav-ui {
+  --gps-controls-edge: clamp(8px, 1.5vw, 16px);
+  --gps-controls-btn-size: clamp(34px, 6.8vw, 44px);
+  --attendance-route-inset-x: calc(
+    var(--gps-controls-edge) + var(--gps-controls-btn-size) + clamp(6px, 1vw, 10px)
+  );
   position: absolute;
-  inset: 0;
-  z-index: 3;
-  width: 100%;
+  inset: var(--hmi-chrome-border);
+  z-index: 2;
+  width: auto;
   min-height: 0;
+  max-height: none;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
+  overflow: hidden;
   pointer-events: none;
+  border-radius: calc(var(--hmi-radius) - 5px);
 }
 
 .journey-nav-ui > * {
   pointer-events: auto;
+}
+
+/* Full-width bottom attendance bar (phase 2) */
+.journey-nav-attendance-bar {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: clamp(16px, 3vh, 32px);
+  padding: clamp(14px, 2vh, 18px) 0 clamp(10px, 1.4vh, 14px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.6vh, 16px);
+  background:
+    linear-gradient(180deg, rgba(38, 42, 48, 0.97) 0%, rgba(16, 18, 22, 0.99) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0 0 calc(var(--hmi-radius) - 5px) calc(var(--hmi-radius) - 5px);
+  box-shadow:
+    0 -8px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.journey-nav-attendance-bar__content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.4vh, 12px);
+  width: 100%;
+  min-width: 0;
+  padding-inline: var(--attendance-route-inset-x);
+  box-sizing: border-box;
+}
+
+.journey-nav-attendance-bar__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(16px, 3vw, 24px);
+  width: 100%;
+  min-width: 0;
+  padding-bottom: clamp(8px, 1.2vh, 10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.journey-nav-attendance-bar__headline {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.6vh, 6px);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.journey-nav-attendance-bar__eyebrow {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(9px, 1.5vw, 11px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(0, 168, 232, 0.88);
+}
+
+.journey-nav-attendance-bar__label {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(12px, 2vw, 15px);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: rgba(235, 240, 245, 0.82);
+  text-transform: lowercase;
+  max-width: 250px;
+}
+
+.journey-nav-attendance-bar__stat {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding-left: clamp(8px, 1.5vw, 12px);
+}
+
+.journey-nav-attendance-bar__value {
+  margin: 0;
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: clamp(32px, 5.5vw, 44px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #f5f7fa;
+  text-align: right;
+}
+
+.journey-nav-attendance-bar__route-wrap {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: var(--attendance-route-inset-x);
+  overflow: visible;
+}
+
+.journey-nav-attendance-bar__route {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(16px, 2.2vh, 20px) clamp(7px, 1.2vw, 9px) 0 0;
+  overflow: visible;
+}
+
+.journey-nav-attendance-bar__route-pins {
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(16px, 2.2vh, 20px);
+  pointer-events: none;
+}
+
+.journey-nav-attendance-bar__route-pin {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: clamp(14px, 2.2vw, 18px);
+  height: clamp(14px, 2.2vh, 18px);
+  color: rgba(235, 240, 245, 0.42);
+  transform: translateX(-50%);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+  transition: color 0.2s ease, filter 0.2s ease;
+}
+
+.journey-nav-attendance-bar__route-pin svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.journey-nav-attendance-bar__route-pin--attended {
+  color: #00a8e8;
+  filter: drop-shadow(0 0 6px rgba(0, 168, 232, 0.55));
+}
+
+.journey-nav-attendance-bar__route-track {
+  position: relative;
+  width: 100%;
+  height: clamp(7px, 1.1vh, 9px);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.journey-nav-attendance-bar__route-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #007ac3 0%, #00a8e8 100%);
+  box-shadow: 0 0 8px rgba(0, 168, 232, 0.35);
+  transition: width 0.08s linear;
+}
+
+.journey-nav-attendance-bar__route-divider {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.journey-nav-attendance-bar__details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-top: clamp(2px, 0.4vh, 4px);
+}
+
+.journey-nav-attendance-bar__body {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(235, 240, 245, 0.9);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journey-nav-attendance-bar__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(12px, 2vw, 20px);
+  width: 100%;
+  box-sizing: border-box;
+  padding: clamp(4px, 0.6vh, 6px) var(--attendance-route-inset-x) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.journey-nav-attendance-bar__nav--with-cta {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.journey-nav-attendance-bar__nav .journey-nav-corner-nav__btn {
+  position: relative;
+  min-width: clamp(96px, 16vw, 128px);
+}
+
+.journey-nav-attendance-bar__nav .journey-nav-corner-nav__btn--back {
+  justify-self: start;
+}
+
+.journey-nav-attendance-bar__nav .journey-nav-corner-nav__btn--next {
+  justify-self: end;
+}
+
+.journey-nav-attendance-bar__nav .journey-nav-corner-nav__btn--cta {
+  --gps-nav-accent: #007ac3;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(140px, 24vw, 220px);
+  max-width: min(100%, 280px);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .journey-nav-attendance-bar__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(8px, 1.2vh, 10px);
+  }
+
+  .journey-nav-attendance-bar__stat {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+
+  .journey-nav-attendance-bar__value {
+    text-align: left;
+    font-size: clamp(28px, 8vw, 36px);
+  }
+
+  .journey-nav-attendance-bar__label {
+    max-width: none;
+  }
+
+  .journey-nav-attendance-bar__body {
+    font-size: clamp(15px, 3.8vw, 17px);
+  }
+
+  .journey-nav-attendance-bar__nav,
+  .journey-nav-attendance-bar__nav--with-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(8px, 1.2vh, 10px);
+  }
+
+  .journey-nav-attendance-bar__nav .journey-nav-corner-nav__btn,
+  .journey-nav-attendance-bar__nav .journey-nav-corner-nav__btn--cta {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    justify-self: stretch;
+  }
 }
 
 /* Centered pre-animation calculating overlay */
@@ -2705,6 +3279,10 @@
   --gps-nav-accent: #34c759;
 }
 
+.journey-nav-corner-nav__btn--cta {
+  --gps-nav-accent: #007ac3;
+}
+
 .journey-nav-corner-nav__btn:hover:not(:disabled) {
   filter: brightness(1.06);
   transform: translateY(-1px);
@@ -2726,18 +3304,21 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  height: 100%;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 100%;
   margin-top: 0;
   padding: 0 clamp(12px, 2vw, 24px) clamp(72px, 9vh, 88px);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .journey-nav-popup-row > .journey-nav-popup-overlay {
   width: 100%;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -2746,6 +3327,7 @@
   background: transparent;
   border: none;
   box-shadow: none;
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -2760,10 +3342,9 @@
   justify-content: flex-end;
   gap: clamp(8px, 1.1vh, 10px);
   width: min(100%, clamp(260px, 38vw, 360px));
+  max-width: 100%;
   max-height: 100%;
-  overflow-x: visible;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -2778,6 +3359,15 @@
   flex-shrink: 0;
   pointer-events: auto;
   transform-origin: bottom center;
+}
+
+.gps-popup-stack__item--attendance-stat {
+  width: min(250px, 100%);
+  max-width: 100%;
+  margin-top: 0;
+  flex-shrink: 1;
+  min-height: 0;
+  max-height: 100%;
 }
 
 .gps-popup-stack__item:not(:last-child) .gps-event-popup--nav::after {
@@ -3309,9 +3899,12 @@
 }
 
 .journey-counter-panel__gauge {
-  --journey-counter-dial-size: min(100%, clamp(9rem, 32vw, 12.5rem));
+  --journey-counter-dial-height: min(100%, clamp(9rem, 32vw, 12.5rem));
+  --journey-counter-dial-width: min(100%, clamp(18rem, 64vw, 25rem));
+  --journey-counter-dial-size: var(--journey-counter-dial-height);
+  --journey-counter-dial-gap: clamp(0.5rem, 1.4vh, 0.875rem);
   --journey-counter-subtitle-min-h: 2.75rem;
-  --journey-counter-stat-min-h: calc(clamp(22px, 4.5vw, 36px) * 1.25 + 0.5rem);
+  --journey-counter-stat-min-h: calc(clamp(28px, 5vw, 44px) * 1.25 + 0.5rem);
   flex: 1 1 50%;
   min-width: 0;
   align-self: flex-start;
@@ -3350,11 +3943,22 @@
 
 .journey-counter-panel__gauge > .journey-speedometer-gauge,
 .journey-counter-panel__gauge > .journey-fuel-gauge,
-.journey-counter-panel__gauge > .journey-battery-gauge,
+.journey-counter-panel__gauge > .journey-battery-gauge {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: var(--journey-counter-dial-width);
+  height: auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
+}
+
 .journey-counter-panel__gauge > .community-logo-gauge {
   flex: 0 0 auto;
   width: 100%;
-  max-width: var(--journey-counter-dial-size);
+  max-width: var(--journey-counter-dial-height);
   height: auto;
   margin: 0;
   display: flex;
@@ -3372,19 +3976,32 @@
 }
 
 /*
- * Journey counter: one square dial box for speedometer, fuel, and battery so
- * slide transitions do not shift the main column vertically.
+ * Journey counter: dial box for speedometer, fuel, and battery so slide transitions
+ * do not shift the main column vertically. Wide semicircle uses --wide modifier.
  */
-.journey-counter-panel__gauge .journey-counter-gauge__dial-slot,
-.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter {
-  width: var(--journey-counter-dial-size);
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter:not(.journey-counter-gauge__dial-slot--wide) {
+  width: var(--journey-counter-dial-height);
   max-width: 100%;
-  height: var(--journey-counter-dial-size);
-  flex: 0 0 var(--journey-counter-dial-size);
+  height: var(--journey-counter-dial-height);
+  flex: 0 0 var(--journey-counter-dial-height);
   flex-shrink: 0;
   margin-inline: auto;
   display: flex;
   align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide {
+  width: var(--journey-counter-dial-width);
+  max-width: 100%;
+  height: var(--journey-counter-dial-height);
+  flex: 0 0 var(--journey-counter-dial-height);
+  flex-shrink: 0;
+  margin-inline: auto;
+  margin-bottom: var(--journey-counter-dial-gap);
+  display: flex;
+  align-items: flex-end;
   justify-content: center;
   overflow: visible;
 }
@@ -3400,6 +4017,12 @@
   max-height: 100%;
   margin: 0;
   aspect-ratio: unset;
+}
+
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide .journey-speedometer-gauge__svg,
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide .journey-fuel-gauge__svg,
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide .journey-battery-gauge__svg {
+  align-self: flex-end;
 }
 
 .journey-counter-panel__gauge .journey-counter-gauge__dial-slot .journey-battery-gauge__dial,
@@ -3777,6 +4400,7 @@
   vertical-align: middle;
   color: #ffffff;
   font-weight: 500;
+  font-size: clamp(28px, 5vw, 44px);
   text-shadow:
     0 0 10px rgba(243, 144, 29, 0.4),
     0 0 20px rgba(243, 144, 29, 0.15),
@@ -3901,7 +4525,9 @@
   }
 
   .journey-counter-panel__gauge {
-    --journey-counter-dial-size: min(100%, clamp(8rem, 28vw, 11rem));
+    --journey-counter-dial-height: min(100%, clamp(8rem, 28vw, 11rem));
+    --journey-counter-dial-width: min(100%, clamp(16rem, 56vw, 22rem));
+    --journey-counter-dial-size: var(--journey-counter-dial-height);
     --journey-counter-subtitle-min-h: 2.65rem;
     --journey-counter-stat-min-h: 2.75rem;
     grid-column: 1;
@@ -4090,10 +4716,15 @@
 
   .journey-counter-panel__gauge {
     gap: clamp(0.2em, 0.6vh, 0.45em);
-    --journey-counter-dial-size: min(
+    --journey-counter-dial-height: min(
       var(--journey-counter-message-width),
       min(44vw, 26vh, 11.5rem)
     );
+    --journey-counter-dial-width: min(
+      100%,
+      calc(var(--journey-counter-dial-height) * 2)
+    );
+    --journey-counter-dial-size: var(--journey-counter-dial-height);
     --journey-counter-subtitle-min-h: 2.5rem;
     --journey-counter-stat-min-h: 2.65rem;
   }
@@ -4444,9 +5075,11 @@
   }
 
   .journey-counter-panel__gauge {
-    --journey-counter-dial-size: 200px;
+    --journey-counter-dial-height: 200px;
+    --journey-counter-dial-width: min(100%, 400px);
+    --journey-counter-dial-size: var(--journey-counter-dial-height);
     --journey-counter-subtitle-min-h: 2.25rem;
-    --journey-counter-stat-min-h: calc(clamp(22px, 4.5vw, 36px) * 1.3 + 0.625rem);
+    --journey-counter-stat-min-h: calc(clamp(28px, 5vw, 44px) * 1.3 + 0.625rem);
   }
 
   .journey-layout__counter-footer {
@@ -4467,6 +5100,8 @@
   --gps-nav-accent: #007ac3;
   position: relative;
   width: min(100%, clamp(240px, 34vw, 320px));
+  max-width: 100%;
+  max-height: 100%;
   padding: clamp(11px, 1.5vh, 14px) clamp(12px, 1.6vw, 16px)
     clamp(11px, 1.5vh, 14px) clamp(14px, 1.8vw, 18px);
   display: flex;
@@ -4485,7 +5120,7 @@
     0 10px 28px rgba(0, 0, 0, 0.55),
     0 2px 8px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: visible;
+  overflow: hidden;
 }
 
 .journey-nav-popup-overlay .gps-event-popup--nav::before {
@@ -4516,6 +5151,140 @@
 
 .journey-nav-popup-overlay .gps-event-popup--attendance {
   --gps-nav-accent: #007ac3;
+}
+
+/* GPS trip-stat card — distance-traveled style attendance readout */
+.journey-nav-popup-overlay .gps-attendance-stat {
+  --gps-attendance-accent: #007ac3;
+  width: min(250px, 100%);
+  max-width: 100%;
+  max-height: 100%;
+  padding: clamp(12px, 1.6vh, 14px) clamp(14px, 1.8vw, 16px)
+    clamp(12px, 1.6vh, 14px);
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(6px, 0.9vh, 8px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.journey-nav-popup-overlay .gps-attendance-stat--expanded {
+  height: auto;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.journey-nav-popup-overlay .gps-attendance-stat--expanded::-webkit-scrollbar {
+  display: none;
+}
+
+.gps-attendance-stat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.gps-attendance-stat__eyebrow {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(9px, 1.6vw, 10px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(235, 240, 245, 0.52);
+}
+
+.gps-attendance-stat__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--gps-attendance-accent);
+  background: rgba(0, 122, 195, 0.14);
+  border: 1px solid rgba(0, 122, 195, 0.28);
+}
+
+.gps-attendance-stat__metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(3px, 0.5vh, 4px);
+  min-width: 0;
+}
+
+.gps-attendance-stat__value {
+  margin: 0;
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: clamp(34px, 7vw, 42px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #f5f7fa;
+  text-align: center;
+}
+
+.gps-attendance-stat__label {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(11px, 2.2vw, 13px);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  color: rgba(235, 240, 245, 0.78);
+  text-align: center;
+  text-transform: lowercase;
+}
+
+.gps-attendance-stat__events-total {
+  margin: 0;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: clamp(10px, 1.8vw, 12px);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  color: rgba(235, 240, 245, 0.62);
+  text-align: center;
+  text-transform: lowercase;
+}
+
+.gps-attendance-stat__bar-track {
+  width: 100%;
+  height: clamp(5px, 0.9vh, 7px);
+  margin-top: clamp(2px, 0.4vh, 4px);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.gps-attendance-stat__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #007ac3 0%, #00a8e8 100%);
+  box-shadow: 0 0 8px rgba(0, 168, 232, 0.35);
+  transition: width 0.08s linear;
+}
+
+.journey-nav-popup-overlay .gps-attendance-stat .gps-event-popup__nav-details {
+  margin-top: clamp(8px, 1.2vh, 10px);
+  padding-top: clamp(8px, 1.2vh, 10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.journey-nav-popup-overlay .gps-attendance-stat .gps-event-popup__nav-body {
+  font-size: clamp(11px, 2.2vw, 13px);
+  color: rgba(235, 240, 245, 0.88);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journey-nav-popup-overlay .gps-attendance-stat::after {
+  display: none;
 }
 
 .journey-nav-popup-overlay .gps-event-popup--hours {
@@ -6075,8 +6844,15 @@
   display: none;
 }
 
-.full-diagnostics__map-popups-row .gps-event-popup--nav-expanded {
-  align-items: flex-start;
+.full-diagnostics__map-popups-row .gps-attendance-stat {
+  width: 100%;
+  min-height: 0;
+}
+
+.full-diagnostics__map-popups-row .gps-popup-stack__item--attendance-stat {
+  width: 100%;
+  min-height: 0;
+  margin-top: 0;
 }
 
 /* Step 2 → share: dashboard band + map exit before final scene */
@@ -6432,9 +7208,20 @@
   .journey-nav-popup-row {
     width: 100%;
     gap: clamp(10px, 2.5vw, 16px);
-    height: 100%;
+    flex: 0 0 auto;
     min-height: 0;
     max-height: none;
+  }
+
+  .gps-popup-stack__item--attendance-stat {
+    width: min(250px, 100%);
+    max-width: 100%;
+    margin-top: 0;
+  }
+
+  .journey-nav-popup-overlay .gps-attendance-stat {
+    width: min(250px, 100%);
+    max-width: 100%;
   }
 
   .journey-nav-popup-overlay .gps-event-popup--nav {

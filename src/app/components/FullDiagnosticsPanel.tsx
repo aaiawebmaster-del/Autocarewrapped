@@ -8,7 +8,10 @@ import {
 } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
-import { GpsPopupContent, BAR_FILL_MAX, WEBINAR_HOURS_MAX } from './GpsNavPopupContent';
+import { GpsUiControls } from './GpsUiControls';
+import { GpsPopupContent } from './GpsNavPopupContent';
+import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
+import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import acesDipstickImage from '../../assets/dipstick-aces.svg?url';
 import piesDipstickImage from '../../assets/dipstick-pies.svg?url';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
@@ -30,13 +33,6 @@ The road you traveled — and the momentum you helped build for the year ahead i
 Buckle up. There's much more to come!`;
 
 /** First four Your Journey counter slides — same gauge variants as the journey panel. */
-const JOURNEY_COUNTER_STATS = [
-  { target: 56, label: 'years', animationKey: 'diag-years', delay: 0, gaugeVariant: 'speedometer' as const },
-  { target: 87, label: 'active contacts', animationKey: 'diag-contacts', delay: 200, gaugeVariant: 'fuel' as const },
-  { target: 88, label: 'community members', animationKey: 'diag-community', delay: 400, gaugeVariant: 'community-logo' as const },
-  { target: 1, label: 'committee members', animationKey: 'diag-committee', delay: 600, gaugeVariant: 'battery' as const },
-] as const;
-
 const TIRE_ROLL_IMAGES: Record<TirePhase, string> = {
   trendlens: tireTrendlensImage,
   demandindex: tireDemandindexImage,
@@ -83,7 +79,9 @@ function DiagnosticsCarouselChevron({
   );
 }
 
-function DiagnosticsJourneyStatsRow() {
+function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
+  const journeyCounterStats = buildDiagnosticsCounterStats(report);
+
   return (
     <motion.div
       className="full-diagnostics__stats-row"
@@ -92,7 +90,7 @@ function DiagnosticsJourneyStatsRow() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35 }}
     >
-      {JOURNEY_COUNTER_STATS.map((stat) => (
+      {journeyCounterStats.map((stat) => (
         <section
           key={stat.animationKey}
           className="journey-counter-panel__gauge full-diagnostics__stat-gauge"
@@ -272,10 +270,14 @@ const EVENT_BAR_FILL_MS = 2000;
 function DiagnosticsMapEngagement({
   archHidden,
   showPopups,
+  eventsMetrics,
 }: {
   archHidden: boolean;
   showPopups: boolean;
+  eventsMetrics: EventsMetrics;
 }) {
+  const attendanceTarget = eventsMetrics.attendancePct;
+  const webinarTarget = eventsMetrics.webinarCount;
   const [barW, setBarW] = useState(0);
   const [webinarHours, setWebinarHours] = useState(0);
 
@@ -285,12 +287,12 @@ function DiagnosticsMapEngagement({
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / EVENT_BAR_FILL_MS, 1);
-      setBarW(Math.round((1 - (1 - p) ** 3) * BAR_FILL_MAX));
+      setBarW(Math.round((1 - (1 - p) ** 3) * attendanceTarget));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [attendanceTarget]);
 
   useEffect(() => {
     setWebinarHours(0);
@@ -298,12 +300,12 @@ function DiagnosticsMapEngagement({
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / EVENT_BAR_FILL_MS, 1);
-      setWebinarHours(Math.round((1 - (1 - p) ** 3) * WEBINAR_HOURS_MAX));
+      setWebinarHours(Math.round((1 - (1 - p) ** 3) * webinarTarget));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [webinarTarget]);
 
   const evtPct = Math.round(barW);
 
@@ -318,6 +320,7 @@ function DiagnosticsMapEngagement({
           <div className="journey-nav-slide-bg" aria-hidden>
             <JourneyNavMapAnimation />
           </div>
+          <GpsUiControls />
           {showPopups ? (
             <div className="full-diagnostics__map-ui">
               <div className="full-diagnostics__map-popup-wrap">
@@ -336,6 +339,7 @@ function DiagnosticsMapEngagement({
                       barW={barW}
                       webinarHours={webinarHours}
                       detailsReady={false}
+                      eventsMetrics={eventsMetrics}
                     />
                   </motion.div>
                   <motion.div
@@ -352,6 +356,7 @@ function DiagnosticsMapEngagement({
                       barW={barW}
                       webinarHours={webinarHours}
                       detailsReady={false}
+                      eventsMetrics={eventsMetrics}
                     />
                   </motion.div>
                 </div>
@@ -369,11 +374,13 @@ function DiagnosticsTopCarousel({
   onStepChange,
   shareFocus,
   onBackToStart,
+  report,
 }: {
   step: number;
   onStepChange: (next: number) => void;
   shareFocus: boolean;
   onBackToStart: () => void;
+  report: WrappedReport;
 }) {
   const canGoBack = step > 0;
   const canGoForward = step < TOP_STEP_MAX;
@@ -391,7 +398,7 @@ function DiagnosticsTopCarousel({
         />
         <div className="full-diagnostics__top-carousel-stage">
           <AnimatePresence mode="wait">
-            {step === 0 && <DiagnosticsJourneyStatsRow key="stats" />}
+            {step === 0 && <DiagnosticsJourneyStatsRow key="stats" report={report} />}
             {step === 1 && <DiagnosticsTiresRoll key="tires" />}
             {shareFocus && step === TOP_STEP_MAX && (
               <DiagnosticsShareSlide key="share" onBackToStart={onBackToStart} />
@@ -417,7 +424,13 @@ function DiagnosticsTopCarousel({
   );
 }
 
-export function FullDiagnosticsPanel({ onBackToStart }: { onBackToStart: () => void }) {
+export function FullDiagnosticsPanel({
+  onBackToStart,
+  report,
+}: {
+  onBackToStart: () => void;
+  report: WrappedReport;
+}) {
   const [topStep, setTopStep] = useState(0);
   const [shareReveal, setShareReveal] = useState(false);
 
@@ -460,6 +473,7 @@ export function FullDiagnosticsPanel({ onBackToStart }: { onBackToStart: () => v
         onStepChange={setTopStep}
         shareFocus={shareFocus}
         onBackToStart={onBackToStart}
+        report={report}
       />
 
       {showDipsticksOverlay ? <DiagnosticsAcesPiesBehindArch /> : null}
@@ -467,7 +481,11 @@ export function FullDiagnosticsPanel({ onBackToStart }: { onBackToStart: () => v
       <div
         className={`full-diagnostics__map${topStep === 2 && !dashboardExiting ? ' full-diagnostics__map--arch-front' : ''}${shareFocus ? ' full-diagnostics__map--share-focus' : ''}`}
       >
-        <DiagnosticsMapEngagement archHidden={archHidden} showPopups={showMapPopups} />
+        <DiagnosticsMapEngagement
+          archHidden={archHidden}
+          showPopups={showMapPopups}
+          eventsMetrics={report.events}
+        />
       </div>
     </div>
   );

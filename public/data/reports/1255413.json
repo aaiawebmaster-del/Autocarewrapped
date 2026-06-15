@@ -1,0 +1,40 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1255413",
+    "name": "Recochem Inc.",
+    "recordNumber": 1255413
+  },
+  "journey": {
+    "membershipTenureYears": 18,
+    "activeContacts": 11,
+    "communityMembers": 22,
+    "communities": [
+      "AWDA Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 0,
+    "inPersonTotal": 8,
+    "attendancePct": 0,
+    "webinarCount": 2
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 7,
+    "academyUsers": 0,
+    "academyCoursesCompleted": 0
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 0,
+    "subscribedProducts": [],
+    "subscribedPct": 0
+  }
+}

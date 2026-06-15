@@ -1,0 +1,41 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1386304",
+    "name": "Batteries Plus, LLC",
+    "recordNumber": 1386304
+  },
+  "journey": {
+    "membershipTenureYears": 6,
+    "activeContacts": 8,
+    "communityMembers": 0,
+    "communities": [],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 0,
+    "inPersonTotal": 8,
+    "attendancePct": 0,
+    "webinarCount": 0
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 7,
+    "academyUsers": 2,
+    "academyCoursesCompleted": 4
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 2,
+    "subscribedProducts": [
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 67
+  }
+}

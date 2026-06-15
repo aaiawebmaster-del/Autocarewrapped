@@ -1,0 +1,46 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1376049",
+    "name": "ElringKlinger AG",
+    "recordNumber": 1376049
+  },
+  "journey": {
+    "membershipTenureYears": 6,
+    "activeContacts": 14,
+    "communityMembers": 84,
+    "communities": [
+      "AWDA Community",
+      "Heavy Duty Community",
+      "Import Vehicle Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 0,
+    "inPersonTotal": 8,
+    "attendancePct": 0,
+    "webinarCount": 1
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 7,
+    "academyUsers": 3,
+    "academyCoursesCompleted": 6
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 3,
+    "subscribedProducts": [
+      "PAdb - Product Attribute database",
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 100
+  }
+}

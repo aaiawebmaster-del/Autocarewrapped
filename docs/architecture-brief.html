@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto Care Wrapped — Architecture Brief</title>
+  <style>
+    :root {
+      --orange: #f3901d;
+      --ink: #0a0a0a;
+      --muted: #4a5568;
+      --line: #d1d5db;
+      --panel: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: letter;
+      margin: 0.55in 0.6in;
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      color: var(--ink);
+      background: #fff;
+      max-width: 7.3in;
+      margin: 0 auto;
+      padding: 0.4in 0.5in;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 3px solid var(--orange);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 17pt;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 9pt;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .meta {
+      text-align: right;
+      font-size: 8pt;
+      color: var(--muted);
+    }
+
+    .meta strong { color: var(--ink); }
+
+    h2 {
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--orange);
+      margin: 10px 0 5px;
+      font-weight: 700;
+    }
+
+    p { margin-bottom: 6px; color: #1a1a1a; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 7px 9px;
+    }
+
+    .panel h3 {
+      font-size: 8.5pt;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .panel ul {
+      margin-left: 14px;
+      font-size: 8.5pt;
+    }
+
+    .panel li { margin-bottom: 2px; }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
+      margin: 6px 0;
+      font-size: 8pt;
+    }
+
+    .flow-box {
+      flex: 1;
+      border: 1.5px solid var(--ink);
+      border-radius: 4px;
+      padding: 6px 7px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .flow-box.highlight {
+      border-color: var(--orange);
+      background: #fff8ef;
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12pt;
+      flex-shrink: 0;
+    }
+
+    .flow-caption {
+      font-size: 7.5pt;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+      margin-top: 4px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eef2f7;
+      font-weight: 700;
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 7.5pt;
+      background: #eef2f7;
+      padding: 0 3px;
+      border-radius: 2px;
+    }
+
+    .callout {
+      border-left: 3px solid var(--orange);
+      padding: 5px 8px;
+      background: #fff8ef;
+      font-size: 8.5pt;
+      margin: 6px 0;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .badge {
+      font-size: 7pt;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-done { background: #dcfce7; color: #166534; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-partner { background: #dbeafe; color: #1e40af; }
+
+    footer {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+      font-size: 7.5pt;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media print {
+      body { padding: 0; max-width: none; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Auto Care Wrapped</h1>
+      <p class="subtitle">One-page architecture brief — SPA, Impexium SSO, Snowflake data</p>
+    </div>
+    <div class="meta">
+      <div><strong>Version</strong> 1.0</div>
+      <div><strong>Target host</strong> my.autocare.org/wrapped</div>
+      <div><strong>Repo</strong> Autocarewrapped (React + Vite)</div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Purpose</h2>
+    <p>
+      Auto Care Wrapped is a company-scoped, login-protected “year in review” experience.
+      Each authenticated member organization sees metrics and narrative copy derived from Snowflake.
+      The browser never connects to Snowflake or stores Snowflake credentials.
+    </p>
+  </section>
+
+  <section>
+    <h2>System architecture</h2>
+    <div class="flow">
+      <div class="flow-box">
+        <strong>Browser SPA</strong><br />
+        React + Vite<br />
+        <code>AuthGate</code> → <code>DrivingView</code>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <strong>Auto Care API</strong><br />
+        <code>GET /api/wrapped/report</code><br />
+        Session + tenant filter
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <strong>Impexium SSO</strong><br />
+        Validate session<br />
+        Org / company claims
+      </div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">
+        <strong>Snowflake</strong><br />
+        Secure view<br />
+        <code>V_COMPANY_REPORT_YYYY</code>
+      </div>
+    </div>
+    <p class="flow-caption">
+      Request flow: user visits Wrapped → SSO cookie validated → API maps Impexium org ID → Snowflake company_id → returns <code>WrappedReport</code> JSON
+    </p>
+
+    <div class="callout">
+      <strong>Security rule:</strong> Company ID is resolved server-side from SSO claims only.
+      The client never sends or selects <code>company_id</code>. Snowflake credentials live in server secrets only.
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div>
+      <h2>Frontend (this repository)</h2>
+      <div class="panel">
+        <h3>Key modules</h3>
+        <ul>
+          <li><code>AuthGate</code> — loading, 401, 404, error states</li>
+          <li><code>WrappedReportContext</code> — fetch once, share via React context</li>
+          <li><code>DrivingView</code> — landing, journey, hood, diagnostics scenes</li>
+          <li><code>contentVariants.ts</code> — conditional copy (e.g. zero events)</li>
+          <li><code>buildJourneySections.ts</code> — report → UI sections</li>
+        </ul>
+      </div>
+      <div class="status-row">
+        <span class="badge badge-done">UI + variants</span>
+        <span class="badge badge-done">Mock data</span>
+        <span class="badge badge-done">Dev API plugin</span>
+      </div>
+    </div>
+    <div>
+      <h2>Backend (Auto Care stack)</h2>
+      <div class="panel">
+        <h3>API responsibilities</h3>
+        <ul>
+          <li>Validate Impexium SSO session (cookie or BFF)</li>
+          <li>Map Impexium org ID → Snowflake <code>company_id</code></li>
+          <li>Query pre-aggregated secure view via Snowpark / JDBC</li>
+          <li>Map row → <code>WrappedReport</code> JSON; return 404 if no row</li>
+          <li>Optional: 5–15 min cache per company; audit log access</li>
+        </ul>
+      </div>
+      <div class="status-row">
+        <span class="badge badge-partner">Snowflake view</span>
+        <span class="badge badge-partner">SSO client</span>
+        <span class="badge badge-pending">Prod API deploy</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Data contract — <code>WrappedReport</code></h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Domain</th>
+          <th>Fields (API → SPA)</th>
+          <th>UI surfaces</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>company</strong></td>
+          <td><code>id</code>, <code>name</code>; optional <code>member.displayName</code></td>
+          <td>Intro welcome, report scope</td>
+        </tr>
+        <tr>
+          <td><strong>journey</strong></td>
+          <td>Tenure, active contacts, community, committee counts</td>
+          <td>Your Journey counters, Full Diagnostics row</td>
+        </tr>
+        <tr>
+          <td><strong>events</strong></td>
+          <td>In-person attended/total, <code>attendancePct</code>, webinar hours</td>
+          <td>GPS nav, attendance bar (variant copy if 0 events)</td>
+        </tr>
+        <tr>
+          <td><strong>products</strong></td>
+          <td>TrendLens, DemandIndex, Factbook, Academy usage</td>
+          <td>Kick the Tires readouts</td>
+        </tr>
+        <tr>
+          <td><strong>standards</strong></td>
+          <td>Subscribed %, missing product list</td>
+          <td>Under the Hood standards popup</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="grid-3">
+    <div class="panel">
+      <h3>Endpoints</h3>
+      <ul>
+        <li><code>GET /api/wrapped/report</code></li>
+        <li><code>GET /api/wrapped/health</code></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Auth model</h3>
+      <ul>
+        <li>Reuse my.autocare.org Impexium SSO</li>
+        <li>Cookie: <code>credentials: include</code></li>
+        <li>401 → redirect to SSO login</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Local dev</h3>
+      <ul>
+        <li><code>npm run dev</code> + mock auth</li>
+        <li>Scenarios: default / zero-events / high-engagement</li>
+        <li>Ref: <code>server/reference-api.mjs</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Open decisions (partner discovery)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Options</th>
+          <th>Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Snowflake company key</td>
+          <td>Impexium org ID · CRM account ID · member number</td>
+          <td>Snowflake + Impexium</td>
+        </tr>
+        <tr>
+          <td>Access pattern</td>
+          <td>Snowpark Python · JDBC + secure view · SQL REST API</td>
+          <td>Snowflake + Infra</td>
+        </tr>
+        <tr>
+          <td>Session model</td>
+          <td>Shared cookie on .autocare.org · BFF token exchange</td>
+          <td>Impexium + Infra</td>
+        </tr>
+        <tr>
+          <td>Missing company row</td>
+          <td>HTTP 404 · partial defaults · support message</td>
+          <td>Product + Snowflake</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <span>Related docs: <code>docs/discovery-checklist.md</code> · <code>docs/partner-meeting-agenda.md</code> · <code>docs/snowflake-column-mapping.md</code></span>
+    <span class="no-print">Open in browser → Print → Save as PDF</span>
+  </footer>
+
+</body>
+</html>

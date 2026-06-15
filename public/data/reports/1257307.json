@@ -1,0 +1,40 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1257307",
+    "name": "Nissan North America",
+    "recordNumber": 1257307
+  },
+  "journey": {
+    "membershipTenureYears": 8,
+    "activeContacts": 36,
+    "communityMembers": 72,
+    "communities": [
+      "AWDA Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 1,
+    "inPersonTotal": 8,
+    "attendancePct": 13,
+    "webinarCount": 0
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 7,
+    "academyUsers": 2,
+    "academyCoursesCompleted": 2
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 0,
+    "subscribedProducts": [],
+    "subscribedPct": 0
+  }
+}

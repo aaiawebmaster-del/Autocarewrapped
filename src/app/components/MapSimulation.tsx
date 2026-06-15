@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -38,6 +39,12 @@ import circleChevronLeft from '../../assets/circle-chevron-left-solid-full.png';
 import circleChevronRight from '../../assets/circle-chevron-right-solid-full.png';
 import hoodPcdbIcon from '../../assets/hood-pcdb-icon.png';
 import hoodVcdbIcon from '../../assets/hood-vcdb-icon.png';
+import {
+  buildTireReadoutConfig,
+  getHoodStandardsMessages,
+  type TireReadoutConfig,
+} from '@/lib/contentVariants';
+import type { WrappedReport } from '@/types/wrappedReport';
 
 export const DASHBOARD_ARCH_PATH = svgPaths.p33654d00;
 export const MAP_CANVAS_DARK = '#151a22';
@@ -75,15 +82,6 @@ function getTireCheckImageIndex(completedCount: number): number {
   return Math.min(Math.max(completedCount, 0), TIRE_CHECK_SEQUENCE.length - 1);
 }
 
-export const TRENDLENS_USER_COUNT = 7;
-export const TRENDLENS_CONTACT_PCT = 8;
-export const DEMANDINDEX_PRODUCT_GROUPS = 8;
-export const DEMANDINDEX_PRODUCT_GROUPS_TOTAL = 200;
-export const FACTBOOK_USER_COUNT = 4;
-export const FACTBOOK_CONTACT_PCT = 5;
-export const ACADEMY_USER_COUNT = 2;
-export const ACADEMY_COURSES_COMPLETED = 2;
-
 function getNextTirePhase(phase: TirePhase): TirePhase | null {
   const i = TIRE_PHASE_ORDER.indexOf(phase);
   return i < 0 || i >= TIRE_PHASE_ORDER.length - 1 ? null : TIRE_PHASE_ORDER[i + 1];
@@ -99,48 +97,6 @@ type TireReadoutSecondary =
   | { type: 'fraction'; completed: number; total: number; suffix: string }
   | { type: 'overTotal'; total: number; suffix: string }
   | { type: 'count'; value: number; suffix: string };
-
-type TireReadoutConfig = {
-  measuring: string;
-  primaryValue: number;
-  primaryLabel: string;
-  secondary: TireReadoutSecondary;
-};
-
-const TIRE_READOUT_CONFIG: Record<TirePhase, TireReadoutConfig> = {
-  trendlens: {
-    measuring: 'measuring trendlens usage..',
-    primaryValue: TRENDLENS_USER_COUNT,
-    primaryLabel: 'TrendLens Users',
-    secondary: { type: 'percent', value: TRENDLENS_CONTACT_PCT, suffix: 'of your active contacts' },
-  },
-  demandindex: {
-    measuring: 'measuring demandindex usage..',
-    primaryValue: DEMANDINDEX_PRODUCT_GROUPS,
-    primaryLabel: 'product groups',
-    secondary: {
-      type: 'overTotal',
-      total: DEMANDINDEX_PRODUCT_GROUPS_TOTAL,
-      suffix: 'available product groups',
-    },
-  },
-  factbook: {
-    measuring: 'measuring factbook usage..',
-    primaryValue: FACTBOOK_USER_COUNT,
-    primaryLabel: 'Factbook Users',
-    secondary: { type: 'percent', value: FACTBOOK_CONTACT_PCT, suffix: 'of active contacts' },
-  },
-  academy: {
-    measuring: 'measuring academy progress..',
-    primaryValue: ACADEMY_USER_COUNT,
-    primaryLabel: 'Academy Users',
-    secondary: {
-      type: 'count',
-      value: ACADEMY_COURSES_COMPLETED,
-      suffix: 'completed courses',
-    },
-  },
-};
 
 const TIRE_BADGE_LABELS: Record<TirePhase, string> = {
   trendlens: 'TrendLens',
@@ -306,7 +262,7 @@ const HOOD_CLIP_ID = 'dashboard-hood-arch-clip';
 const VB_W = 1889;
 const VB_H = 540;
 
-/** Dashboard arch silhouette with flat black fill */
+/** Dashboard arch silhouette with soft-touch plastic / leather grain */
 export function DashboardPanelArch() {
   return (
     <div className="dashboard-panel-arch" aria-hidden>
@@ -330,8 +286,60 @@ export function DashboardPanelArch() {
             <stop offset="58%" stopColor="#111114" />
             <stop offset="100%" stopColor="#060608" />
           </linearGradient>
+          <filter
+            id="dashboard-panel-plastic-noise"
+            x="0%"
+            y="0%"
+            width="100%"
+            height="100%"
+          >
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.72"
+              numOctaves="3"
+              seed="8"
+              stitchTiles="stitch"
+              result="noise"
+            />
+            <feColorMatrix type="saturate" values="0" in="noise" result="mono" />
+            <feComponentTransfer in="mono">
+              <feFuncA type="linear" slope="0.42" intercept="0" />
+            </feComponentTransfer>
+          </filter>
+          <pattern
+            id="dashboard-panel-grain-pattern"
+            width="180"
+            height="180"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect width="180" height="180" filter="url(#dashboard-panel-plastic-noise)" />
+          </pattern>
+          <pattern
+            id="dashboard-panel-weave-pattern"
+            width="12"
+            height="12"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(24)"
+          >
+            <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(255,255,255,0.045)" strokeWidth="0.65" />
+            <line x1="0" y1="0" x2="12" y2="0" stroke="rgba(0,0,0,0.05)" strokeWidth="0.65" />
+          </pattern>
         </defs>
-        <path className="dashboard-panel__arch-fill" d={DASHBOARD_ARCH_PATH} fill="#000000" />
+        <path
+          className="dashboard-panel__arch-fill"
+          d={DASHBOARD_ARCH_PATH}
+          fill="url(#dashboard-panel-arch-gradient)"
+        />
+        <path
+          className="dashboard-panel__arch-grain"
+          d={DASHBOARD_ARCH_PATH}
+          fill="url(#dashboard-panel-grain-pattern)"
+        />
+        <path
+          className="dashboard-panel__arch-weave"
+          d={DASHBOARD_ARCH_PATH}
+          fill="url(#dashboard-panel-weave-pattern)"
+        />
       </svg>
     </div>
   );
@@ -396,7 +404,7 @@ export function DashboardMapArch({
   );
 }
 
-const HOOD_POPUP_MESSAGES = [
+const HOOD_POPUP_MESSAGES_FALLBACK = [
   'checking standards levels',
   'you are subscribed to 40% of our data standards',
   'you are missing IPO, ISHOP, and Super Spec',
@@ -414,10 +422,15 @@ const HOOD_SUBSCRIBED_POPUP_INDEX = 1;
 const HOOD_VIP_POPUP_INDEX = 2;
 const HOOD_MISSING_POPUP_INDEX = 3;
 
-function getHoodPopupMessage(index: number): string {
-  if (index === HOOD_VIP_POPUP_INDEX) return HOOD_VIP_MESSAGE;
-  if (index === HOOD_MISSING_POPUP_INDEX) return HOOD_POPUP_MESSAGES[2];
-  return HOOD_POPUP_MESSAGES[index] ?? '';
+function getHoodPopupMessage(
+  index: number,
+  messages: ReturnType<typeof getHoodStandardsMessages>,
+): string {
+  if (index === HOOD_VIP_POPUP_INDEX) return messages.vip;
+  if (index === HOOD_MISSING_POPUP_INDEX) return messages.missing;
+  if (index === HOOD_SUBSCRIBED_POPUP_INDEX) return messages.subscribed;
+  if (index === HOOD_CHECKING_POPUP_INDEX) return messages.checking;
+  return HOOD_POPUP_MESSAGES_FALLBACK[index] ?? '';
 }
 
 const DIPSTICK_RISE = { duration: 2.2, ease: [0.25, 0, 0.2, 1] as const };
@@ -525,6 +538,7 @@ function HoodStandardsPopup({
   onNext,
   nextDisabled = false,
   showNavButtons = false,
+  hoodMessages,
 }: {
   index: number;
   onTypeComplete?: () => void;
@@ -532,10 +546,11 @@ function HoodStandardsPopup({
   onNext?: () => void;
   nextDisabled?: boolean;
   showNavButtons?: boolean;
+  hoodMessages: ReturnType<typeof getHoodStandardsMessages>;
 }) {
   const [typingDone, setTypingDone] = useState(false);
   const textAreaRef = useRef<HTMLDivElement>(null);
-  const message = getHoodPopupMessage(index);
+  const message = getHoodPopupMessage(index, hoodMessages);
   const isVip = index === HOOD_VIP_POPUP_INDEX;
   const isMissing = index === HOOD_MISSING_POPUP_INDEX;
 
@@ -839,6 +854,7 @@ function HoodTireHubReadout({
   onReadoutReady,
   onNavigateToTire,
   onFinishTireSequence,
+  readoutConfig,
 }: {
   tirePhase: TirePhase;
   counterActive: boolean;
@@ -848,11 +864,12 @@ function HoodTireHubReadout({
   onReadoutReady?: () => void;
   onNavigateToTire?: (target: TirePhase) => void;
   onFinishTireSequence?: () => void;
+  readoutConfig: TireReadoutConfig;
 }) {
   const [readoutPhase, setReadoutPhase] = useState<ReadoutPhase>('idle');
   const onReadyRef = useRef(onReadoutReady);
   onReadyRef.current = onReadoutReady;
-  const config = TIRE_READOUT_CONFIG[tirePhase];
+  const config = readoutConfig;
   const ctaConfig = TIRE_CTA_CONFIG[tirePhase];
   const hasCta = tireHasCta(tirePhase);
 
@@ -1058,6 +1075,7 @@ function HoodTireHubScene({
   onReadoutReady,
   onNavigateToTire,
   onFinishTireSequence,
+  tireReadoutConfig,
 }: {
   phase: TirePhase;
   isRolling: boolean;
@@ -1072,6 +1090,7 @@ function HoodTireHubScene({
   onReadoutReady: () => void;
   onNavigateToTire: (target: TirePhase) => void;
   onFinishTireSequence?: () => void;
+  tireReadoutConfig: Record<TirePhase, TireReadoutConfig>;
 }) {
   const [introStep, setIntroStep] = useState<TireIntroStep>(playIntro ? 'ground' : 'done');
   const groundExitReportedRef = useRef(false);
@@ -1240,6 +1259,7 @@ function HoodTireHubScene({
             onReadoutReady={onReadoutReady}
             onNavigateToTire={onNavigateToTire}
             onFinishTireSequence={onFinishTireSequence}
+            readoutConfig={tireReadoutConfig[phase]}
           />
         </div>
       </div>
@@ -1257,6 +1277,7 @@ const HOOD_ARCH_SLIDE_EASE = [0.4, 0, 0.2, 1] as const;
 
 export function DashboardHoodArch({
   phase,
+  report,
   onPhaseChange,
   onFinishTireSequence,
   onBackToJourney,
@@ -1267,6 +1288,7 @@ export function DashboardHoodArch({
   onNavTransitionComplete,
 }: {
   phase: HoodPhase;
+  report: WrappedReport;
   onPhaseChange: (phase: HoodPhase) => void;
   onFinishTireSequence?: () => void;
   /** Returns to the final screen of the Your Journey GPS sequence. */
@@ -1281,6 +1303,8 @@ export function DashboardHoodArch({
   /** Fired when the incoming arch finishes sliding up. */
   onNavTransitionComplete?: () => void;
 }) {
+  const tireReadoutConfig = useMemo(() => buildTireReadoutConfig(report), [report]);
+  const hoodMessages = useMemo(() => getHoodStandardsMessages(report), [report]);
   const [popupIndex, setPopupIndex] = useState(HOOD_CHECKING_POPUP_INDEX);
   const [popupTyped, setPopupTyped] = useState(false);
   const [acesRisen, setAcesRisen] = useState(false);
@@ -1534,6 +1558,7 @@ export function DashboardHoodArch({
               <div className="hood-standards-popup-anchor">
                 <HoodStandardsPopup
                   index={popupIndex}
+                  hoodMessages={hoodMessages}
                   onTypeComplete={handlePopupTypeComplete}
                   onBackToJourney={onBackToJourney}
                   onNext={handleNext}
@@ -1677,6 +1702,7 @@ export function DashboardHoodArch({
               skipGroundIntro={tireSkipGroundIntro}
               slideGroundOut={tireSlideGroundOut}
               completedTires={completedTires}
+              tireReadoutConfig={tireReadoutConfig}
               onIntroComplete={handleTireIntroComplete}
               onGroundExitComplete={onNavTransitionMidpoint}
               onReadoutReady={handleReadoutReady}

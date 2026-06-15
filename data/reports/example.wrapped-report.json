@@ -1,0 +1,42 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1101050",
+    "name": "Dayco Incorporated",
+    "recordNumber": 1101050
+  },
+  "journey": {
+    "membershipTenureYears": 56,
+    "activeContacts": 90,
+    "communityMembers": 176,
+    "communities": ["AWDA Community"],
+    "committeeMembers": 2
+  },
+  "events": {
+    "inPersonAttended": 5,
+    "inPersonTotal": 8,
+    "attendancePct": 63,
+    "webinarCount": 18
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 7,
+    "demandIndexGroupsTotal": 7,
+    "academyUsers": 2,
+    "academyCoursesCompleted": 4
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 3,
+    "subscribedProducts": [
+      "PAdb - Product Attribute database",
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 100
+  }
+}

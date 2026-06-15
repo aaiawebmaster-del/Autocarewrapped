@@ -1,0 +1,43 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1351167",
+    "name": "EnerSys Batteries",
+    "recordNumber": 1351167
+  },
+  "journey": {
+    "membershipTenureYears": 13,
+    "activeContacts": 16,
+    "communityMembers": 32,
+    "communities": [
+      "AWDA Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 1,
+    "inPersonTotal": 8,
+    "attendancePct": 13,
+    "webinarCount": 3
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 7,
+    "academyUsers": 0,
+    "academyCoursesCompleted": 0
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 2,
+    "subscribedProducts": [
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 67
+  }
+}

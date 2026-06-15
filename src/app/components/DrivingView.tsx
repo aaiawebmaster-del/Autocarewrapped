@@ -5,10 +5,10 @@ import drivingAnimationData from '../../imports/driving-animation-background.jso
 import { JourneyCounterGauge } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
+import { GpsUiControls } from './GpsUiControls';
 import {
   GpsPopupContent,
-  BAR_FILL_MAX,
-  WEBINAR_HOURS_MAX,
+  GpsAttendanceBottomBar,
   TURN_RIGHT_PATH,
 } from './GpsNavPopupContent';
 import {
@@ -21,11 +21,13 @@ import {
 import hourglassIcon from '../../assets/hourglass-duotone-solid-full.png';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
 import { FullDiagnosticsPanel } from './FullDiagnosticsPanel';
+import { DashboardPrndl } from './DashboardPrndl';
+import { buildJourneySections, type JourneySection } from '@/lib/buildJourneySections';
+import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 
 const BRAND_ORANGE = '#f3901d';
 
 const INTRO_WELCOME_GREETING = 'Welcome,';
-const INTRO_WELCOME_COMPANY = 'Dayco Incorporated';
 
 const STARS = Array.from({ length: 90 }, (_, i) => ({
   x: `${(i * 37 + 13) % 100}%`,
@@ -358,7 +360,13 @@ function FinalScenePlaceholder() {
 }
 
 // ── Full Diagnostics dashboard layout ─────────────────────────────────────────
-function FullDiagnostics({ onBackToStart }: { onBackToStart: () => void }) {
+function FullDiagnostics({
+  onBackToStart,
+  report,
+}: {
+  onBackToStart: () => void;
+  report: WrappedReport;
+}) {
   return (
     <motion.div
       className="absolute inset-0 bg-black z-40 overflow-hidden"
@@ -366,7 +374,7 @@ function FullDiagnostics({ onBackToStart }: { onBackToStart: () => void }) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <FullDiagnosticsPanel onBackToStart={onBackToStart} />
+      <FullDiagnosticsPanel onBackToStart={onBackToStart} report={report} />
     </motion.div>
   );
 }
@@ -398,9 +406,11 @@ function DashboardTireWarningIcon() {
 function StartButton({
   onClick,
   inactive = false,
+  reportYear,
 }: {
   onClick?: () => void;
   inactive?: boolean;
+  reportYear: number;
 }) {
   return (
     <button
@@ -418,7 +428,7 @@ function StartButton({
     >
       <span className="landing-push-start__glow" aria-hidden />
       <span className="landing-push-start__label">
-        <span className="landing-push-start__year">2026</span>
+        <span className="landing-push-start__year">{reportYear}</span>
         <span className="landing-push-start__divider" aria-hidden />
         <span className="landing-push-start__action">Start</span>
       </span>
@@ -432,12 +442,18 @@ function PreJourneyStage({
   onStart,
   onBack,
   onNext,
+  companyName,
+  memberDisplayName,
+  reportYear,
 }: {
   phase: 'landing' | 'intro';
   currentSlide: number;
   onStart: () => void;
   onBack: () => void;
   onNext: () => void;
+  companyName: string;
+  memberDisplayName?: string;
+  reportYear: number;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const startFloatRef = useRef<HTMLDivElement>(null);
@@ -485,7 +501,7 @@ function PreJourneyStage({
           style={{ top: '50%' }}
           transition={INTRO_START_BUTTON_TRANSITION}
         >
-          <StartButton onClick={onStart} inactive={phase === 'intro'} />
+          <StartButton onClick={onStart} inactive={phase === 'intro'} reportYear={reportYear} />
         </motion.div>
       ) : null}
       <AnimatePresence>
@@ -525,7 +541,7 @@ function PreJourneyStage({
                     <div className="intro-slide__welcome">
                       <p className="intro-slide__text">{INTRO_WELCOME_GREETING}</p>
                       <p className="intro-slide__text intro-slide__text--company">
-                        {INTRO_WELCOME_COMPANY}
+                        {memberDisplayName ? `${memberDisplayName}, ${companyName}` : companyName}
                       </p>
                     </div>
                   ) : (
@@ -577,81 +593,7 @@ function useIsCounterMobile() {
 }
 
 type CounterMobilePhase = 'gauge' | 'message';
-type JourneySection =
-  | {
-      type: 'counter';
-      subtitle: string;
-      target: number;
-      label: string;
-      labelLines?: string[];
-      /** Speedometer (default), fuel, battery, or AWDA community logo button. */
-      gaugeVariant?: 'speedometer' | 'fuel' | 'battery' | 'community-logo';
-      footerMessage?: string;
-      footerButton?: { label: string; href: string };
-    }
-  | {
-      type: 'nav';
-      navMessage: string;
-      navButton?: { label: string; href: string };
-      webinarsMessage: string;
-      webinarsButton: { label: string; href: string };
-    };
 
-const JOURNEY_SECTIONS: JourneySection[] = [
-  {
-    type: 'counter',
-    subtitle: 'Membership Tenure',
-    target: 56,
-    label: 'years',
-    footerMessage:
-      "Thank you for your longstanding support! You're continuing a legacy of industry participation",
-  },
-  {
-    type: 'counter',
-    subtitle: 'Active Contacts',
-    target: 87,
-    label: 'active contacts',
-    gaugeVariant: 'fuel',
-    footerMessage:
-      "Your organization is killing it! Don't forget you've got unlimited seats available in your membership",
-    footerButton: { label: 'sign up team members', href: 'https://my.autocare.org' },
-  },
-  {
-    type: 'counter',
-    subtitle: 'Community Membership',
-    target: 88,
-    label: 'community members',
-    gaugeVariant: 'community-logo',
-    footerMessage:
-      "WOW! You're one of our most active participants in Auto Care communities, driving our industry forward.",
-    footerButton: { label: 'explore all communities', href: 'https://autocare.org/' },
-  },
-  {
-    type: 'counter',
-    subtitle: 'Committee Membership',
-    target: 1,
-    label: 'committee members',
-    gaugeVariant: 'battery',
-    footerMessage:
-      'Do you want to influence the future of our industry, solve challenges and capitalize on opportunities?',
-    footerButton: {
-      label: 'explore our committees',
-      href: 'https://autocare.org/committees',
-    },
-  },
-  {
-    type: 'nav',
-    navMessage:
-      "We'd love to see more of you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.",
-    navButton: { label: 'see upcoming events', href: 'https://autocare.org/events' },
-    webinarsMessage:
-      'Are there other employees who could benefit from our robust library of on-demand content?',
-    webinarsButton: { label: 'browse webinar library', href: 'https://autocare.org/education' },
-  },
-];
-
-/** Last journey section (GPS / events nav) and arrived phase before Under the Hood. */
-const JOURNEY_NAV_SECTION_INDEX = JOURNEY_SECTIONS.length - 1;
 const JOURNEY_END_GPS_PHASE = 4;
 
 const JOURNEY_COUNTER_PANEL_HEIGHT = 419;
@@ -704,7 +646,6 @@ function JourneyNavCornerNav({
 }
 
 function getJourneyNavStackPhases(visiblePopupPhase: number | null): number[] {
-  if (visiblePopupPhase === 2) return [2];
   if (visiblePopupPhase === 3) return [3];
   return [];
 }
@@ -897,10 +838,12 @@ function GpsNavSection({
   onGoBack,
   initialPhase = 1,
   uiSceneMotion,
+  eventsMetrics,
 }: {
   onGoToHood: () => void;
   onGoBack: () => void;
   initialPhase?: number;
+  eventsMetrics: EventsMetrics;
   uiSceneMotion?: {
     initial: { opacity: number };
     animate: { opacity: number };
@@ -908,11 +851,13 @@ function GpsNavSection({
     transition: typeof JOURNEY_SCENE_TRANSITION;
   };
 }) {
+  const attendanceTarget = eventsMetrics.attendancePct;
+  const webinarTarget = eventsMetrics.webinarCount;
   const [phase, setPhase] = useState(initialPhase);
   const [dotCount, setDotCount] = useState(1);
-  const [barW, setBarW] = useState(initialPhase >= 2 ? BAR_FILL_MAX : 0);
+  const [barW, setBarW] = useState(initialPhase >= 2 ? attendanceTarget : 0);
   const [hoursCount, setHoursCount] = useState(
-    initialPhase >= 3 ? WEBINAR_HOURS_MAX : 0,
+    initialPhase >= 3 ? webinarTarget : 0,
   );
   const [popupMinimized, setPopupMinimized] = useState(false);
   const [calculatingFadeOut, setCalculatingFadeOut] = useState(false);
@@ -964,14 +909,14 @@ function GpsNavSection({
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / EVENT_BAR_FILL_MS, 1);
-      setBarW(Math.round((1 - Math.pow(1 - p, 3)) * BAR_FILL_MAX));
+      setBarW(Math.round((1 - Math.pow(1 - p, 3)) * attendanceTarget));
       if (p < 1) {
         raf = requestAnimationFrame(tick);
       }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [phase, initialPhase, mapReplayKey]);
+  }, [phase, initialPhase, mapReplayKey, attendanceTarget]);
 
   useEffect(() => {
     if (phase >= 1) setPopupMinimized(false);
@@ -985,14 +930,14 @@ function GpsNavSection({
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / EVENT_BAR_FILL_MS, 1);
-      setHoursCount(Math.round((1 - Math.pow(1 - p, 3)) * WEBINAR_HOURS_MAX));
+      setHoursCount(Math.round((1 - Math.pow(1 - p, 3)) * webinarTarget));
       if (p < 1) {
         raf = requestAnimationFrame(tick);
       }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [phase, initialPhase, mapReplayKey]);
+  }, [phase, initialPhase, mapReplayKey, webinarTarget]);
 
   const handleGoToHoodWithTransition = () => {
     setLeavingForHood(true);
@@ -1044,19 +989,21 @@ function GpsNavSection({
     setPhase(4);
   };
 
-  const attendanceDetailsReady = barW >= BAR_FILL_MAX;
-  const webinarDetailsReady = hoursCount >= WEBINAR_HOURS_MAX;
+  const attendanceDetailsReady = barW >= attendanceTarget;
+  const webinarDetailsReady = hoursCount >= webinarTarget;
   const canAdvance =
     (phase === 2 && attendanceDetailsReady) || (phase === 3 && webinarDetailsReady);
   const advanceLabel = gpsAdvanceLabel(phase);
+  const popupRevealed = phase >= 2 && !exitingToArrival;
   const showCornerNav =
-    phase >= 2 && visiblePopupPhase !== null && !exitingToArrival && phase < 4;
+    phase === 3 && visiblePopupPhase !== null && !exitingToArrival && phase < 4;
   const evtPct = Math.round(barW);
   const showCalculating = phase === 1 && initialPhase === 1;
   const showArrivalOverlay = phase === 4 && !leavingForHood;
   const showHoodNextPopup = phase === 4 && arrivalStep === 'rerouting' && !leavingForHood;
-  const showPopupStack = visiblePopupPhase !== null && !popupMinimized;
-  const popupRevealed = phase >= 2 && !exitingToArrival;
+  const showAttendanceBar =
+    phase === 2 && popupRevealed && !popupMinimized && !exitingToArrival;
+  const showPopupStack = visiblePopupPhase === 3 && !popupMinimized;
   const stackedPopupPhases = showPopupStack
     ? getJourneyNavStackPhases(visiblePopupPhase)
     : [];
@@ -1080,6 +1027,8 @@ function GpsNavSection({
       <div className="journey-nav-slide-bg" aria-hidden>
         <JourneyNavMapAnimation key={mapReplayKey} />
       </div>
+
+      {showNavControls && <GpsUiControls />}
 
       {showCalculating && (
         <JourneyNavCalculatingOverlay dotCount={dotCount} fading={calculatingFadeOut} />
@@ -1107,17 +1056,25 @@ function GpsNavSection({
         animate={{ opacity: phase < 4 ? 1 : 0 }}
         transition={{ duration: GPS_POPUP_EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
       >
+        {showAttendanceBar && (
+          <GpsAttendanceBottomBar
+            evtPct={evtPct}
+            barW={barW}
+            detailsReady={attendanceDetailsReady}
+            eventsMetrics={eventsMetrics}
+            onBack={handleNavBack}
+            onNext={handleAdvance}
+            nextLabel={advanceLabel}
+            nextDisabled={!canAdvance}
+          />
+        )}
+
         {showNavControls && (
         <AnimatePresence mode="wait" initial={false} onExitComplete={handleGpsPopupExitComplete}>
           {showPopupStack && (
             <motion.div
               key="journey-nav-popup-row"
-              className={[
-                'journey-nav-popup-row',
-                popupRevealed ? '' : 'journey-nav-popup-row--pregame',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              className="journey-nav-popup-row"
               initial={false}
               exit={{ opacity: 0 }}
               transition={{ duration: GPS_POPUP_EXIT_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
@@ -1164,6 +1121,7 @@ function GpsNavSection({
                             barW={barW}
                             webinarHours={hoursCount}
                             detailsReady={resolvePopupDetailsReady(popupPhase)}
+                            eventsMetrics={eventsMetrics}
                           />
                         </motion.div>
                       ))}
@@ -1271,6 +1229,7 @@ function JourneySectionCounterGauge({
     readoutMode: 'below' as const,
     circleSize: '100%',
     counterDialBox: true,
+    wideSemicircle: true,
     hideStatBelow,
     renderStatBelow,
   };
@@ -1298,11 +1257,15 @@ function YourJourney({
   onGoToHood,
   initialSectionIdx = 0,
   initialGpsPhase = 1,
+  journeySections,
+  eventsMetrics,
 }: {
   onSectionChange?: (idx: number) => void;
   onGoToHood: () => void;
   initialSectionIdx?: number;
   initialGpsPhase?: number;
+  journeySections: JourneySection[];
+  eventsMetrics: EventsMetrics;
 }) {
   const [sectionIdx, setSectionIdx] = useState(initialSectionIdx);
   const [counterMobilePhase, setCounterMobilePhase] = useState<CounterMobilePhase>('gauge');
@@ -1328,7 +1291,7 @@ function YourJourney({
     setCounterMobilePhase('gauge');
   }, [sectionIdx]);
 
-  const section = JOURNEY_SECTIONS[sectionIdx];
+  const section = journeySections[sectionIdx];
   const isFirst = sectionIdx === 0;
   const hasCounterMobileDetailStep =
     section.type === 'counter' &&
@@ -1388,6 +1351,7 @@ function YourJourney({
             <GpsNavSection
               key={`${sectionIdx}-${initialGpsPhase}`}
               initialPhase={initialGpsPhase}
+              eventsMetrics={eventsMetrics}
               onGoToHood={onGoToHood}
               onGoBack={() => changeSectionIdx((i) => i - 1)}
               uiSceneMotion={{
@@ -1573,6 +1537,8 @@ function DashboardPanel({
   onBack,
   onNext,
   onStart,
+  report,
+  journeySections,
   isJourney = false,
   isHood = false,
   isLanding = false,
@@ -1599,6 +1565,8 @@ function DashboardPanel({
   onBack: () => void;
   onNext: () => void;
   onStart: () => void;
+  report: WrappedReport;
+  journeySections: JourneySection[];
   isJourney?: boolean;
   isHood?: boolean;
   isLanding?: boolean;
@@ -1625,7 +1593,7 @@ function DashboardPanel({
   const showPreJourney = isLanding || (!isJourney && currentSlide !== null);
   const preJourneyPhase = isLanding ? 'landing' : 'intro';
   const [journeySectionIdx, setJourneySectionIdx] = useState(journeyInitialSectionIdx ?? 0);
-  const journeySection = isJourney ? JOURNEY_SECTIONS[journeySectionIdx] : null;
+  const journeySection = isJourney ? journeySections[journeySectionIdx] : null;
   const isMapScene = journeySection?.type === 'nav';
   const isCounterScene = journeySection?.type === 'counter';
   const usesPanelArch = !isHood;
@@ -1701,12 +1669,12 @@ function DashboardPanel({
     (idx: number) => {
       const prev = journeySectionIdx;
       const enteringMap =
-        JOURNEY_SECTIONS[idx]?.type === 'nav' &&
-        JOURNEY_SECTIONS[prev]?.type === 'counter' &&
+        journeySections[idx]?.type === 'nav' &&
+        journeySections[prev]?.type === 'counter' &&
         prev !== idx;
       const exitingMap =
-        JOURNEY_SECTIONS[idx]?.type === 'counter' &&
-        JOURNEY_SECTIONS[prev]?.type === 'nav' &&
+        journeySections[idx]?.type === 'counter' &&
+        journeySections[prev]?.type === 'nav' &&
         prev !== idx;
       if (enteringMap) {
         beginJourneyPanelResize('map');
@@ -1715,7 +1683,7 @@ function DashboardPanel({
       }
       setJourneySectionIdx(idx);
     },
-    [journeySectionIdx, beginJourneyPanelResize],
+    [journeySectionIdx, beginJourneyPanelResize, journeySections],
   );
 
   useEffect(
@@ -1855,6 +1823,7 @@ function DashboardPanel({
           <DashboardHoodArch
             key={hoodSession}
             phase={hoodPhase}
+            report={report}
             onPhaseChange={onHoodPhaseChange}
             onFinishTireSequence={onFinishTireSequence}
             onBackToJourney={onBackToJourney}
@@ -1889,8 +1858,7 @@ function DashboardPanel({
             </svg>
           </button>
 
-          <span className="dashboard-panel__clock">5:55 PM</span>
-          <span className="dashboard-panel__weather">53° F</span>
+          <DashboardPrndl activeGear={isLanding ? 'P' : 'D'} />
 
           <button
             type="button"
@@ -1953,6 +1921,8 @@ function DashboardPanel({
                 onGoToHood={onGoToHood}
                 initialSectionIdx={journeyInitialSectionIdx}
                 initialGpsPhase={journeyInitialGpsPhase}
+                journeySections={journeySections}
+                eventsMetrics={report.events}
               />
             </motion.div>
           ) : showPreJourney ? (
@@ -1970,6 +1940,9 @@ function DashboardPanel({
                 onStart={onStart}
                 onBack={onBack}
                 onNext={onNext}
+                companyName={report.company.name}
+                memberDisplayName={undefined}
+                reportYear={report.reportYear}
               />
             </motion.div>
           ) : null}
@@ -2036,7 +2009,15 @@ function useDashboardPinnedBackdropBottom(
   return bottomPx;
 }
 
-export function DrivingView() {
+export function DrivingView({
+  report,
+  embedded = false,
+}: {
+  report: WrappedReport;
+  embedded?: boolean;
+}) {
+  const journeySections = buildJourneySections(report);
+  const journeyNavSectionIndex = journeySections.length - 1;
   const [currentSlide, setCurrentSlide] = useState<number | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
   const [journeyResumeSectionIdx, setJourneyResumeSectionIdx] = useState<number | undefined>();
@@ -2282,7 +2263,7 @@ export function DrivingView() {
   }, []);
 
   const handleBackToJourneyEnd = useCallback(() => {
-    setJourneyResumeSectionIdx(JOURNEY_NAV_SECTION_INDEX);
+    setJourneyResumeSectionIdx(journeyNavSectionIndex);
     setJourneyResumeGpsPhase(JOURNEY_END_GPS_PHASE);
     setCurrentScreen('journey');
   }, []);
@@ -2546,6 +2527,8 @@ export function DrivingView() {
                       ? 'dashboard-diagnostics'
                       : 'dashboard-pre-journey'
               }
+              report={report}
+              journeySections={journeySections}
               isLanding={!isStarted}
               currentSlide={currentSlide}
               onBack={handleSlideBack}
@@ -2577,7 +2560,7 @@ export function DrivingView() {
           {isDiagnosticsFlow && diagnosticsStage === 'transition' && <DiagnosticsTransition />}
           {isDiagnosticsFlow && diagnosticsStage === 'final' && <FinalScenePlaceholder />}
           {currentScreen === 'diagnostics' && diagnosticsStage === 'full' && (
-            <FullDiagnostics onBackToStart={handleRestart} />
+            <FullDiagnostics onBackToStart={handleRestart} report={report} />
           )}
         </div>
       </div>
