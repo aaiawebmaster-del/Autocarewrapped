@@ -869,31 +869,40 @@
 }
 
 .pre-journey-stage {
-  --landing-start-size: clamp(9rem, 32vw, 250px);
-  --journey-counter-dial-size: min(100%, var(--landing-start-size));
+  --landing-start-size: min(
+    clamp(7rem, min(28vw, 22vh), 13.5rem),
+    calc(100% - 0.25rem)
+  );
   position: relative;
   width: 100%;
   height: 100%;
   min-height: 0;
+  box-sizing: border-box;
+}
+
+.pre-journey-stage .landing-push-start {
+  margin-top: 0;
 }
 
 .pre-journey-stage--landing {
-  display: block;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
 }
 
 .pre-journey-stage--intro {
+  --landing-start-size: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
   gap: clamp(0.75rem, 1.5vw, 1.25rem);
-  align-items: start;
+  align-items: stretch;
   width: 100%;
   height: 100%;
   min-height: 0;
 }
 
 .pre-journey-stage__start-float {
-  position: absolute;
-  top: 50%;
+  position: relative;
   z-index: 2;
   width: var(--landing-start-size);
   max-width: 100%;
@@ -902,20 +911,49 @@
   flex-shrink: 0;
 }
 
+.pre-journey-stage--landing .pre-journey-stage__start-float {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pre-journey-stage__start-float--grid {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  align-self: stretch;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .pre-journey-stage__start-float .landing-push-start {
   width: 100%;
   height: 100%;
   max-width: none;
-  aspect-ratio: auto;
+  aspect-ratio: 1;
 }
 
 .pre-journey-stage--intro .pre-journey-stage__intro-col {
   grid-column: 2;
   grid-row: 1;
-  align-self: start;
+  align-self: stretch;
   position: relative;
-  top: calc(50% - var(--landing-start-size) / 2);
+  top: auto;
   width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .pre-journey-stage__intro-col {
@@ -1057,10 +1095,19 @@
   align-items: center;
   column-gap: clamp(0.5rem, 1.5vw, 1rem);
   width: 100%;
-  min-height: max(var(--landing-start-size), clamp(11rem, 28vh, 17rem));
-  height: auto;
+  height: var(--landing-start-size);
+  min-height: var(--landing-start-size);
+  max-height: var(--landing-start-size);
   padding-block: clamp(0.65rem, 1.4vh, 1rem);
   padding-inline: clamp(0.5rem, 1.2vw, 0.85rem);
+  box-sizing: border-box;
+}
+
+.pre-journey-stage--intro .pre-journey-stage__intro-panel {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
 }
 
 .pre-journey-stage__intro-text {
@@ -1069,6 +1116,8 @@
   justify-content: center;
   width: 100%;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
   max-width: none;
   margin: 0;
   padding: 0;
@@ -1094,16 +1143,34 @@
 }
 
 @media (max-width: 640px) {
+  .pre-journey-stage {
+    --landing-start-size: min(
+      clamp(6.5rem, min(42vw, 18vh), 10rem),
+      calc(100% - 0.25rem)
+    );
+  }
+
   .pre-journey-stage--intro {
+    --landing-start-size: min(
+      clamp(6.5rem, min(42vw, 18vh), 10rem),
+      calc(100% - 0.25rem)
+    );
     grid-template-columns: 1fr;
     gap: clamp(0.75rem, 2vh, 1.25rem);
-    align-items: center;
+    align-items: stretch;
   }
 
   .pre-journey-stage--intro .pre-journey-stage__intro-col {
     grid-column: 1;
     top: 0;
     width: 100%;
+    height: 100%;
+  }
+
+  .pre-journey-stage--intro .pre-journey-stage__intro-panel {
+    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
   }
 
   .pre-journey-stage--intro .pre-journey-stage__start-float {
@@ -1366,9 +1433,212 @@
   z-index: 20;
   isolation: isolate;
   vertical-align: middle;
+  --dashboard-content-max-width: 900px;
+  --dashboard-content-half: min(50%, calc(var(--dashboard-content-max-width) / 2));
+  --dashboard-vent-gap: 40px;
+  overflow: hidden;
 }
 
-/* Layer order inside panel: arch (back) → nav → body (front) */
+/* ── Dashboard wide decorative side panels + centered content shell ── */
+.dashboard-wide-decor {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.dashboard-content-shell {
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, var(--dashboard-content-max-width));
+  max-width: var(--dashboard-content-max-width);
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.dashboard-content-shell > * {
+  pointer-events: auto;
+}
+
+/* Side vent mounts — 40px outside the content shell edges */
+.dashboard-vent-mount {
+  position: absolute;
+  top: var(--dashboard-vent-top, calc(20px + clamp(28px, 3.5vw, 36px) + 45px));
+  height: var(--dashboard-vent-height, min(62%, 15rem));
+  width: var(--dashboard-vent-height, min(62%, 15rem));
+  pointer-events: none;
+  overflow: visible;
+}
+
+.dashboard-vent-mount--left {
+  right: calc(50% + var(--dashboard-content-half) + var(--dashboard-vent-gap));
+  left: auto;
+}
+
+.dashboard-vent-mount--right {
+  left: calc(50% + var(--dashboard-content-half) + var(--dashboard-vent-gap));
+  right: auto;
+}
+
+.dashboard-vent-mount .vehicle-vent {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── VehicleVent — luxury circular HVAC turbine vent ── */
+.vehicle-vent {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  pointer-events: none;
+  --vehicle-vent-bezel: clamp(5px, 4.8%, 11px);
+}
+
+/* Dashboard plastic surround — partially embedded recess */
+.vehicle-vent__surround {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: clamp(5px, 5%, 11px);
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(168deg, #16181c 0%, #0c0d10 45%, #070809 100%);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.72),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.025),
+    0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* Chrome outer ring — same bevel system as GPS / HMI bezel */
+.vehicle-vent__bezel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: var(--vehicle-vent-bezel) solid transparent;
+  background:
+    linear-gradient(180deg, #06080c 0%, #030508 100%) padding-box,
+    var(--hmi-chrome-bevel) border-box;
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.52),
+    0 0 10px rgba(0, 175, 240, 0.06),
+    inset 0 calc(var(--vehicle-vent-bezel) * 0.4) calc(var(--vehicle-vent-bezel) * 0.22) rgba(0, 0, 0, 0.55);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.vehicle-vent__bezel-gloss {
+  position: absolute;
+  top: calc(var(--vehicle-vent-bezel) + 2px);
+  left: 14%;
+  right: 14%;
+  height: 34%;
+  border-radius: 50% 50% 42% 42%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 42%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Dark vent cavity */
+.vehicle-vent__cavity {
+  position: absolute;
+  inset: var(--vehicle-vent-bezel);
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 8, 12, 0.98) 0%,
+    rgba(2, 3, 6, 1) 55%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.85),
+    inset 0 8px 16px rgba(0, 0, 0, 0.82),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.55);
+}
+
+/* Horizontal louver slats */
+.vehicle-vent__slats {
+  position: absolute;
+  inset: 10% 8%;
+  border-radius: 50%;
+  background: repeating-linear-gradient(
+    180deg,
+    #1c1e22 0,
+    #1c1e22 2px,
+    #08090b 2px,
+    #030304 4px,
+    #25282d 4px,
+    #141619 6px
+  );
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.75);
+  mask-image: radial-gradient(circle at 50% 50%, #000 58%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 58%, transparent 72%);
+}
+
+/* Center airflow adjustment tab — decorative only */
+.vehicle-vent__tab {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30%;
+  height: 7%;
+  margin: -3.5% 0 0 -15%;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    #565a62 0%,
+    #3a3d44 38%,
+    #222428 100%
+  );
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.vehicle-vent__tab::after {
+  content: '';
+  position: absolute;
+  inset: 18% 12%;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+}
+
+/* Journey body fills the content shell (no extra horizontal inset) */
+.dashboard-content-shell .dashboard-panel__body.dashboard-body--journey-counter,
+.dashboard-content-shell .dashboard-panel__body.dashboard-body--journey-nav {
+  left: 0;
+  right: 0;
+}
+
+/* Mobile — hide decorative vents entirely */
+@media (max-width: 640px) {
+  .dashboard-wide-decor {
+    display: none;
+  }
+}
+
+/* Layer order inside panel: arch (back) → decor → content shell (nav + body) */
 .dashboard-panel__arch {
   z-index: 0;
 }
@@ -1395,7 +1665,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  z-index: 3;
+  z-index: 6;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1510,6 +1780,7 @@
   justify-content: flex-start;
   width: 100%;
   height: 419px;
+  min-height: 419px;
   overflow: visible;
 }
 
@@ -1553,8 +1824,8 @@
 .dashboard-panel--map .dashboard-panel__body.dashboard-body--journey-nav {
   position: absolute;
   top: var(--dashboard-journey-body-top);
-  left: 8%;
-  right: 8%;
+  left: 0;
+  right: 0;
   bottom: auto;
   width: auto;
   height: fit-content;
@@ -1587,6 +1858,11 @@
   height: fit-content;
   max-height: none;
   overflow: visible;
+}
+
+/* Counter scene — top-align body so nested content is not vertically squished */
+.dashboard-body--journey-counter {
+  justify-content: flex-start;
 }
 
 .dashboard-hood-arch {
@@ -3631,11 +3907,17 @@
   overflow: visible;
 }
 
-.dashboard-body--journey-nav > .dashboard-panel__stage--journey,
-.dashboard-body--journey-counter > .dashboard-panel__stage--journey {
+.dashboard-body--journey-nav > .dashboard-panel__stage--journey {
   flex: 1 1 auto;
   height: 100%;
   min-height: 0;
+}
+
+.dashboard-body--journey-counter > .dashboard-panel__stage--journey {
+  flex: 0 1 auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
 }
 
 .journey-scene-stage {
@@ -3645,6 +3927,13 @@
   min-height: 0;
   height: 100%;
   overflow: hidden;
+}
+
+.dashboard-body--journey-counter .journey-scene-stage {
+  flex: 0 1 auto;
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
 }
 
 .journey-scene-layer {
@@ -3660,7 +3949,19 @@
 }
 
 .journey-scene-layer.journey-layout--counter {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: auto;
+  height: auto;
+  min-height: 100%;
   overflow: visible;
+}
+
+.journey-layout.journey-layout--counter {
+  overflow: visible;
+  height: auto;
+  min-height: 0;
 }
 
 /* Your Journey — main content (subtitle + gauge or map) */
@@ -4334,7 +4635,7 @@
   margin: 0;
   padding-block: clamp(2px, 0.35vh, 6px);
   padding-inline: clamp(8px, 1.5vw, 14px);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   justify-content: center;
   align-items: center;

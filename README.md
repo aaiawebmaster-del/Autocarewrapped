@@ -12,7 +12,9 @@
   npm run dev
   ```
 
-  Local dev uses mock auth and sample data (see `.env.development`). Switch scenarios with `VITE_MOCK_REPORT_SCENARIO=zero-events`.
+  Local dev loads the **Dayco Incorporated** report (`1101050`) from `public/data/reports/1101050.json` via `.env.development`.
+
+  Switch mock scenarios with `VITE_MOCK_REPORT_SCENARIO=zero-events` (requires removing or clearing `VITE_DEV_RECORD_NUMBER`).
 
   ## Integration docs
 

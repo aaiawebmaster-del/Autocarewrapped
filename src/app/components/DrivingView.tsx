@@ -22,6 +22,7 @@ import hourglassIcon from '../../assets/hourglass-duotone-solid-full.png';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
 import { FullDiagnosticsPanel } from './FullDiagnosticsPanel';
 import { DashboardPrndl } from './DashboardPrndl';
+import { DashboardWideDecor } from './DashboardWideDecor';
 import { buildJourneySections, type JourneySection } from '@/lib/buildJourneySections';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 
@@ -81,253 +82,6 @@ function getActiveNavCheckpoint(
   if (!screen) return null;
   if (screen === 'hood') return isTirePhase(hoodPhase) ? 'tires' : 'hood';
   return screen;
-}
-
-// ── Under the Hood: oil pour + dipstick animation ─────────────────────────────
-function UnderTheHood({ embedded = false }: { embedded?: boolean }) {
-  const oilOp = useMotionValue(0);
-  const funnelLevel = useMotionValue(0);
-  const dipY = useMotionValue(-330);
-  const revealOp = useMotionValue(0);
-  const oilMarkOp = useMotionValue(0);
-
-  const cleanRodOp = useTransform(oilMarkOp, v => 1 - v);
-  const oilSecOp = useTransform(oilOp, v => v * 0.6);
-  const funnelOilTranslateY = useTransform(funnelLevel, v => 268 - v * 120);
-
-  useEffect(() => {
-    let stopped = false;
-    (async () => {
-      await new Promise<void>(r => setTimeout(r, 600));
-      if (stopped) return;
-
-      animate(oilOp, 1, { duration: 0.4 });
-      await animate(funnelLevel, 0.55, { duration: 2.4, ease: [0.4, 0, 1, 1] });
-      if (stopped) return;
-
-      await animate(oilOp, 0, { duration: 0.4 });
-      await new Promise<void>(r => setTimeout(r, 700));
-      if (stopped) return;
-
-      await animate(dipY, 0, { duration: 1.5, ease: [0.4, 0, 0.2, 1] });
-      if (stopped) return;
-      await new Promise<void>(r => setTimeout(r, 800));
-
-      await animate(dipY, -195, { duration: 1.2, ease: [0.4, 0, 0.2, 1] });
-      if (stopped) return;
-
-      animate(oilMarkOp, 1, { duration: 0.7 });
-      await animate(revealOp, 1, { duration: 0.9, delay: 0.3 });
-    })();
-    return () => { stopped = true; };
-  }, []);
-
-  const animationBlock = (
-    <div className={`flex flex-col items-center justify-center gap-3 ${embedded ? 'h-full w-full py-2' : 'flex-1'}`}>
-        <div className={`uth-animation-stage${embedded ? ' uth-animation-stage--embedded' : ''}`}>
-
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 360 370">
-            <defs>
-              <linearGradient id="uthSurf" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-                <stop offset="0%" stopColor="#4a5568" />
-                <stop offset="100%" stopColor="#1a202c" />
-              </linearGradient>
-              <linearGradient id="uthFunnel" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#5a6a7a" />
-                <stop offset="40%" stopColor="#90a3b2" />
-                <stop offset="70%" stopColor="#6a7a8a" />
-                <stop offset="100%" stopColor="#4a5a6a" />
-              </linearGradient>
-              <linearGradient id="uthOil" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f3a040" />
-                <stop offset="100%" stopColor="#a05818" />
-              </linearGradient>
-              <clipPath id="uthFunnelClip">
-                <path d="M 100 148 L 162 268 L 198 268 L 260 148 Z" />
-              </clipPath>
-            </defs>
-
-            <rect x="0" y="266" width="360" height="104" fill="url(#uthSurf)" />
-            <line x1="0" y1="266" x2="360" y2="266" stroke="#6a7a8a" strokeWidth="2.5" />
-            {[282, 300, 320, 342].map((y, i) => (
-              <line key={i} x1="0" y1={y} x2="360" y2={y} stroke="#252e3a" strokeWidth="1" opacity="0.6" />
-            ))}
-
-            <path d="M 100 148 L 162 268 L 198 268 L 260 148 Z" fill="url(#uthFunnel)" />
-
-            <motion.rect
-              x="98" y={0} width="164" height={200}
-              fill="url(#uthOil)" opacity={0.88}
-              clipPath="url(#uthFunnelClip)"
-              style={{ y: funnelOilTranslateY }}
-            />
-
-            <ellipse cx="180" cy="148" rx="80" ry="16" fill="#8090a0" />
-            <ellipse cx="180" cy="148" rx="65" ry="10" fill="#354555" />
-            <ellipse cx="180" cy="148" rx="57" ry="6" fill="#1a2835" />
-            <path d="M 240 145 A 80 16 0 0 1 260 148" stroke="#b8cad8" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-            <path d="M 104 154 L 165 264" stroke="#9eaeba" strokeWidth="2" strokeLinecap="round" opacity="0.3" />
-            <path d="M 256 154 L 196 264" stroke="#384858" strokeWidth="2" strokeLinecap="round" opacity="0.25" />
-
-            <ellipse cx="180" cy="268" rx="20" ry="5" fill="#0a0f18" />
-            <rect x="174" y="268" width="12" height="26" fill="#4a5a6a" />
-            <rect x="176" y="268" width="4" height="26" fill="#6a7a8a" opacity="0.4" />
-
-            <motion.path
-              d="M 258 60 Q 226 95 184 145"
-              stroke="#f3901d"
-              strokeWidth="13"
-              strokeLinecap="round"
-              fill="none"
-              style={{ opacity: oilOp }}
-            />
-            <motion.path
-              d="M 254 64 Q 222 98 181 148"
-              stroke="#c07010"
-              strokeWidth="6"
-              strokeLinecap="round"
-              fill="none"
-              style={{ opacity: oilSecOp }}
-            />
-          </svg>
-
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              right: '8px',
-              top: '0px',
-              transform: 'rotate(-42deg)',
-              transformOrigin: 'bottom left',
-              width: '76px',
-            }}
-          >
-            <div className="flex flex-col items-center">
-              <div className="w-6 h-3 rounded-t-md bg-[#f3901d]" />
-              <div className="w-6 h-5 bg-gray-700 border-x border-gray-600" />
-              <div
-                className="w-[68px] h-[88px] bg-[#2a3848] border border-gray-600 rounded-b-lg relative overflow-hidden flex items-center justify-center"
-              >
-                <div className="absolute bottom-0 left-0 right-0 h-14 bg-[#f3901d]/20" />
-                <div className="relative z-10 bg-gray-100 rounded text-center px-1 py-0.5">
-                  <div style={{ fontSize: '7px', fontWeight: 'bold', color: '#1a1a2e' }}>Data</div>
-                  <div style={{ fontSize: '7px', fontWeight: 'bold', color: '#1a1a2e' }}>Standards</div>
-                  <div style={{ fontSize: '6px', color: '#c97010' }}>autocare</div>
-                </div>
-                <div className="absolute left-1.5 top-1 bottom-1 w-[3px] bg-white/10 rounded-full" />
-              </div>
-            </div>
-          </div>
-
-          <motion.div
-            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-            style={{ top: '148px', y: dipY, zIndex: 10 }}
-          >
-            <div className="flex flex-col items-center">
-              <div
-                className="w-8 h-8 rounded-full border-4 border-gray-300 bg-gray-600 flex items-center justify-center"
-                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
-              >
-                <div className="w-2.5 h-2.5 rounded-full bg-gray-200" />
-              </div>
-
-              <div className="relative flex justify-center mt-0.5">
-                <div className="absolute left-5 top-[2px] flex items-center">
-                  <div className="w-3 h-[1.5px] bg-gray-400 mr-1" />
-                  <span style={{ fontSize: '8px', color: '#d1d5db', fontWeight: 'bold', whiteSpace: 'nowrap' }}>SUPER SPEC</span>
-                </div>
-                <div className="absolute left-5 top-[38px] flex items-center">
-                  <div className="w-3 h-[1.5px] bg-gray-400 mr-1" />
-                  <span style={{ fontSize: '8px', color: '#d1d5db', fontWeight: 'bold', whiteSpace: 'nowrap' }}>ISHOP</span>
-                </div>
-                <div
-                  className="w-[7px] h-[72px] rounded-sm"
-                  style={{
-                    background: 'linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%)',
-                    boxShadow: 'inset 1px 0 2px rgba(255,255,255,0.4)',
-                  }}
-                />
-              </div>
-
-              <div className="relative flex items-center justify-center">
-                <motion.div
-                  className="absolute right-4 flex items-center gap-0.5"
-                  style={{ opacity: oilMarkOp }}
-                >
-                  <span style={{ fontSize: '8px', color: BRAND_ORANGE, fontWeight: 'bold', whiteSpace: 'nowrap' }}>50%</span>
-                  <div className="w-3 h-[1.5px] bg-[#f3901d]" />
-                </motion.div>
-                <div className="w-[11px] h-[3px] rounded-full bg-[#f3901d]" />
-              </div>
-
-              <div className="relative flex justify-center">
-                <div className="absolute left-5 top-[8px] flex items-center">
-                  <div className="w-3 h-[1.5px] bg-gray-500 mr-1" />
-                  <span style={{ fontSize: '8px', color: '#9ca3af', fontWeight: 'bold', whiteSpace: 'nowrap' }}>PIES</span>
-                </div>
-                <div className="absolute left-5 top-[50px] flex items-center">
-                  <div className="w-3 h-[1.5px] bg-gray-500 mr-1" />
-                  <span style={{ fontSize: '8px', color: '#9ca3af', fontWeight: 'bold', whiteSpace: 'nowrap' }}>ACES</span>
-                </div>
-                <motion.div
-                  className="w-[7px] h-[72px] rounded-sm absolute"
-                  style={{
-                    background: 'linear-gradient(180deg, #d08828 0%, #9e6018 55%, #7a4810 100%)',
-                    opacity: oilMarkOp,
-                  }}
-                />
-                <motion.div
-                  className="w-[7px] h-[72px] rounded-sm absolute"
-                  style={{
-                    background: 'linear-gradient(180deg, #d1d5db, #9ca3af)',
-                    opacity: cleanRodOp,
-                  }}
-                />
-                <div className="w-[7px] h-[72px]" />
-              </div>
-
-              <div className="w-[5px] h-5 bg-gray-400 rounded-b-full" />
-            </div>
-          </motion.div>
-        </div>
-
-        <motion.div className="text-center px-4" style={{ opacity: revealOp }}>
-          <p className={`text-[#f3901d] font-bold ${embedded ? 'text-base' : 'text-xl'}`}>you have 50% of the standards!</p>
-          <p className="text-gray-500 text-xs mt-1 tracking-wide">Subscribe to more standards to fill up your dipstick</p>
-        </motion.div>
-    </div>
-  );
-
-  if (embedded) {
-    return (
-      <motion.div
-        className="uth-embedded h-full w-full flex flex-col overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.45 }}
-      >
-        <div className="shrink-0 text-center py-1">
-          <h2 className="text-[#f3901d] text-lg font-bold">Under the Hood</h2>
-          <p className="text-gray-400 text-xs mt-0.5">Your Standards Inventory</p>
-        </div>
-        {animationBlock}
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div
-      className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900 to-black z-40 flex flex-col"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className="mt-[80px] px-6 py-4 bg-gray-800/30 text-center shrink-0">
-        <h2 className="text-[#f3901d] text-2xl font-bold">Under the Hood</h2>
-        <p className="text-gray-400 text-sm mt-0.5">Your Standards Inventory</p>
-      </div>
-      {animationBlock}
-    </motion.div>
-  );
 }
 
 const DIAGNOSTICS_TRANSITION_MS = 2000;
@@ -455,34 +209,12 @@ function PreJourneyStage({
   memberDisplayName?: string;
   reportYear: number;
 }) {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const startFloatRef = useRef<HTMLDivElement>(null);
   const isMobileLayout = useIsCounterMobile();
-  const startLeftRatio = phase === 'intro' && !isMobileLayout ? 0.21 : 0.5;
+  const isIntroDesktop = phase === 'intro' && !isMobileLayout;
   const showStartButton = !(isMobileLayout && phase === 'intro');
-  const [startButtonLeftPx, setStartButtonLeftPx] = useState<number | null>(null);
-
-  useLayoutEffect(() => {
-    const stage = stageRef.current;
-    const startFloat = startFloatRef.current;
-    if (!stage || !startFloat || !showStartButton) return;
-
-    const syncStartPosition = () => {
-      const stageWidth = stage.clientWidth;
-      const buttonWidth = startFloat.offsetWidth;
-      setStartButtonLeftPx(stageWidth * startLeftRatio - buttonWidth / 2);
-    };
-
-    syncStartPosition();
-    const observer = new ResizeObserver(syncStartPosition);
-    observer.observe(stage);
-    observer.observe(startFloat);
-    return () => observer.disconnect();
-  }, [startLeftRatio, showStartButton]);
 
   return (
     <div
-      ref={stageRef}
       className={[
         'pre-journey-stage',
         phase === 'intro' ? 'pre-journey-stage--intro' : 'pre-journey-stage--landing',
@@ -490,16 +222,12 @@ function PreJourneyStage({
     >
       {showStartButton ? (
         <motion.div
-          ref={startFloatRef}
-          className="pre-journey-stage__start-float"
-          initial={false}
-          animate={{
-            left: startButtonLeftPx ?? '50%',
-            x: startButtonLeftPx == null ? '-50%' : 0,
-            y: '-50%',
-          }}
-          style={{ top: '50%' }}
-          transition={INTRO_START_BUTTON_TRANSITION}
+          className={[
+            'pre-journey-stage__start-float',
+            isIntroDesktop ? 'pre-journey-stage__start-float--grid' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
           <StartButton onClick={onStart} inactive={phase === 'intro'} reportYear={reportYear} />
         </motion.div>
@@ -577,6 +305,91 @@ const NAV_TOP = '20px';
 // Text area: nav top (20px) + nav height (arrow size) + 45px gap (25px original + 20px extra)
 const TEXT_TOP = 'calc(20px + clamp(28px, 3.5vw, 36px) + 45px)';
 const COUNTER_MOBILE_BREAKPOINT = 640;
+
+const DASHBOARD_VENT_SYNC_SELECTORS = [
+  '.journey-counter-panel__message-row',
+  '.pre-journey-stage__intro-panel',
+  '.pre-journey-stage__start-float',
+  '.journey-layout__nav-message-panel',
+] as const;
+
+function useDashboardVentMetrics(
+  panelRef: React.RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+) {
+  useLayoutEffect(() => {
+    if (!enabled) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const resolveTarget = (): HTMLElement | null => {
+      for (const selector of DASHBOARD_VENT_SYNC_SELECTORS) {
+        const element = panel.querySelector(selector);
+        if (element instanceof HTMLElement && element.getBoundingClientRect().height > 0) {
+          return element;
+        }
+      }
+      return null;
+    };
+
+    let observedTarget: HTMLElement | null = null;
+
+    const update = () => {
+      const root = panelRef.current;
+      if (!root) return;
+
+      const target = resolveTarget();
+
+      if (target !== observedTarget) {
+        if (observedTarget) {
+          resizeObserver.unobserve(observedTarget);
+        }
+        observedTarget = target;
+        if (target) {
+          resizeObserver.observe(target);
+        }
+      }
+
+      if (!target) {
+        root.style.removeProperty('--dashboard-vent-height');
+        root.style.removeProperty('--dashboard-vent-top');
+        return;
+      }
+
+      const panelRect = root.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      root.style.setProperty('--dashboard-vent-height', `${Math.round(targetRect.height)}px`);
+      root.style.setProperty('--dashboard-vent-top', `${Math.round(targetRect.top - panelRect.top)}px`);
+    };
+
+    const resizeObserver = new ResizeObserver(update);
+
+    update();
+    resizeObserver.observe(panel);
+
+    const mutationObserver = new MutationObserver(update);
+    mutationObserver.observe(panel, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
+    window.addEventListener('resize', update);
+
+    const syncTimers = [
+      window.setTimeout(update, 80),
+      window.setTimeout(update, 420),
+    ];
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener('resize', update);
+      syncTimers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [enabled, panelRef]);
+}
 
 function useIsCounterMobile() {
   const [isCounterMobile, setIsCounterMobile] = useState(false);
@@ -1615,6 +1428,7 @@ function DashboardPanel({
     },
     [onPanelRef],
   );
+  useDashboardVentMetrics(panelRef, showDashboardChrome);
   const [mapPanelHeight, setMapPanelHeight] = useState(JOURNEY_MAP_PANEL_MAX_HEIGHT);
   const journeyResizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isResizingJourneyPanel, setIsResizingJourneyPanel] = useState(false);
@@ -1838,116 +1652,125 @@ function DashboardPanel({
         <DashboardPanelArch />
       )}
 
-      {/* Nav row — hidden on Under the Hood */}
+      {/* Wide decorative side panels — outside the 900px content shell */}
       {showDashboardChrome && (
-      <div className="dashboard-panel__nav" style={{ top: NAV_TOP }}>
-        <div className="dashboard-panel__nav-flank dashboard-panel__nav-flank--left">
-          <DashboardTireWarningIcon />
+        <div className="dashboard-wide-decor" aria-hidden>
+          <DashboardWideDecor />
         </div>
-
-        <div className="dashboard-panel__nav-cluster">
-          <button
-            type="button"
-            className="dashboard-panel__signal dashboard-panel__signal--left"
-            onClick={onBack}
-            disabled={isFirstSlide}
-            aria-label="previous"
-          >
-            <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
-              <path d={ARROW_PATH} />
-            </svg>
-          </button>
-
-          <DashboardPrndl activeGear={isLanding ? 'P' : 'D'} />
-
-          <button
-            type="button"
-            className="dashboard-panel__signal dashboard-panel__signal--right"
-            onClick={onNext}
-            disabled={isLanding}
-            aria-label="next"
-          >
-            <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
-              <path d={ARROW_PATH} />
-            </svg>
-          </button>
-        </div>
-
-        <div className="dashboard-panel__nav-flank dashboard-panel__nav-flank--right">
-          <DashboardGasIcon />
-        </div>
-      </div>
       )}
 
-      {/* Body area — hidden on hood (grey arch only) */}
-      {!isHood && (
-      <div
-        className={[
-          'dashboard-panel__body',
-          isLanding ? 'dashboard-body--landing' : '',
-          showPreJourney ? 'dashboard-body--pre-journey' : '',
-          isJourney
-            ? `dashboard-body--journey${applyMapPanelLayout ? ' dashboard-body--journey-nav' : ''}${applyCounterPanelLayout ? ' dashboard-body--journey-counter' : ''}`
-            : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        style={
-          isCounterScene || isMapScene
-            ? undefined
-            : {
-                position: 'absolute',
-                top: TEXT_TOP,
-                left: '8%',
-                right: '8%',
-                bottom: showPreJourney ? '26%' : isJourney ? '14%' : '26%',
-                overflow: isMapScene || showPreJourney ? 'visible' : 'hidden',
+      {/* Nav + body — centered primary content (max 900px) */}
+      {showDashboardChrome && (
+        <div className="dashboard-content-shell">
+          <div className="dashboard-panel__nav" style={{ top: NAV_TOP }}>
+            <div className="dashboard-panel__nav-flank dashboard-panel__nav-flank--left">
+              <DashboardTireWarningIcon />
+            </div>
+
+            <div className="dashboard-panel__nav-cluster">
+              <button
+                type="button"
+                className="dashboard-panel__signal dashboard-panel__signal--left"
+                onClick={onBack}
+                disabled={isFirstSlide}
+                aria-label="previous"
+              >
+                <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
+                  <path d={ARROW_PATH} />
+                </svg>
+              </button>
+
+              <DashboardPrndl activeGear={isLanding ? 'P' : 'D'} />
+
+              <button
+                type="button"
+                className="dashboard-panel__signal dashboard-panel__signal--right"
+                onClick={onNext}
+                disabled={isLanding}
+                aria-label="next"
+              >
+                <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
+                  <path d={ARROW_PATH} />
+                </svg>
+              </button>
+            </div>
+
+            <div className="dashboard-panel__nav-flank dashboard-panel__nav-flank--right">
+              <DashboardGasIcon />
+            </div>
+          </div>
+
+          {/* Body area — hidden on hood (grey arch only) */}
+          {!isHood && (
+            <div
+              className={[
+                'dashboard-panel__body',
+                isLanding ? 'dashboard-body--landing' : '',
+                showPreJourney ? 'dashboard-body--pre-journey' : '',
+                isJourney
+                  ? `dashboard-body--journey${applyMapPanelLayout ? ' dashboard-body--journey-nav' : ''}${applyCounterPanelLayout ? ' dashboard-body--journey-counter' : ''}`
+                  : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              style={
+                isCounterScene || isMapScene
+                  ? undefined
+                  : {
+                      position: 'absolute',
+                      top: TEXT_TOP,
+                      left: 0,
+                      right: 0,
+                      bottom: showPreJourney ? '8%' : isJourney ? '14%' : '26%',
+                      overflow: isMapScene || showPreJourney ? 'visible' : 'hidden',
+                    }
               }
-        }
-      >
-        <AnimatePresence mode="wait">
-          {isJourney ? (
-            <motion.div
-              key="journey-body"
-              className="dashboard-panel__stage dashboard-panel__stage--journey"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
             >
-              <YourJourney
-                key={`journey-${journeyInitialSectionIdx ?? 0}-${journeyInitialGpsPhase ?? 1}`}
-                onSectionChange={handleJourneySectionChange}
-                onGoToHood={onGoToHood}
-                initialSectionIdx={journeyInitialSectionIdx}
-                initialGpsPhase={journeyInitialGpsPhase}
-                journeySections={journeySections}
-                eventsMetrics={report.events}
-              />
-            </motion.div>
-          ) : showPreJourney ? (
-            <motion.div
-              key="pre-journey-body"
-              className="dashboard-panel__stage dashboard-panel__stage--pre-journey"
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <PreJourneyStage
-                phase={preJourneyPhase}
-                currentSlide={currentSlide ?? 0}
-                onStart={onStart}
-                onBack={onBack}
-                onNext={onNext}
-                companyName={report.company.name}
-                memberDisplayName={undefined}
-                reportYear={report.reportYear}
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
+              <AnimatePresence mode="wait">
+                {isJourney ? (
+                  <motion.div
+                    key="journey-body"
+                    className="dashboard-panel__stage dashboard-panel__stage--journey"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+                  >
+                    <YourJourney
+                      key={`journey-${journeyInitialSectionIdx ?? 0}-${journeyInitialGpsPhase ?? 1}`}
+                      onSectionChange={handleJourneySectionChange}
+                      onGoToHood={onGoToHood}
+                      initialSectionIdx={journeyInitialSectionIdx}
+                      initialGpsPhase={journeyInitialGpsPhase}
+                      journeySections={journeySections}
+                      eventsMetrics={report.events}
+                    />
+                  </motion.div>
+                ) : showPreJourney ? (
+                  <motion.div
+                    key="pre-journey-body"
+                    className="dashboard-panel__stage dashboard-panel__stage--pre-journey"
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                  >
+                    <PreJourneyStage
+                      phase={preJourneyPhase}
+                      currentSlide={currentSlide ?? 0}
+                      onStart={onStart}
+                      onBack={onBack}
+                      onNext={onNext}
+                      companyName={report.company.name}
+                      memberDisplayName={undefined}
+                      reportYear={report.reportYear}
+                    />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
       )}
 
     </motion.div>

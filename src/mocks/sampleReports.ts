@@ -1,40 +1,46 @@
 import type { WrappedReport, WrappedReportScenario } from '@/types/wrappedReport';
 
+/** Dayco Incorporated — sourced from public/data/reports/1101050.json (Excel import). */
 const daycoReport: WrappedReport = {
   reportYear: 2026,
   company: {
-    id: 'dayco-inc',
+    id: '1101050',
     name: 'Dayco Incorporated',
+    recordNumber: 1101050,
   },
   journey: {
     membershipTenureYears: 56,
-    activeContacts: 87,
-    communityMembers: 88,
-    communities: ['AWDA Warehouse Distributors'],
-    committeeMembers: 1,
+    activeContacts: 90,
+    communityMembers: 176,
+    communities: ['AWDA Community'],
+    committeeMembers: 2,
   },
   events: {
-    inPersonAttended: 2,
+    inPersonAttended: 5,
     inPersonTotal: 8,
-    attendancePct: 25,
-    webinarCount: 38,
+    attendancePct: 63,
+    webinarCount: 18,
   },
   products: {
-    trendLensUsers: 7,
-    trendLensContactPct: 8,
-    demandIndexGroups: 8,
-    demandIndexGroupsTotal: 200,
+    trendLensUsers: 0,
+    trendLensContactPct: 0,
+    demandIndexGroups: 7,
+    demandIndexGroupsTotal: 7,
     academyUsers: 2,
-    academyCoursesCompleted: 2,
+    academyCoursesCompleted: 4,
   },
   factbook: {
-    users: 4,
-    contactPct: 5,
+    users: 0,
+    contactPct: 0,
   },
   standards: {
-    subscribedCount: 4,
-    subscribedProducts: ['IPO', 'ISHOP', 'ACES', 'PIES'],
-    subscribedPct: 40,
+    subscribedCount: 3,
+    subscribedProducts: [
+      'PAdb - Product Attribute database',
+      'VCdb - (North America) Light Duty & Powersports',
+      'VCdb - (North America) Medium & Heavy Duty',
+    ],
+    subscribedPct: 100,
   },
 };
 

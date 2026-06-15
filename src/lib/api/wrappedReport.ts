@@ -39,6 +39,10 @@ export async function fetchWrappedReport(): Promise<WrappedReport> {
     return fetchStaticCompanyReport(appConfig.embedRecordNumber);
   }
 
+  if (import.meta.env.DEV && appConfig.devRecordNumber) {
+    return fetchStaticCompanyReport(appConfig.devRecordNumber);
+  }
+
   if (appConfig.useMockAuth) {
     return getSampleReport(appConfig.mockScenario);
   }

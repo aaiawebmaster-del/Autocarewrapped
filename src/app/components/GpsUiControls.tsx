@@ -40,16 +40,6 @@ function GpsUiSearchIcon() {
   );
 }
 
-function GpsUiMenuIcon() {
-  return (
-    <svg className="gps-ui-controls__btn-svg" viewBox="0 0 24 24" aria-hidden>
-      <path d="M4 7 H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M4 12 H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M4 17 H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function GpsUiLocationIcon() {
   return (
     <svg className="gps-ui-controls__btn-svg" viewBox="0 0 24 24" aria-hidden>
@@ -79,12 +69,6 @@ export function GpsUiControls({ className }: GpsUiControlsProps) {
       <div className="gps-ui-controls__cluster gps-ui-controls__cluster--top-left">
         <GpsUiControlButton label="Search map" className="gps-ui-controls__btn--search">
           <GpsUiSearchIcon />
-        </GpsUiControlButton>
-      </div>
-
-      <div className="gps-ui-controls__cluster gps-ui-controls__cluster--top-right">
-        <GpsUiControlButton label="Open menu" className="gps-ui-controls__btn--menu">
-          <GpsUiMenuIcon />
         </GpsUiControlButton>
       </div>
 
