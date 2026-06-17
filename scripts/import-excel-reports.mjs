@@ -16,6 +16,22 @@ const IN_PERSON_EVENTS_TOTAL = 8;
 const IN_PERSON_CATEGORIES = new Set(['CONF', 'Networking']);
 const DEMAND_INDEX_EXCLUDED = new Set(['Annual Unit Volumes']);
 
+/** Manual Kick the Tires / Factbook values until TrendLens & Factbook APIs are wired. */
+const REPORT_PRODUCT_OVERRIDES = {
+  '1101050': {
+    products: {
+      trendLensUsers: 4,
+      trendLensContactPct: 6,
+      demandIndexGroups: 7,
+      demandIndexGroupsTotal: 200,
+    },
+    factbook: {
+      users: 3,
+      contactPct: 3,
+    },
+  },
+};
+
 const xlsxPath = process.env.WRAPPED_XLSX ?? DEFAULT_XLSX;
 
 function sheetRows(workbook, name) {
@@ -170,6 +186,14 @@ function buildReports(workbook) {
             : 0,
       },
     };
+
+    const override = REPORT_PRODUCT_OVERRIDES[recordNumber];
+    if (override?.products) {
+      Object.assign(report.products, override.products);
+    }
+    if (override?.factbook) {
+      Object.assign(report.factbook, override.factbook);
+    }
 
     return report;
   });

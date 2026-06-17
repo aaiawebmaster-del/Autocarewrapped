@@ -18,7 +18,8 @@
 
   ## Integration docs
 
-  - [Architecture brief (print to PDF)](docs/architecture-brief.html)
+  - [Architecture brief (HTML)](docs/architecture-brief.html)
+  - [Architecture brief (PDF)](docs/auto-care-wrapped-architecture.pdf)
   - [Discovery checklist](docs/discovery-checklist.md)
   - [Snowflake column mapping](docs/snowflake-column-mapping.md)
   - [Reference API](server/README.md)

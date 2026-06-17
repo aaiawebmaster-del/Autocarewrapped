@@ -37,13 +37,13 @@ import iconPlus from '../../assets/map-controls/plus-solid-full.png';
 import iconMinus from '../../assets/map-controls/minus-solid-full.png';
 import circleChevronLeft from '../../assets/circle-chevron-left-solid-full.png';
 import circleChevronRight from '../../assets/circle-chevron-right-solid-full.png';
-import hoodPcdbIcon from '../../assets/hood-pcdb-icon.png';
-import hoodVcdbIcon from '../../assets/hood-vcdb-icon.png';
 import {
   buildTireReadoutConfig,
   getHoodStandardsMessages,
+  isTirePhaseEmpty,
   type TireReadoutConfig,
 } from '@/lib/contentVariants';
+import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import type { WrappedReport } from '@/types/wrappedReport';
 
 export const DASHBOARD_ARCH_PATH = svgPaths.p33654d00;
@@ -144,11 +144,6 @@ function hoodReadoutDimensions(widthPx: number) {
     readoutBezelPadding: `${Math.round(12 * scale)}px ${Math.round(10 * scale)}px ${Math.round(16 * scale)}px`,
   };
 }
-const VISIT_TRENDLENS_HREF = 'https://www.autocare.org/trendlens';
-const LEARN_DEMANDINDEX_HREF = 'https://www.autocare.org/demandindex';
-const FACTBOOK_2027_HREF = 'https://www.autocare.org/factbook';
-const EXPLORE_ACADEMY_HREF = 'https://www.autocare.org/education';
-
 type TireCtaConfig = {
   message: string;
   linkLabel: string;
@@ -160,26 +155,26 @@ const TIRE_CTA_CONFIG: Partial<Record<TirePhase, TireCtaConfig>> = {
   trendlens: {
     message: 'Get the most interactive and up to date economic data',
     linkLabel: 'Visit TrendLens',
-    href: VISIT_TRENDLENS_HREF,
+    href: EXTERNAL_CTA_LINKS.visitTrendLens,
     nextTarget: 'demandindex',
   },
   demandindex: {
     message:
       'See the full list of product groups to see what else might be eligible to subscribe to.',
     linkLabel: 'Learn More',
-    href: LEARN_DEMANDINDEX_HREF,
+    href: EXTERNAL_CTA_LINKS.demandIndexLearnMore,
     nextTarget: 'factbook',
   },
   factbook: {
     message: 'Send the latest factbook to your team to find out what you missed!',
-    linkLabel: 'Facebook 2027',
-    href: FACTBOOK_2027_HREF,
+    linkLabel: 'Factbook 2027',
+    href: EXTERNAL_CTA_LINKS.factbook2027,
     nextTarget: 'academy',
   },
   academy: {
     message: "See what's new in our course catalog",
     linkLabel: 'Explore Academy Courses',
-    href: EXPLORE_ACADEMY_HREF,
+    href: EXTERNAL_CTA_LINKS.exploreAcademyCourses,
     nextTarget: null,
   },
 };
@@ -413,9 +408,9 @@ const HOOD_POPUP_MESSAGES_FALLBACK = [
 const HOOD_VIP_MESSAGE =
   'Make sure your databases are up-to-date with the latest releases';
 
-const EXPLORE_VIP_HREF = 'https://autocare.org/';
-const SEE_ALL_SUBSCRIPTIONS_HREF =
-  'https://www.autocare.org/data-standards/subscriptions';
+const EXPLORE_VIP_HREF = EXTERNAL_CTA_LINKS.exploreAutoCareVip;
+const SEE_LATEST_RELEASES_HREF = EXTERNAL_CTA_LINKS.seeLatestReleases;
+const SEE_ALL_SUBSCRIPTIONS_HREF = EXTERNAL_CTA_LINKS.seeAllSubscriptions;
 
 const HOOD_CHECKING_POPUP_INDEX = 0;
 const HOOD_SUBSCRIBED_POPUP_INDEX = 1;
@@ -481,12 +476,14 @@ function HoodNavChevron({
 function HoodTypewriterText({
   text,
   onComplete,
+  onTypingStart,
   charDelayMs = 42,
   scrollContainerRef,
   showCursorAfterComplete = false,
 }: {
   text: string;
   onComplete?: () => void;
+  onTypingStart?: () => void;
   charDelayMs?: number;
   scrollContainerRef?: RefObject<HTMLDivElement | null>;
   /** Keep blinking cursor visible after typing until the user clicks next. */
@@ -494,10 +491,12 @@ function HoodTypewriterText({
 }) {
   const [count, setCount] = useState(0);
   const completedRef = useRef(false);
+  const typingStartedRef = useRef(false);
 
   useEffect(() => {
     setCount(0);
     completedRef.current = false;
+    typingStartedRef.current = false;
     const el = scrollContainerRef?.current;
     if (el) el.scrollTop = 0;
   }, [text, scrollContainerRef]);
@@ -510,9 +509,13 @@ function HoodTypewriterText({
       }
       return;
     }
+    if (count === 1 && !typingStartedRef.current) {
+      typingStartedRef.current = true;
+      onTypingStart?.();
+    }
     const id = window.setTimeout(() => setCount((c) => c + 1), charDelayMs);
     return () => window.clearTimeout(id);
-  }, [count, text, charDelayMs, onComplete]);
+  }, [count, text, charDelayMs, onComplete, onTypingStart]);
 
   useEffect(() => {
     const el = scrollContainerRef?.current;
@@ -528,6 +531,75 @@ function HoodTypewriterText({
       <span>{text.slice(0, count)}</span>
       {showCursor && <span className="hood-standards-popup__cursor" aria-hidden />}
     </p>
+  );
+}
+
+function HoodStandardsGauge({
+  targetProgress,
+  animateFill,
+  showFull,
+}: {
+  targetProgress: number;
+  animateFill: boolean;
+  showFull: boolean;
+}) {
+  const clamped = Math.min(100, Math.max(0, targetProgress));
+  const displayPct = Math.round(clamped);
+  const [fillProgress, setFillProgress] = useState(0);
+
+  useEffect(() => {
+    if (clamped === 0 || (!animateFill && !showFull)) {
+      setFillProgress(0);
+      return;
+    }
+
+    if (showFull) {
+      setFillProgress(clamped);
+      return;
+    }
+
+    setFillProgress(0);
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFillProgress(clamped));
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [clamped, animateFill, showFull]);
+
+  const labelPct = Math.round(fillProgress);
+  const useTransition = animateFill && !showFull;
+
+  return (
+    <div
+      className="hood-standards-gauge"
+      role="img"
+      aria-label={
+        fillProgress > 0
+          ? `Data standards subscription ${displayPct} percent`
+          : 'Checking data standards levels'
+      }
+    >
+      <div className="hood-standards-gauge__shell">
+        <div className="hood-standards-gauge__caps" aria-hidden>
+          <span className="hood-standards-gauge__cap" />
+          <span className="hood-standards-gauge__cap" />
+        </div>
+        <div className="hood-standards-gauge__well">
+          <div
+            className={`hood-standards-gauge__fill${useTransition ? '' : ' hood-standards-gauge__fill--instant'}`}
+            style={{ height: `${fillProgress}%` }}
+          >
+            {labelPct >= 12 && (
+              <span className="hood-standards-gauge__label">{labelPct}%</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -548,18 +620,28 @@ function HoodStandardsPopup({
   showNavButtons?: boolean;
   hoodMessages: ReturnType<typeof getHoodStandardsMessages>;
 }) {
-  const [typingDone, setTypingDone] = useState(false);
   const textAreaRef = useRef<HTMLDivElement>(null);
   const message = getHoodPopupMessage(index, hoodMessages);
-  const isVip = index === HOOD_VIP_POPUP_INDEX;
   const isMissing = index === HOOD_MISSING_POPUP_INDEX;
+  const databaseAccessIcons = hoodMessages.databaseAccessIcons;
+  const [gaugeFillStarted, setGaugeFillStarted] = useState(false);
+  const gaugeTarget =
+    index === HOOD_CHECKING_POPUP_INDEX ? 0 : hoodMessages.subscribedPct;
+  const gaugeAnimateFill =
+    index === HOOD_SUBSCRIBED_POPUP_INDEX && gaugeFillStarted;
+  const gaugeShowFull = index > HOOD_SUBSCRIBED_POPUP_INDEX;
 
   useEffect(() => {
-    setTypingDone(false);
-  }, [index, message]);
+    setGaugeFillStarted(false);
+  }, [index]);
+
+  const handleGaugeTypingStart = useCallback(() => {
+    if (index === HOOD_SUBSCRIBED_POPUP_INDEX) {
+      setGaugeFillStarted(true);
+    }
+  }, [index]);
 
   const handleTypeComplete = useCallback(() => {
-    setTypingDone(true);
     onTypeComplete?.();
   }, [onTypeComplete]);
 
@@ -571,80 +653,139 @@ function HoodStandardsPopup({
       transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
     >
       <div className="hood-standards-popup" role="status" aria-live="polite">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={index}
-            className="hood-standards-popup__body"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <div ref={textAreaRef} className="hood-standards-popup__text-area">
-              <HoodTypewriterText
-                text={message}
-                onComplete={handleTypeComplete}
-                scrollContainerRef={textAreaRef}
-                showCursorAfterComplete={showNavButtons}
-              />
-            </div>
-            <div className="hood-standards-popup__footer">
-              {showNavButtons && typingDone && (
-                <div className="hood-standards-popup__nav">
-                  <button
-                    type="button"
-                    className="hood-standards-popup__btn hood-standards-popup__btn--back"
-                    onClick={onBackToJourney}
-                  >
-                    back
-                  </button>
-                  <div className="hood-standards-popup__nav-icons" aria-hidden>
-                    <img
-                      className="hood-standards-popup__nav-icon"
-                      src={hoodPcdbIcon}
-                      alt=""
-                      draggable={false}
-                    />
-                    <img
-                      className="hood-standards-popup__nav-icon"
-                      src={hoodVcdbIcon}
-                      alt=""
-                      draggable={false}
-                    />
-                  </div>
-                  {isVip && (
-                    <a
-                      href={EXPLORE_VIP_HREF}
-                      className="hood-standards-popup__btn hood-standards-popup__cta"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Explore VIP
-                    </a>
-                  )}
-                  {isMissing && (
-                    <a
-                      href={SEE_ALL_SUBSCRIPTIONS_HREF}
-                      className="hood-standards-popup__btn hood-standards-popup__cta"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      See All Subscriptions
-                    </a>
-                  )}
-                  <button
-                    type="button"
-                    className="hood-standards-popup__btn hood-standards-popup__btn--next"
-                    onClick={onNext}
-                    disabled={nextDisabled}
-                  >
-                    next
-                  </button>
+        <div className="hood-standards-device__side-controls hood-standards-device__side-controls--left" aria-hidden>
+          <span className="hood-standards-device__side-btn" />
+          <span className="hood-standards-device__side-btn" />
+        </div>
+        <div className="hood-standards-device__side-controls hood-standards-device__side-controls--right" aria-hidden>
+          <span className="hood-standards-device__side-btn" />
+          <span className="hood-standards-device__side-btn" />
+        </div>
+        <div className="hood-standards-device">
+          <div className="hood-standards-device__screen">
+            <div className="hood-standards-device__toolbar" aria-hidden>
+              <div className="hood-standards-device__brand">
+                <span className="hood-standards-device__led" />
+                <span className="hood-standards-device__label">Data Standards</span>
+              </div>
+              <div className="hood-standards-device__status">
+                <div className="hood-standards-device__signal">
+                  <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--1" />
+                  <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--2" />
+                  <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--3" />
+                  <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--4" />
                 </div>
+                <div className="hood-standards-device__battery">
+                  <div className="hood-standards-device__battery-body">
+                    <span className="hood-standards-device__battery-fill" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="hood-standards-popup__body">
+              <div className="hood-standards-popup__text-area">
+                <HoodStandardsGauge
+                  targetProgress={gaugeTarget}
+                  animateFill={gaugeAnimateFill}
+                  showFull={gaugeShowFull}
+                />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={index}
+                    className="hood-standards-popup__text-scroll"
+                    ref={textAreaRef}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <HoodTypewriterText
+                      text={message}
+                      onComplete={handleTypeComplete}
+                      onTypingStart={handleGaugeTypingStart}
+                      scrollContainerRef={textAreaRef}
+                      showCursorAfterComplete={showNavButtons}
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              {showNavButtons && databaseAccessIcons.length > 0 && (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`db-${index}`}
+                    className="hood-standards-popup__database-row"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <span className="hood-standards-popup__database-label">Database Access:</span>
+                    <div className="hood-standards-popup__nav-icons" aria-hidden>
+                      {databaseAccessIcons.map((icon) => (
+                        <img
+                          key={icon.id}
+                          className="hood-standards-popup__nav-icon"
+                          src={icon.src}
+                          alt={icon.label}
+                          title={icon.label}
+                          draggable={false}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               )}
             </div>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+          {showNavButtons && (
+            <div className="hood-standards-device__controls">
+              <button
+                type="button"
+                className="hood-standards-device__btn hood-standards-device__btn--back"
+                onClick={onBackToJourney}
+              >
+                BACK
+              </button>
+              <div className="hood-standards-device__controls-center">
+                {isMissing ? (
+                  <a
+                    href={SEE_ALL_SUBSCRIPTIONS_HREF}
+                    className="hood-standards-device__btn hood-standards-device__btn--cta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    SEE ALL SUBSCRIPTIONS
+                  </a>
+                ) : (
+                  <a
+                    href={EXPLORE_VIP_HREF}
+                    className="hood-standards-device__btn hood-standards-device__btn--cta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXPLORE VIP
+                  </a>
+                )}
+                <a
+                  href={SEE_LATEST_RELEASES_HREF}
+                  className="hood-standards-device__btn hood-standards-device__btn--cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  SEE LATEST RELEASES
+                </a>
+              </div>
+              <button
+                type="button"
+                className="hood-standards-device__btn hood-standards-device__btn--next"
+                onClick={onNext}
+                disabled={nextDisabled}
+              >
+                NEXT
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -733,17 +874,27 @@ function HoodCountUp({
   return <>{display}</>;
 }
 
-/** Green completion check — tablet gauge overlay and Full Diagnostics tire row. */
+/** Green check or red X — tablet gauge overlay and Full Diagnostics tire row. */
 export function HoodTireCheckBadge({
   className,
   delay = 0,
+  variant = 'success',
 }: {
   className?: string;
   delay?: number;
+  variant?: 'success' | 'fail';
 }) {
+  const isFail = variant === 'fail';
+
   return (
     <motion.span
-      className={['hood-tire-check-badge', className].filter(Boolean).join(' ')}
+      className={[
+        'hood-tire-check-badge',
+        isFail ? 'hood-tire-check-badge--fail' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
       aria-hidden
       initial={{ opacity: 0, scale: 0.35 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -756,17 +907,116 @@ export function HoodTireCheckBadge({
       }}
     >
       <svg viewBox="0 0 48 48" className="hood-tire-check-badge__svg" aria-hidden>
-        <circle cx="24" cy="24" r="22" fill="#39ff14" stroke="#bbf7d0" strokeWidth="2" />
-        <path
-          d="M14 25 L20 31 L34 16"
-          fill="none"
-          stroke="#0a0a0a"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        {isFail ? (
+          <>
+            <circle cx="24" cy="24" r="22" fill="#ef4444" stroke="#fecaca" strokeWidth="2" />
+            <path
+              d="M16 16 L32 32 M32 16 L16 32"
+              fill="none"
+              stroke="#0a0a0a"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </>
+        ) : (
+          <>
+            <circle cx="24" cy="24" r="22" fill="#39ff14" stroke="#bbf7d0" strokeWidth="2" />
+            <path
+              d="M14 25 L20 31 L34 16"
+              fill="none"
+              stroke="#0a0a0a"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </>
+        )}
       </svg>
     </motion.span>
+  );
+}
+
+/** Rugged tablet shell — battery gauge + database badges only (no nav buttons). */
+export function HoodStandardsSummaryDevice({
+  subscribedPct,
+  databaseAccessIcons,
+  className,
+  animateOnMount = true,
+}: {
+  subscribedPct: number;
+  databaseAccessIcons: ReturnType<typeof getHoodStandardsMessages>['databaseAccessIcons'];
+  className?: string;
+  animateOnMount?: boolean;
+}) {
+  const [gaugeFillStarted, setGaugeFillStarted] = useState(false);
+
+  useEffect(() => {
+    if (!animateOnMount) {
+      setGaugeFillStarted(true);
+      return;
+    }
+    setGaugeFillStarted(false);
+    const timer = window.setTimeout(() => setGaugeFillStarted(true), 450);
+    return () => window.clearTimeout(timer);
+  }, [animateOnMount, subscribedPct]);
+
+  return (
+    <div
+      className={['hood-standards-popup', 'hood-standards-summary', className]
+        .filter(Boolean)
+        .join(' ')}
+      role="img"
+      aria-label={`Data standards subscription ${Math.round(subscribedPct)} percent`}
+    >
+      <div className="hood-standards-device">
+        <div className="hood-standards-device__screen">
+          <div className="hood-standards-device__toolbar" aria-hidden>
+            <div className="hood-standards-device__brand">
+              <span className="hood-standards-device__led" />
+              <span className="hood-standards-device__label">Data Standards</span>
+            </div>
+            <div className="hood-standards-device__status">
+              <div className="hood-standards-device__signal">
+                <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--1" />
+                <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--2" />
+                <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--3" />
+                <span className="hood-standards-device__signal-bar hood-standards-device__signal-bar--4" />
+              </div>
+              <div className="hood-standards-device__battery">
+                <div className="hood-standards-device__battery-body">
+                  <span className="hood-standards-device__battery-fill" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="hood-standards-popup__body hood-standards-popup__body--summary">
+            <HoodStandardsGauge
+              targetProgress={subscribedPct}
+              animateFill={gaugeFillStarted}
+              showFull={!animateOnMount}
+            />
+            {databaseAccessIcons.length > 0 ? (
+              <div className="hood-standards-popup__database-row">
+                <span className="hood-standards-popup__database-label">Database Access:</span>
+                <div className="hood-standards-popup__nav-icons" aria-hidden>
+                  {databaseAccessIcons.map((icon) => (
+                    <img
+                      key={icon.id}
+                      className="hood-standards-popup__nav-icon"
+                      src={icon.src}
+                      alt={icon.label}
+                      title={icon.label}
+                      draggable={false}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -854,6 +1104,7 @@ function HoodTireHubReadout({
   onReadoutReady,
   onNavigateToTire,
   onFinishTireSequence,
+  onReadoutBack,
   readoutConfig,
 }: {
   tirePhase: TirePhase;
@@ -864,6 +1115,7 @@ function HoodTireHubReadout({
   onReadoutReady?: () => void;
   onNavigateToTire?: (target: TirePhase) => void;
   onFinishTireSequence?: () => void;
+  onReadoutBack?: () => void;
   readoutConfig: TireReadoutConfig;
 }) {
   const [readoutPhase, setReadoutPhase] = useState<ReadoutPhase>('idle');
@@ -898,14 +1150,24 @@ function HoodTireHubReadout({
   const showPressureGauge =
     readoutPhase === 'counting' || readoutPhase === 'secondary' || readoutPhase === 'cta';
   const showCta = readoutPhase === 'cta' && ctaConfig;
-  const showStatsNext = hasCta && readoutPhase === 'secondary';
+  const showStatsNav = readoutPhase === 'secondary';
   const showGaugeCheck = readoutPhase === 'secondary' || readoutPhase === 'cta';
-  const readoutInteractive =
-    hasCta && (readoutPhase === 'secondary' || readoutPhase === 'cta');
+  const gaugeCheckVariant = config.primaryValue === 0 ? 'fail' : 'success';
+  const readoutInteractive = readoutPhase === 'secondary' || readoutPhase === 'cta';
+  const nextTirePhase = getNextTirePhase(tirePhase);
 
   const handleCtaNext = () => {
     const target = ctaConfig?.nextTarget;
     if (target) onNavigateToTire?.(target);
+    else onFinishTireSequence?.();
+  };
+
+  const handleStatsNext = () => {
+    if (hasCta) {
+      setReadoutPhase('cta');
+      return;
+    }
+    if (nextTirePhase) onNavigateToTire?.(nextTirePhase);
     else onFinishTireSequence?.();
   };
 
@@ -964,7 +1226,7 @@ function HoodTireHubReadout({
                       damping: 22,
                     }}
                   >
-                    <HoodTireCheckBadge />
+                    <HoodTireCheckBadge variant={gaugeCheckVariant} />
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -1041,16 +1303,12 @@ function HoodTireHubReadout({
                       )}
                     </motion.p>
                   )}
-                  {showStatsNext && (
-                    <motion.button
-                      type="button"
-                      className="hood-tire-hub__btn hood-tire-hub__btn--next hood-tire-hub__btn--stats-next"
-                      {...readoutMotion}
-                      transition={{ ...readoutMotion.transition, delay: 0.15 }}
-                      onClick={() => setReadoutPhase('cta')}
-                    >
-                      Next
-                    </motion.button>
+                  {showStatsNav && (
+                    <HoodTireReadoutNav
+                      onBack={() => onReadoutBack?.()}
+                      onNext={handleStatsNext}
+                      nextDisabled={!hasCta && !nextTirePhase && !onFinishTireSequence}
+                    />
                   )}
                 </div>
               )}
@@ -1075,6 +1333,7 @@ function HoodTireHubScene({
   onReadoutReady,
   onNavigateToTire,
   onFinishTireSequence,
+  onReadoutBack,
   tireReadoutConfig,
 }: {
   phase: TirePhase;
@@ -1090,6 +1349,7 @@ function HoodTireHubScene({
   onReadoutReady: () => void;
   onNavigateToTire: (target: TirePhase) => void;
   onFinishTireSequence?: () => void;
+  onReadoutBack?: () => void;
   tireReadoutConfig: Record<TirePhase, TireReadoutConfig>;
 }) {
   const [introStep, setIntroStep] = useState<TireIntroStep>(playIntro ? 'ground' : 'done');
@@ -1259,6 +1519,7 @@ function HoodTireHubScene({
             onReadoutReady={onReadoutReady}
             onNavigateToTire={onNavigateToTire}
             onFinishTireSequence={onFinishTireSequence}
+            onReadoutBack={onReadoutBack}
             readoutConfig={tireReadoutConfig[phase]}
           />
         </div>
@@ -1461,8 +1722,10 @@ export function DashboardHoodArch({
     setPopupTyped(true);
   }, []);
 
-  const showForwardChevron = phase === 'standards' && popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX;
-  const forwardDisabled = popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped;
+  const showStandardsControls = phase === 'standards';
+  const forwardDisabled =
+    popupIndex === HOOD_CHECKING_POPUP_INDEX ||
+    (popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped);
   const pairElevated = popupIndex >= 1 && !showMissing;
   const pairRisenTop = pairElevated ? HOOD_DIPSTICK_ELEVATED_TOP : HOOD_DIPSTICK_RISE_TOP;
 
@@ -1563,7 +1826,7 @@ export function DashboardHoodArch({
                   onBackToJourney={onBackToJourney}
                   onNext={handleNext}
                   nextDisabled={forwardDisabled}
-                  showNavButtons={showForwardChevron}
+                  showNavButtons={showStandardsControls}
                 />
               </div>
             )}
@@ -1708,6 +1971,7 @@ export function DashboardHoodArch({
               onReadoutReady={handleReadoutReady}
               onNavigateToTire={rollToTirePhase}
               onFinishTireSequence={onFinishTireSequence}
+              onReadoutBack={handlePrev}
             />
             <div className="hood-tire-hub__nav">
               <HoodNavChevron

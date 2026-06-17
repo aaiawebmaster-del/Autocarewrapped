@@ -17,18 +17,18 @@
 
     @page {
       size: letter;
-      margin: 0.55in 0.6in;
+      margin: 0.5in 0.55in;
     }
 
     body {
       font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      font-size: 9.5pt;
-      line-height: 1.35;
+      font-size: 9pt;
+      line-height: 1.32;
       color: var(--ink);
       background: #fff;
-      max-width: 7.3in;
+      max-width: 7.4in;
       margin: 0 auto;
-      padding: 0.4in 0.5in;
+      padding: 0.35in 0.45in;
     }
 
     header {
@@ -36,86 +36,86 @@
       justify-content: space-between;
       align-items: flex-end;
       border-bottom: 3px solid var(--orange);
-      padding-bottom: 8px;
-      margin-bottom: 10px;
+      padding-bottom: 7px;
+      margin-bottom: 8px;
     }
 
     h1 {
-      font-size: 17pt;
+      font-size: 16pt;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
 
     .subtitle {
-      font-size: 9pt;
+      font-size: 8.5pt;
       color: var(--muted);
       margin-top: 2px;
     }
 
     .meta {
       text-align: right;
-      font-size: 8pt;
+      font-size: 7.5pt;
       color: var(--muted);
     }
 
     .meta strong { color: var(--ink); }
 
     h2 {
-      font-size: 9pt;
+      font-size: 8.5pt;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--orange);
-      margin: 10px 0 5px;
+      margin: 8px 0 4px;
       font-weight: 700;
     }
 
-    p { margin-bottom: 6px; color: #1a1a1a; }
+    p { margin-bottom: 5px; color: #1a1a1a; }
 
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }
 
     .grid-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      gap: 7px;
     }
 
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 4px;
-      padding: 7px 9px;
+      padding: 6px 8px;
     }
 
     .panel h3 {
-      font-size: 8.5pt;
+      font-size: 8pt;
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .panel ul {
-      margin-left: 14px;
-      font-size: 8.5pt;
+      margin-left: 13px;
+      font-size: 8pt;
     }
 
-    .panel li { margin-bottom: 2px; }
+    .panel li { margin-bottom: 1px; }
 
     .flow {
       display: flex;
       align-items: stretch;
-      gap: 6px;
-      margin: 6px 0;
-      font-size: 8pt;
+      gap: 5px;
+      margin: 5px 0;
+      font-size: 7.5pt;
     }
 
     .flow-box {
       flex: 1;
       border: 1.5px solid var(--ink);
       border-radius: 4px;
-      padding: 6px 7px;
+      padding: 5px 6px;
       text-align: center;
       background: #fff;
     }
@@ -125,31 +125,36 @@
       background: #fff8ef;
     }
 
+    .flow-box.phase1 {
+      border-color: #166534;
+      background: #f0fdf4;
+    }
+
     .flow-arrow {
       display: flex;
       align-items: center;
       color: var(--muted);
-      font-size: 12pt;
+      font-size: 11pt;
       flex-shrink: 0;
     }
 
     .flow-caption {
-      font-size: 7.5pt;
+      font-size: 7pt;
       color: var(--muted);
       text-align: center;
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 8pt;
-      margin-top: 4px;
+      font-size: 7.5pt;
+      margin-top: 3px;
     }
 
     th, td {
       border: 1px solid var(--line);
-      padding: 4px 6px;
+      padding: 3px 5px;
       text-align: left;
       vertical-align: top;
     }
@@ -157,14 +162,14 @@
     th {
       background: #eef2f7;
       font-weight: 700;
-      font-size: 7.5pt;
+      font-size: 7pt;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
 
     code {
       font-family: Consolas, "Courier New", monospace;
-      font-size: 7.5pt;
+      font-size: 7pt;
       background: #eef2f7;
       padding: 0 3px;
       border-radius: 2px;
@@ -172,23 +177,23 @@
 
     .callout {
       border-left: 3px solid var(--orange);
-      padding: 5px 8px;
+      padding: 4px 7px;
       background: #fff8ef;
-      font-size: 8.5pt;
-      margin: 6px 0;
+      font-size: 8pt;
+      margin: 5px 0;
     }
 
     .status-row {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     .badge {
-      font-size: 7pt;
+      font-size: 6.5pt;
       font-weight: 700;
-      padding: 2px 6px;
+      padding: 2px 5px;
       border-radius: 999px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -198,11 +203,33 @@
     .badge-pending { background: #fef3c7; color: #92400e; }
     .badge-partner { background: #dbeafe; color: #1e40af; }
 
-    footer {
-      margin-top: 8px;
-      padding-top: 6px;
-      border-top: 1px solid var(--line);
+    .scene-list {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin: 4px 0;
+    }
+
+    .scene {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 4px 5px;
+      text-align: center;
+      font-size: 7pt;
+      background: #fff;
+    }
+
+    .scene strong {
+      display: block;
       font-size: 7.5pt;
+      margin-bottom: 2px;
+    }
+
+    footer {
+      margin-top: 6px;
+      padding-top: 5px;
+      border-top: 1px solid var(--line);
+      font-size: 7pt;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
@@ -219,30 +246,84 @@
   <header>
     <div>
       <h1>Auto Care Wrapped</h1>
-      <p class="subtitle">One-page architecture brief — SPA, Impexium SSO, Snowflake data</p>
+      <p class="subtitle">High-level architecture — SPA, embed, Impexium SSO, Snowflake data</p>
     </div>
     <div class="meta">
-      <div><strong>Version</strong> 1.0</div>
-      <div><strong>Target host</strong> my.autocare.org/wrapped</div>
-      <div><strong>Repo</strong> Autocarewrapped (React + Vite)</div>
+      <div><strong>Version</strong> 1.1 · June 2026</div>
+      <div><strong>Repo</strong> github.com/aaiawebmaster-del/Autocarewrapped</div>
+      <div><strong>Stack</strong> React 18 · Vite · TypeScript</div>
     </div>
   </header>
 
   <section>
     <h2>Purpose</h2>
     <p>
-      Auto Care Wrapped is a company-scoped, login-protected “year in review” experience.
-      Each authenticated member organization sees metrics and narrative copy derived from Snowflake.
-      The browser never connects to Snowflake or stores Snowflake credentials.
+      Auto Care Wrapped is a company-scoped “year in review” experience for member organizations.
+      Each company sees engagement metrics, narrative copy, and CTAs to Auto Care products and events.
+      Data is scoped by Impexium <code>RECORDNUMBER</code> (company ID). The browser never connects to Snowflake directly.
     </p>
   </section>
 
   <section>
+    <h2>Deployment phases</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Phase 1 — Live today (Netlify embed)</h3>
+        <ul>
+          <li>Netlify hosts built SPA + static JSON + <code>embed.js</code></li>
+          <li>Impexium pages at <code>/engagement/{recordNumber}</code> load embed snippet</li>
+          <li>Embed reads path → iframe → app loads <code>/data/reports/{recordNumber}.json</code></li>
+          <li>Excel workbook → <code>npm run import:reports</code> → JSON at build time</li>
+        </ul>
+        <div class="status-row">
+          <span class="badge badge-done">UI complete</span>
+          <span class="badge badge-done">Excel pipeline</span>
+          <span class="badge badge-done">Netlify deploy</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Phase 2 — Target (my.autocare.org integrated)</h3>
+        <ul>
+          <li>SPA served from <code>my.autocare.org/wrapped</code></li>
+          <li>Impexium SSO cookie validated server-side</li>
+          <li>BFF API queries Snowflake secure view per session org</li>
+          <li>Factbook &amp; TrendLens® via separate product APIs</li>
+        </ul>
+        <div class="status-row">
+          <span class="badge badge-partner">Snowflake view</span>
+          <span class="badge badge-partner">SSO client</span>
+          <span class="badge badge-pending">Prod API deploy</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
     <h2>System architecture</h2>
+    <p style="font-size:7.5pt;color:var(--muted);margin-bottom:4px;"><strong>Phase 1 (current)</strong></p>
+    <div class="flow">
+      <div class="flow-box phase1">
+        <strong>my.autocare.org</strong><br />
+        <code>/engagement/{id}</code><br />
+        + <code>embed.js</code>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box phase1">
+        <strong>Netlify SPA</strong><br />
+        React + Vite<br />
+        <code>?record={id}</code>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box phase1">
+        <strong>Static JSON</strong><br />
+        <code>/data/reports/{id}.json</code><br />
+        Built from Excel
+      </div>
+    </div>
+    <p style="font-size:7.5pt;color:var(--muted);margin:6px 0 4px;"><strong>Phase 2 (target)</strong></p>
     <div class="flow">
       <div class="flow-box">
         <strong>Browser SPA</strong><br />
-        React + Vite<br />
         <code>AuthGate</code> → <code>DrivingView</code>
       </div>
       <div class="flow-arrow">→</div>
@@ -264,14 +345,25 @@
         <code>V_COMPANY_REPORT_YYYY</code>
       </div>
     </div>
-    <p class="flow-caption">
-      Request flow: user visits Wrapped → SSO cookie validated → API maps Impexium org ID → Snowflake company_id → returns <code>WrappedReport</code> JSON
-    </p>
-
     <div class="callout">
       <strong>Security rule:</strong> Company ID is resolved server-side from SSO claims only.
       The client never sends or selects <code>company_id</code>. Snowflake credentials live in server secrets only.
     </div>
+  </section>
+
+  <section>
+    <h2>Experience flow (SPA scenes)</h2>
+    <div class="scene-list">
+      <div class="scene"><strong>Pre-Journey</strong>Dashboard intro, HVAC chrome, start drive-off</div>
+      <div class="scene"><strong>Your Journey</strong>Counter gauges: tenure, contacts, community, committees</div>
+      <div class="scene"><strong>GPS Nav</strong>Events attended, webinar hours, attendance route track</div>
+      <div class="scene"><strong>Under the Hood</strong>Standards subscriptions, database icons</div>
+      <div class="scene"><strong>Kick the Tires</strong>Product hubs: TrendLens®, Demand Index, Academy, Factbook</div>
+    </div>
+    <p style="font-size:7.5pt;margin-top:4px;">
+      <strong>Full Diagnostics</strong> — summary panel with journey row, attendance route, webinar card, and share CTA.
+      Conditional copy in <code>contentVariants.ts</code> handles zero-event and low-engagement cases.
+    </p>
   </section>
 
   <section class="grid-2">
@@ -281,34 +373,26 @@
         <h3>Key modules</h3>
         <ul>
           <li><code>AuthGate</code> — loading, 401, 404, error states</li>
-          <li><code>WrappedReportContext</code> — fetch once, share via React context</li>
-          <li><code>DrivingView</code> — landing, journey, hood, diagnostics scenes</li>
-          <li><code>contentVariants.ts</code> — conditional copy (e.g. zero events)</li>
+          <li><code>WrappedReportContext</code> — fetch report once via context</li>
+          <li><code>DrivingView</code> — orchestrates all journey scenes</li>
           <li><code>buildJourneySections.ts</code> — report → UI sections</li>
+          <li><code>contentVariants.ts</code> — conditional copy &amp; CTAs</li>
+          <li><code>externalCtaLinks.ts</code> — centralized external URLs</li>
+          <li><code>import-excel-reports.mjs</code> — Excel → <code>WrappedReport</code> JSON</li>
         </ul>
-      </div>
-      <div class="status-row">
-        <span class="badge badge-done">UI + variants</span>
-        <span class="badge badge-done">Mock data</span>
-        <span class="badge badge-done">Dev API plugin</span>
       </div>
     </div>
     <div>
       <h2>Backend (Auto Care stack)</h2>
       <div class="panel">
-        <h3>API responsibilities</h3>
+        <h3>API responsibilities (Phase 2)</h3>
         <ul>
           <li>Validate Impexium SSO session (cookie or BFF)</li>
           <li>Map Impexium org ID → Snowflake <code>company_id</code></li>
           <li>Query pre-aggregated secure view via Snowpark / JDBC</li>
           <li>Map row → <code>WrappedReport</code> JSON; return 404 if no row</li>
-          <li>Optional: 5–15 min cache per company; audit log access</li>
+          <li>Ref implementation: <code>server/reference-api.mjs</code></li>
         </ul>
-      </div>
-      <div class="status-row">
-        <span class="badge badge-partner">Snowflake view</span>
-        <span class="badge badge-partner">SSO client</span>
-        <span class="badge badge-pending">Prod API deploy</span>
       </div>
     </div>
   </section>
@@ -319,7 +403,7 @@
       <thead>
         <tr>
           <th>Domain</th>
-          <th>Fields (API → SPA)</th>
+          <th>Fields (source → SPA)</th>
           <th>UI surfaces</th>
         </tr>
       </thead>
@@ -337,12 +421,12 @@
         <tr>
           <td><strong>events</strong></td>
           <td>In-person attended/total, <code>attendancePct</code>, webinar hours</td>
-          <td>GPS nav, attendance bar (variant copy if 0 events)</td>
+          <td>GPS nav, attendance route track (variant copy if 0 events)</td>
         </tr>
         <tr>
           <td><strong>products</strong></td>
-          <td>TrendLens, DemandIndex, Factbook, Academy usage</td>
-          <td>Kick the Tires readouts</td>
+          <td>TrendLens®, Demand Index, Factbook, Academy usage</td>
+          <td>Kick the Tires readout hubs + external CTAs</td>
         </tr>
         <tr>
           <td><strong>standards</strong></td>
@@ -355,7 +439,7 @@
 
   <section class="grid-3">
     <div class="panel">
-      <h3>Endpoints</h3>
+      <h3>Endpoints (Phase 2)</h3>
       <ul>
         <li><code>GET /api/wrapped/report</code></li>
         <li><code>GET /api/wrapped/health</code></li>
@@ -372,9 +456,9 @@
     <div class="panel">
       <h3>Local dev</h3>
       <ul>
-        <li><code>npm run dev</code> + mock auth</li>
+        <li><code>npm run dev</code> + static JSON</li>
         <li>Scenarios: default / zero-events / high-engagement</li>
-        <li>Ref: <code>server/reference-api.mjs</code></li>
+        <li><code>npm run dev:api</code> for reference API</li>
       </ul>
     </div>
   </section>
@@ -406,8 +490,8 @@
           <td>Impexium + Infra</td>
         </tr>
         <tr>
-          <td>Missing company row</td>
-          <td>HTTP 404 · partial defaults · support message</td>
+          <td>Factbook / TrendLens® APIs</td>
+          <td>Separate product endpoints · bundled in Snowflake view</td>
           <td>Product + Snowflake</td>
         </tr>
       </tbody>
@@ -415,8 +499,8 @@
   </section>
 
   <footer>
-    <span>Related docs: <code>docs/discovery-checklist.md</code> · <code>docs/partner-meeting-agenda.md</code> · <code>docs/snowflake-column-mapping.md</code></span>
-    <span class="no-print">Open in browser → Print → Save as PDF</span>
+    <span>Related: <code>docs/netlify-embed-guide.md</code> · <code>docs/snowflake-column-mapping.md</code> · <code>docs/partner-meeting-agenda.md</code></span>
+    <span>PDF: <code>docs/auto-care-wrapped-architecture.pdf</code></span>
   </footer>
 
 </body>

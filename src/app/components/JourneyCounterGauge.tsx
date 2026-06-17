@@ -23,6 +23,17 @@ const FUEL_MAX_ANGLE = 360;
 const FUEL_SWEEP = FUEL_MAX_ANGLE - FUEL_MIN_ANGLE;
 const FUEL_LABEL_FONT_SIZE = 14;
 const BATTERY_WARNING_DELAY_MS = 750;
+const LOW_FUEL_CONTACTS_THRESHOLD = 15;
+
+function parseViewBoxHeight(viewBox: string) {
+  const parts = viewBox.trim().split(/\s+/);
+  return Number(parts[3]) || 240;
+}
+
+function getGaugeWarningCenterPercent(cy: number, radius: number, viewBox: string, wide: boolean) {
+  const centerY = wide ? getSemicircleContentCenterY(cy, radius) : cy;
+  return `${(centerY / parseViewBoxHeight(viewBox)) * 100}%`;
+}
 
 function speedoValueToAngle(value: number) {
   const clamped = Math.max(0, Math.min(100, value));
@@ -367,6 +378,7 @@ export function JourneyCounterGauge({
   const uid = useId().replace(/:/g, '');
   const [gaugeValue, setGaugeValue] = useState(0);
   const [batteryWarningActive, setBatteryWarningActive] = useState(false);
+  const [fuelWarningActive, setFuelWarningActive] = useState(false);
   const onCountCompleteRef = useRef(onCountComplete);
   onCountCompleteRef.current = onCountComplete;
 
@@ -447,7 +459,7 @@ export function JourneyCounterGauge({
   }, [target, duration, delay, animationKey, needleTarget]);
 
   useEffect(() => {
-    if (variant !== 'battery') {
+    if (variant !== 'battery' || target > 0) {
       setBatteryWarningActive(false);
       return;
     }
@@ -457,7 +469,20 @@ export function JourneyCounterGauge({
       window.clearTimeout(timer);
       setBatteryWarningActive(false);
     };
-  }, [variant, animationKey]);
+  }, [variant, animationKey, target]);
+
+  useEffect(() => {
+    if (variant !== 'fuel' || target >= LOW_FUEL_CONTACTS_THRESHOLD) {
+      setFuelWarningActive(false);
+      return;
+    }
+    setFuelWarningActive(false);
+    const timer = window.setTimeout(() => setFuelWarningActive(true), BATTERY_WARNING_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+      setFuelWarningActive(false);
+    };
+  }, [variant, animationKey, target]);
 
   const rootClassName = [
     variant === 'fuel'
@@ -466,6 +491,7 @@ export function JourneyCounterGauge({
         ? 'journey-battery-gauge'
         : 'journey-speedometer-gauge',
     variant === 'battery' && batteryWarningActive ? 'journey-battery-gauge--warning-active' : '',
+    variant === 'fuel' && fuelWarningActive ? 'journey-fuel-gauge--warning-active' : '',
     className,
   ]
     .filter(Boolean)
@@ -509,11 +535,15 @@ export function JourneyCounterGauge({
     const fuelFillSweep = fuelFillAngle - FUEL_MIN_ANGLE;
     const fuelFillLargeArc = fuelFillSweep >= 180 ? 1 : 0;
     const fuelFillD = `M ${fuelTrackStart.x} ${fuelTrackStart.y} A ${trackR} ${trackR} 0 ${fuelFillLargeArc} 1 ${fuelFillPoint.x} ${fuelFillPoint.y}`;
+    const warningCenterY = getGaugeWarningCenterPercent(cy, faceR, vb, wide);
 
     return (
       <div className={rootClassName} style={shellStyle}>
         <GaugeDialSlot counterDialBox={counterDialBox} wideSemicircle={wideSemicircle}>
-          <div className="journey-fuel-gauge__dial">
+          <div
+            className="journey-fuel-gauge__dial"
+            style={{ ['--gauge-warning-center-y' as string]: warningCenterY }}
+          >
           <svg
             className="journey-fuel-gauge__svg"
             viewBox={vb}
@@ -639,12 +669,26 @@ export function JourneyCounterGauge({
             </text>
             </g>
           </svg>
-          <div className="journey-fuel-gauge__pump-icon" aria-hidden>
-            <img
-              src={gasPumpIconUrl}
-              alt=""
-              draggable={false}
-            />
+          <div
+            className="journey-fuel-gauge__center-stack"
+            style={{ ['--gauge-warning-center-y' as string]: warningCenterY }}
+          >
+            <div className="journey-fuel-gauge__pump-icon" aria-hidden>
+              <img
+                src={gasPumpIconUrl}
+                alt=""
+                draggable={false}
+              />
+            </div>
+            {fuelWarningActive ? (
+              <div
+                className="journey-fuel-gauge__warning"
+                role="img"
+                aria-label="Low fuel warning"
+              >
+                <span className="journey-fuel-gauge__warning-label">Low Fuel</span>
+              </div>
+            ) : null}
           </div>
           </div>
         </GaugeDialSlot>
@@ -670,11 +714,15 @@ export function JourneyCounterGauge({
     const terminalLeftX = -terminalW - 4 * batteryScale;
     const terminalRightX = 4 * batteryScale;
     const batteryCy = wide ? getSemicircleContentCenterY(cy, faceR) : cy;
+    const warningCenterY = getGaugeWarningCenterPercent(cy, faceR, vb, wide);
 
     return (
       <div className={rootClassName} style={shellStyle}>
         <GaugeDialSlot counterDialBox={counterDialBox} wideSemicircle={wideSemicircle}>
-          <div className="journey-battery-gauge__dial">
+          <div
+            className="journey-battery-gauge__dial"
+            style={{ ['--gauge-warning-center-y' as string]: warningCenterY }}
+          >
             <svg
               className="journey-speedometer-gauge__svg journey-battery-gauge__svg"
               viewBox={vb}
@@ -788,16 +836,10 @@ export function JourneyCounterGauge({
             </svg>
 
             {batteryWarningActive ? (
-              <motion.div
+              <div
                 className="journey-battery-gauge__warning"
                 role="img"
                 aria-label="Low battery warning"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: [0, 1, 0], scale: [0.92, 1.04, 1] }}
-                transition={{
-                  opacity: { duration: 0.7, repeat: Infinity, ease: 'easeInOut' },
-                  scale: { duration: 0.7, repeat: Infinity, ease: 'easeInOut' },
-                }}
               >
                 <svg viewBox="0 0 48 48" className="journey-battery-gauge__warning-icon" aria-hidden>
                   <path
@@ -809,17 +851,17 @@ export function JourneyCounterGauge({
                   />
                   <text
                     x="24"
-                    y="34"
+                    y="35"
                     textAnchor="middle"
                     fill="#fff"
-                    fontSize="22"
+                    fontSize="26"
                     fontWeight="800"
                     fontFamily="system-ui, sans-serif"
                   >
                     !
                   </text>
                 </svg>
-              </motion.div>
+              </div>
             ) : null}
           </div>
         </GaugeDialSlot>

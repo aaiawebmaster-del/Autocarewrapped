@@ -1,6 +1,13 @@
 import { memo, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import mapAnimationData from '../../imports/gps-navigation-map.json';
+import {
+  JOURNEY_MAP_ENTRY_FALLBACK_MS,
+  JOURNEY_MAP_STABLE_MS,
+  JOURNEY_NAV_MAP_ENTER_EVENT,
+  JOURNEY_NAV_MAP_PLAYBACK_EVENT,
+  JOURNEY_NAV_MAP_REPAINT_EVENT,
+} from '@/lib/journeySceneTiming';
 
 const MAP_ANIM_META = mapAnimationData as { op: number; fr: number };
 const MAP_ANIM_FPS = MAP_ANIM_META.fr;
@@ -9,10 +16,6 @@ const MAP_FRAME_END = Math.floor(MAP_ANIM_META.op - 1);
 const MAP_ANIM_PRESERVE_ASPECT_DESKTOP = 'xMidYMid slice' as const;
 const MAP_ANIM_PRESERVE_ASPECT_MOBILE = 'xMinYMid slice' as const;
 const MOBILE_MAP_MEDIA_QUERY = '(max-width: 768px)';
-/** Wait for dashboard panel height to settle before starting playback. */
-const STABLE_SIZE_MS = 450;
-/** Matches DrivingView map panel slide-in (`JOURNEY_SCENE_SLIDE_MS`). */
-const MAP_ENTRY_FALLBACK_MS = 1050;
 
 function getMapPreserveAspectRatio() {
   if (typeof window === 'undefined') return MAP_ANIM_PRESERVE_ASPECT_DESKTOP;
@@ -131,6 +134,7 @@ function JourneyNavMapAnimationInner() {
       playbackStarted = true;
       playStartMs = performance.now();
       paintFrame(0);
+      window.dispatchEvent(new CustomEvent(JOURNEY_NAV_MAP_PLAYBACK_EVENT));
       manualRafId = requestAnimationFrame(tickManualPlayback);
     };
 
@@ -152,7 +156,7 @@ function JourneyNavMapAnimationInner() {
       stableTimer = window.setTimeout(() => {
         stableTimer = null;
         startPlayback();
-      }, STABLE_SIZE_MS);
+      }, JOURNEY_MAP_STABLE_MS);
     };
 
     const onDomLoaded = () => {
@@ -176,14 +180,14 @@ function JourneyNavMapAnimationInner() {
     const onEnterComplete = () => {
       releaseMapEntry();
     };
-    window.addEventListener('journey-nav-map-enter-complete', onEnterComplete);
-    entryFallbackTimer = window.setTimeout(releaseMapEntry, MAP_ENTRY_FALLBACK_MS);
+    window.addEventListener(JOURNEY_NAV_MAP_ENTER_EVENT, onEnterComplete);
+    entryFallbackTimer = window.setTimeout(releaseMapEntry, JOURNEY_MAP_ENTRY_FALLBACK_MS);
 
     const onRepaintRequest = () => {
       if (!playbackStarted || finished) return;
       paintFrame(lastPaintedFrame);
     };
-    window.addEventListener('journey-nav-map-repaint', onRepaintRequest);
+    window.addEventListener(JOURNEY_NAV_MAP_REPAINT_EVENT, onRepaintRequest);
 
     const mobileMapQuery = window.matchMedia(MOBILE_MAP_MEDIA_QUERY);
     const onMobileMapQueryChange = () => {
@@ -205,8 +209,8 @@ function JourneyNavMapAnimationInner() {
       }
       cancelAnimationFrame(manualRafId);
       observer.disconnect();
-      window.removeEventListener('journey-nav-map-enter-complete', onEnterComplete);
-      window.removeEventListener('journey-nav-map-repaint', onRepaintRequest);
+      window.removeEventListener(JOURNEY_NAV_MAP_ENTER_EVENT, onEnterComplete);
+      window.removeEventListener(JOURNEY_NAV_MAP_REPAINT_EVENT, onRepaintRequest);
       mobileMapQuery.removeEventListener('change', onMobileMapQueryChange);
       anim.removeEventListener('DOMLoaded', onDomLoaded);
       anim.destroy();

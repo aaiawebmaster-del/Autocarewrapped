@@ -1,4 +1,12 @@
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
+import {
+  getStandardsDatabaseAccessIcons,
+  type StandardsDatabaseIcon,
+} from '@/lib/standardsDatabaseIcons';
+
+import {
+  EXTERNAL_CTA_LINKS,
+} from '@/lib/externalCtaLinks';
 
 export type TirePhase = 'trendlens' | 'demandindex' | 'factbook' | 'academy';
 
@@ -15,6 +23,7 @@ export type AttendanceCopy = {
   metricLabel: string;
   eventsTotalLabel: string;
   detailLabel: (attended: number, total: number) => string;
+  asideMessage: string;
   body: string;
   cta: ContentCta;
 };
@@ -26,13 +35,13 @@ export type WebinarCopy = {
 };
 
 const EVENTS_CTA: ContentCta = {
-  label: 'see upcoming events',
-  href: 'https://autocare.org/events',
+  label: 'Explore Upcoming Events',
+  href: EXTERNAL_CTA_LINKS.exploreUpcomingEvents,
 };
 
 const WEBINAR_CTA: ContentCta = {
   label: 'browse webinar library',
-  href: 'https://autocare.org/education',
+  href: EXTERNAL_CTA_LINKS.browseWebinarLibrary,
 };
 
 export function getAttendanceVariant(attended: number, total: number): AttendanceVariant {
@@ -55,28 +64,34 @@ export function getAttendanceCopy(
 
   const copy: Record<AttendanceVariant, AttendanceCopy> = {
     none: {
-      eyebrow: 'event attendance',
+      eyebrow: 'in-person event attendance',
       metricLabel: 'in-person event attendance',
       eventsTotalLabel: `${inPersonTotal} in-person auto care events`,
       detailLabel: (_attended, total) => `0 of ${total} in-person auto care events`,
+      asideMessage:
+        "We'd love to see you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.",
       body: "You haven't attended an in-person event yet — there's still time to connect, learn, and grow with the Auto Care community.",
       cta: EVENTS_CTA,
     },
     some: {
-      eyebrow: 'event attendance',
+      eyebrow: 'in-person event attendance',
       metricLabel: 'in-person event attendance',
       eventsTotalLabel: `${inPersonTotal} in-person auto care events`,
       detailLabel: (attended, total) =>
         `${attended} of ${total} in-person auto care events`,
+      asideMessage:
+        "You're missing out! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.",
       body: 'Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.',
       cta: EVENTS_CTA,
     },
     high: {
-      eyebrow: 'event attendance',
+      eyebrow: 'in-person event attendance',
       metricLabel: 'in-person event attendance',
       eventsTotalLabel: `${inPersonTotal} in-person auto care events`,
       detailLabel: (attended, total) =>
         `${attended} of ${total} in-person auto care events`,
+      asideMessage:
+        'Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.',
       body: "Outstanding engagement! You're making the most of in-person Auto Care events — keep building those industry connections.",
       cta: EVENTS_CTA,
     },
@@ -85,29 +100,42 @@ export function getAttendanceCopy(
   return copy[variant];
 }
 
+export function getWebinarMessageBody(webinarCount: number): string {
+  if (webinarCount === 0) {
+    return 'Explore on-demand webinars to keep your team learning between events.';
+  }
+  if (webinarCount <= 1) {
+    return 'See what you missed and view our webinars on-demand.';
+  }
+  return 'Are there other employees who could benefit from our robust library of on-demand content?';
+}
+
 export function getWebinarCopy(
   hours: number,
   variant = getWebinarVariant(hours),
 ): WebinarCopy {
   const copy: Record<WebinarVariant, WebinarCopy> = {
     none: {
-      subtitle: 'webinars attended this year',
+      subtitle: 'WEBINAR/YEAR',
       body: 'Explore on-demand webinars to keep your team learning between events.',
       cta: WEBINAR_CTA,
     },
     some: {
-      subtitle: 'webinars attended this year',
+      subtitle: 'WEBINAR/YEAR',
       body: 'See what you missed and view our webinars on-demand.',
       cta: WEBINAR_CTA,
     },
     many: {
-      subtitle: 'webinars attended this year',
+      subtitle: 'WEBINAR/YEAR',
       body: 'Your team is deeply invested in learning — share the webinar library with colleagues who could benefit too.',
       cta: WEBINAR_CTA,
     },
   };
 
-  return copy[variant];
+  return {
+    ...copy[variant],
+    body: getWebinarMessageBody(hours),
+  };
 }
 
 export function getHoodStandardsMessages(report: WrappedReport): {
@@ -115,6 +143,8 @@ export function getHoodStandardsMessages(report: WrappedReport): {
   subscribed: string;
   missing: string;
   vip: string;
+  subscribedPct: number;
+  databaseAccessIcons: StandardsDatabaseIcon[];
 } {
   const subscribedPct = report.standards?.subscribedPct ?? 40;
   const subscribed = report.standards?.subscribedProducts ?? ['IPO', 'ISHOP', 'ACES', 'PIES'];
@@ -128,6 +158,8 @@ export function getHoodStandardsMessages(report: WrappedReport): {
     subscribed: `you are subscribed to ${subscribedPct}% of our data standards`,
     missing: `you are subscribed to ${subscribedCount} standards: ${subscribedLabel}`,
     vip: 'Make sure your databases are up-to-date with the latest releases',
+    subscribedPct,
+    databaseAccessIcons: getStandardsDatabaseAccessIcons(subscribed),
   };
 }
 
@@ -144,6 +176,10 @@ export type TireReadoutConfig = {
   upsellMessage?: string;
 };
 
+export function isTirePhaseEmpty(report: WrappedReport, phase: TirePhase): boolean {
+  return buildTireReadoutConfig(report)[phase].primaryValue === 0;
+}
+
 export function buildTireReadoutConfig(
   report: WrappedReport,
 ): Record<TirePhase, TireReadoutConfig> {
@@ -153,7 +189,7 @@ export function buildTireReadoutConfig(
     trendlens: {
       measuring: 'measuring trendlens usage..',
       primaryValue: products.trendLensUsers,
-      primaryLabel: 'TrendLens Users',
+      primaryLabel: 'TrendLens® Users',
       secondary: {
         type: 'percent',
         value: products.trendLensContactPct,

@@ -1,6 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { HoodTireCheckBadge, TIRE_PHASE_ORDER, type TirePhase } from './MapSimulation';
+import {
+  HoodStandardsSummaryDevice,
+  HoodTireCheckBadge,
+  TIRE_PHASE_ORDER,
+  type TirePhase,
+} from './MapSimulation';
 import {
   JourneyCounterGauge,
   DIAGNOSTICS_GAUGE_VALUE_FONT,
@@ -9,17 +14,15 @@ import {
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
 import { GpsUiControls } from './GpsUiControls';
-import { GpsPopupContent } from './GpsNavPopupContent';
+import { GpsPopupContent, GpsAttendanceRoutePanel } from './GpsNavPopupContent';
 import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
+import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
-import acesDipstickImage from '../../assets/dipstick-aces.svg?url';
-import piesDipstickImage from '../../assets/dipstick-pies.svg?url';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
 import tireAcademyImage from '../../assets/tire-academy.svg?url';
-
-const TOP_STEP_MAX = 3;
+const TOP_STEP_MAX = 2;
 /** Map arch + dashboard band exit before share scene (matches CSS 0.85s). */
 const DASHBOARD_EXIT_MS = 900;
 const SHARE_REVEAL_BUFFER_MS = 120;
@@ -41,9 +44,7 @@ const TIRE_ROLL_IMAGES: Record<TirePhase, string> = {
 };
 
 /** Rise into the same vertical band as the top stats / tires carousel */
-const DIAG_DIPSTICK_HIDDEN = '92%';
-const DIAG_DIPSTICK_RISE = '4%';
-
+const DIAG_STANDARDS_RISE_OFFSET = 36;
 function DiagnosticsCarouselChevron({
   direction,
   onClick,
@@ -100,6 +101,7 @@ function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
             <CommunityLogoGauge
               target={stat.target}
               label={stat.label}
+              communities={report.journey.communities}
               animationKey={stat.animationKey}
               delay={stat.delay}
               readoutMode="below"
@@ -128,7 +130,7 @@ function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
   );
 }
 
-function DiagnosticsTiresRoll() {
+function DiagnosticsTiresRoll({ report }: { report: WrappedReport }) {
   return (
     <motion.div
       className="full-diagnostics__tires-roll"
@@ -158,6 +160,7 @@ function DiagnosticsTiresRoll() {
           <HoodTireCheckBadge
             className="full-diagnostics__tire-check"
             delay={0.55 + i * 0.12}
+            variant={isTirePhaseEmpty(report, phase) ? 'fail' : 'success'}
           />
         </motion.div>
       ))}
@@ -165,29 +168,35 @@ function DiagnosticsTiresRoll() {
   );
 }
 
-function DiagnosticsDipstick({
-  src,
-  alt,
-  risen,
-  className,
-}: {
-  src: string;
-  alt: string;
-  risen: boolean;
-  className: string;
-}) {
+function DiagnosticsStandardsColumn({ report }: { report: WrappedReport }) {
+  const hoodMessages = useMemo(() => getHoodStandardsMessages(report), [report]);
+  const [risen, setRisen] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setRisen(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <motion.div
-      className={`hood-dipstick-rise full-diagnostics__dipstick ${className}`}
-      initial={{ top: DIAG_DIPSTICK_HIDDEN }}
-      animate={{ top: risen ? DIAG_DIPSTICK_RISE : DIAG_DIPSTICK_HIDDEN }}
-      transition={{ duration: 1.25, ease: [0.25, 0, 0.2, 1], delay: risen ? 0.1 : 0 }}
-    >
-      <img src={src} alt={alt} className="hood-dipstick-rise__img" draggable={false} />
-    </motion.div>
+    <div className="full-diagnostics__standards-column" aria-hidden={false}>
+      <motion.div
+        className="full-diagnostics__standards-tablet-wrap"
+        initial={{ opacity: 0, y: DIAG_STANDARDS_RISE_OFFSET }}
+        animate={{
+          opacity: risen ? 1 : 0,
+          y: risen ? 0 : DIAG_STANDARDS_RISE_OFFSET,
+        }}
+        transition={{ duration: 1.1, ease: [0.25, 0, 0.2, 1], delay: risen ? 0.1 : 0 }}
+      >
+        <HoodStandardsSummaryDevice
+          className="full-diagnostics__standards-tablet"
+          subscribedPct={hoodMessages.subscribedPct}
+          databaseAccessIcons={hoodMessages.databaseAccessIcons}
+        />
+      </motion.div>
+    </div>
   );
 }
-
 function DiagnosticsShareSlide({ onBackToStart }: { onBackToStart: () => void }) {
   const handleShare = async () => {
     const shareData = {
@@ -234,34 +243,6 @@ function DiagnosticsShareSlide({ onBackToStart }: { onBackToStart: () => void })
         </button>
       </div>
     </motion.div>
-  );
-}
-
-function DiagnosticsAcesPiesBehindArch() {
-  const [risen, setRisen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setRisen(true), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className="full-diagnostics__dipsticks-overlay" aria-hidden={false}>
-      <div className="full-diagnostics__dipsticks full-diagnostics__dipsticks--pair-art">
-        <DiagnosticsDipstick
-          src={acesDipstickImage}
-          alt="ACES standard"
-          risen={risen}
-          className="full-diagnostics__dipstick hood-dipstick-img--aces"
-        />
-        <DiagnosticsDipstick
-          src={piesDipstickImage}
-          alt="PIES standard"
-          risen={risen}
-          className="full-diagnostics__dipstick hood-dipstick-img--pies"
-        />
-      </div>
-    </div>
   );
 }
 
@@ -323,44 +304,37 @@ function DiagnosticsMapEngagement({
           <GpsUiControls />
           {showPopups ? (
             <div className="full-diagnostics__map-ui">
-              <div className="full-diagnostics__map-popup-wrap">
-                <div className="journey-nav-popup-overlay full-diagnostics__map-popups-row">
-                  <motion.div
-                    className="full-diagnostics__map-popup-slot"
-                    initial={{ opacity: 0, y: 12, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
-                  >
-                    <GpsPopupContent
-                      phase={2}
-                      isActive
-                      dotCount={1}
-                      evtPct={evtPct}
-                      barW={barW}
-                      webinarHours={webinarHours}
-                      detailsReady={false}
-                      eventsMetrics={eventsMetrics}
-                    />
-                  </motion.div>
-                  <motion.div
-                    className="full-diagnostics__map-popup-slot"
-                    initial={{ opacity: 0, y: 12, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.45, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
-                  >
-                    <GpsPopupContent
-                      phase={3}
-                      isActive
-                      dotCount={1}
-                      evtPct={evtPct}
-                      barW={barW}
-                      webinarHours={webinarHours}
-                      detailsReady={false}
-                      eventsMetrics={eventsMetrics}
-                    />
-                  </motion.div>
-                </div>
+              <div className="full-diagnostics__map-webinar-wrap">
+                <motion.div
+                  className="full-diagnostics__map-webinar-slot"
+                  initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <GpsPopupContent
+                    phase={3}
+                    isActive
+                    dotCount={1}
+                    evtPct={evtPct}
+                    barW={barW}
+                    webinarHours={webinarHours}
+                    detailsReady={false}
+                    eventsMetrics={eventsMetrics}
+                  />
+                </motion.div>
               </div>
+              <motion.div
+                className="full-diagnostics__map-attendance-wrap"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <GpsAttendanceRoutePanel
+                  evtPct={evtPct}
+                  barW={barW}
+                  eventsMetrics={eventsMetrics}
+                />
+              </motion.div>
             </div>
           ) : null}
         </div>
@@ -399,7 +373,7 @@ function DiagnosticsTopCarousel({
         <div className="full-diagnostics__top-carousel-stage">
           <AnimatePresence mode="wait">
             {step === 0 && <DiagnosticsJourneyStatsRow key="stats" report={report} />}
-            {step === 1 && <DiagnosticsTiresRoll key="tires" />}
+            {step === 1 && <DiagnosticsTiresRoll key="tires" report={report} />}
             {shareFocus && step === TOP_STEP_MAX && (
               <DiagnosticsShareSlide key="share" onBackToStart={onBackToStart} />
             )}
@@ -413,10 +387,8 @@ function DiagnosticsTopCarousel({
             step === 0
               ? 'Show Kick the Tires wheels'
               : step === 1
-                ? 'Show standards dipsticks on map'
-                : step === 2
-                  ? 'Show year in review and share'
-                  : 'Continue'
+                ? 'Show year in review and share'
+                : 'Continue'
           }
         />
       </div>
@@ -449,7 +421,6 @@ export function FullDiagnosticsPanel({
 
   const dashboardExiting = topStep === TOP_STEP_MAX && !shareReveal;
   const shareFocus = shareReveal;
-  const showDipsticksOverlay = topStep === 2 || dashboardExiting;
   const archHidden = topStep === TOP_STEP_MAX;
   const showMapPopups = topStep < TOP_STEP_MAX;
 
@@ -476,16 +447,18 @@ export function FullDiagnosticsPanel({
         report={report}
       />
 
-      {showDipsticksOverlay ? <DiagnosticsAcesPiesBehindArch /> : null}
+      <div className="full-diagnostics__split">
+        <DiagnosticsStandardsColumn report={report} />
 
-      <div
-        className={`full-diagnostics__map${topStep === 2 && !dashboardExiting ? ' full-diagnostics__map--arch-front' : ''}${shareFocus ? ' full-diagnostics__map--share-focus' : ''}`}
-      >
-        <DiagnosticsMapEngagement
-          archHidden={archHidden}
-          showPopups={showMapPopups}
-          eventsMetrics={report.events}
-        />
+        <div
+          className={`full-diagnostics__map${shareFocus ? ' full-diagnostics__map--share-focus' : ''}`}
+        >
+          <DiagnosticsMapEngagement
+            archHidden={archHidden}
+            showPopups={showMapPopups}
+            eventsMetrics={report.events}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import type { WrappedReport } from '@/types/wrappedReport';
+import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 
 export type JourneySection =
   | {
@@ -37,7 +38,10 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
       label: 'active contacts',
       gaugeVariant: 'fuel',
       footerMessage: getActiveContactsFooterMessage(journey.activeContacts),
-      footerButton: { label: 'sign up team members', href: 'https://my.autocare.org' },
+      footerButton: {
+        label: 'sign up team members',
+        href: EXTERNAL_CTA_LINKS.signUpTeamMembers,
+      },
     },
     {
       type: 'counter',
@@ -46,7 +50,10 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
       label: 'community members',
       gaugeVariant: 'community-logo',
       footerMessage: getCommunityFooterMessage(journey.communityMembers),
-      footerButton: { label: 'explore all communities', href: 'https://autocare.org/' },
+      footerButton: {
+        label: 'explore all communities',
+        href: EXTERNAL_CTA_LINKS.exploreAllCommunities,
+      },
     },
     {
       type: 'counter',
@@ -56,16 +63,22 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
       gaugeVariant: 'battery',
       footerMessage: getCommitteeFooterMessage(journey.committeeMembers),
       footerButton: {
-        label: 'explore our committees',
-        href: 'https://autocare.org/committees',
+        label: 'explore all committees',
+        href: EXTERNAL_CTA_LINKS.exploreAllCommittees,
       },
     },
     {
       type: 'nav',
       navMessage: getNavSectionMessage(report),
-      navButton: { label: 'see upcoming events', href: 'https://autocare.org/events' },
+      navButton: {
+        label: 'see upcoming events',
+        href: EXTERNAL_CTA_LINKS.exploreUpcomingEvents,
+      },
       webinarsMessage: getWebinarSectionMessage(report.events.webinarCount),
-      webinarsButton: { label: 'browse webinar library', href: 'https://autocare.org/education' },
+      webinarsButton: {
+        label: 'browse webinar library',
+        href: EXTERNAL_CTA_LINKS.browseWebinarLibrary,
+      },
     },
   ];
 }
@@ -83,6 +96,9 @@ function getTenureFooterMessage(years: number): string {
 function getActiveContactsFooterMessage(contacts: number): string {
   if (contacts >= 50) {
     return "Your organization is killing it! Don't forget you've got unlimited seats available in your membership";
+  }
+  if (contacts > 0) {
+    return "Great job! Don't forget you've got unlimited seats available in your membership";
   }
   return 'Invite more team members to unlock the full value of your membership benefits.';
 }

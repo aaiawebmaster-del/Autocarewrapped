@@ -9,7 +9,8 @@
     "dev": "vite",
     "dev:api": "node server/reference-api.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "docs:architecture-pdf": "node scripts/generate-architecture-pdf.mjs"
   },
   "dependencies": {
     "lottie-react": "^2.4.1",
