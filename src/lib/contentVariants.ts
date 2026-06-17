@@ -1,7 +1,10 @@
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import {
   getStandardsDatabaseAccessIcons,
+  getStandardsProtocolLogos,
+  getStandardsSubscribedPct,
   type StandardsDatabaseIcon,
+  type StandardsProtocolLogo,
 } from '@/lib/standardsDatabaseIcons';
 
 import {
@@ -145,9 +148,11 @@ export function getHoodStandardsMessages(report: WrappedReport): {
   vip: string;
   subscribedPct: number;
   databaseAccessIcons: StandardsDatabaseIcon[];
+  protocolLogos: StandardsProtocolLogo[];
 } {
-  const subscribedPct = report.standards?.subscribedPct ?? 40;
-  const subscribed = report.standards?.subscribedProducts ?? ['IPO', 'ISHOP', 'ACES', 'PIES'];
+  const subscribedProducts = report.standards?.subscribedProducts ?? [];
+  const subscribedPct = getStandardsSubscribedPct(subscribedProducts);
+  const subscribed = subscribedProducts.length > 0 ? subscribedProducts : ['IPO', 'ISHOP', 'ACES', 'PIES'];
   const subscribedCount =
     report.standards?.subscribedCount ?? subscribed.length;
   const subscribedLabel =
@@ -159,7 +164,8 @@ export function getHoodStandardsMessages(report: WrappedReport): {
     missing: `you are subscribed to ${subscribedCount} standards: ${subscribedLabel}`,
     vip: 'Make sure your databases are up-to-date with the latest releases',
     subscribedPct,
-    databaseAccessIcons: getStandardsDatabaseAccessIcons(subscribed),
+    databaseAccessIcons: getStandardsDatabaseAccessIcons(subscribedProducts),
+    protocolLogos: getStandardsProtocolLogos(subscribedProducts),
   };
 }
 

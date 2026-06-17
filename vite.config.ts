@@ -39,6 +39,29 @@ export default defineConfig({
     open: false,
   },
 
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/lottie-web') || id.includes('node_modules/lottie-react')) {
+            return 'lottie-vendor';
+          }
+          if (id.includes('driving-animation-background.json')) return 'lottie-driving';
+          if (id.includes('gps-navigation-map.json')) return 'lottie-gps-map';
+          if (
+            id.includes('car-battery.json') ||
+            id.includes('wheel-alignment-service.json') ||
+            id.includes('imports/tire.json')
+          ) {
+            return 'lottie-hood';
+          }
+          if (id.includes('FullDiagnosticsPanel')) return 'diagnostics';
+          if (id.includes('JourneyNavMapAnimation')) return 'journey-map';
+        },
+      },
+    },
+  },
+
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

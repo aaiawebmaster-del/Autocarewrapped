@@ -10,18 +10,15 @@ import {
   type RefObject,
 } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import Lottie from 'lottie-react';
-import tireGaugeData from '../../imports/tire.json';
-import wheelAlignmentServiceData from '../../imports/wheel-alignment-service.json';
+import { LazyLottie } from './LazyLottie';
+import {
+  loadCarBatteryAnimation,
+  loadTireGaugeAnimation,
+  loadWheelAlignmentAnimation,
+} from '@/lib/lazyLottieData';
+import { HoodStandardsMetallicBackground } from './HoodStandardsMetallicBackground';
 import gpsMapTexture from '../../assets/gps-map-dark.png';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
-import engineFullImage from '../../assets/engine-full.png?url';
-import engineHoleFrameImage from '../../assets/engine-hole-frame.png?url';
-import acesDipstickImage from '../../assets/dipstick-aces.svg?url';
-import piesDipstickImage from '../../assets/dipstick-pies.svg?url';
-import ipoDipstickImage from '../../assets/dipstick-ipo.svg?url';
-import ishopDipstickImage from '../../assets/dipstick-ishop.svg?url';
-import superspecDipstickImage from '../../assets/dipstick-superspec.svg?url';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
@@ -44,6 +41,7 @@ import {
   type TireReadoutConfig,
 } from '@/lib/contentVariants';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
+import type { StandardsProtocolLogo } from '@/lib/standardsDatabaseIcons';
 import type { WrappedReport } from '@/types/wrappedReport';
 
 export const DASHBOARD_ARCH_PATH = svgPaths.p33654d00;
@@ -213,6 +211,7 @@ function useWheelLaneMetrics() {
   });
 
   useLayoutEffect(() => {
+    let rafId = 0;
     const update = () => {
       const laneW = window.innerWidth;
       const isMobile = laneW <= HOOD_TIRE_LAYOUT_BREAKPOINT;
@@ -232,20 +231,44 @@ function useWheelLaneMetrics() {
       );
       const parkX = groupLeft + readoutWidth + HOOD_READOUT_GAP_PX;
 
-      setMetrics({
-        laneW,
-        wheelW,
-        offLeft: -wheelW,
-        parkX,
-        offRight: laneW,
-        readoutGap: HOOD_READOUT_GAP_PX,
-        isMobile,
-        ...readout,
+      setMetrics((prev) => {
+        const next = {
+          laneW,
+          wheelW,
+          offLeft: -wheelW,
+          parkX,
+          offRight: laneW,
+          readoutGap: HOOD_READOUT_GAP_PX,
+          isMobile,
+          ...readout,
+        };
+        if (
+          prev.laneW === next.laneW &&
+          prev.wheelW === next.wheelW &&
+          prev.parkX === next.parkX &&
+          prev.isMobile === next.isMobile &&
+          prev.readoutWidth === next.readoutWidth
+        ) {
+          return prev;
+        }
+        return next;
       });
     };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+
+    const scheduleUpdate = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        update();
+      });
+    };
+
+    scheduleUpdate();
+    window.addEventListener('resize', scheduleUpdate);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', scheduleUpdate);
+    };
   }, []);
 
   return metrics;
@@ -253,7 +276,6 @@ function useWheelLaneMetrics() {
 
 const CLIP_ID = 'dashboard-map-arch-clip';
 
-const HOOD_CLIP_ID = 'dashboard-hood-arch-clip';
 const VB_W = 1889;
 const VB_H = 540;
 
@@ -428,16 +450,7 @@ function getHoodPopupMessage(
   return HOOD_POPUP_MESSAGES_FALLBACK[index] ?? '';
 }
 
-const DIPSTICK_RISE = { duration: 2.2, ease: [0.25, 0, 0.2, 1] as const };
-const HOOD_ACES_START_MS = 280;
-const HOOD_PIES_STAGGER_MS = 320;
-const HOOD_MISSING_STAGGER_MS = 700;
-
-const MISSING_DIPSTICKS = [
-  { src: ipoDipstickImage, alt: 'IPO standard', className: 'hood-dipstick-img--ipo' },
-  { src: ishopDipstickImage, alt: 'iSHOP standard', className: 'hood-dipstick-img--ishop' },
-  { src: superspecDipstickImage, alt: 'SuperSpec standard', className: 'hood-dipstick-img--superspec' },
-] as const;
+const HOOD_CHECKING_ADVANCE_MS = 600;
 
 function HoodNavChevron({
   direction,
@@ -603,6 +616,44 @@ function HoodStandardsGauge({
   );
 }
 
+function HoodStandardsProtocolLogos({
+  protocolLogos,
+}: {
+  protocolLogos: StandardsProtocolLogo[];
+}) {
+  return (
+    <div className="hood-standards-popup__protocol-row" aria-label="ACES and PIES access">
+      {protocolLogos.map((logo) => (
+        <div
+          key={logo.id}
+          className={[
+            'hood-standards-protocol-logo',
+            logo.active
+              ? 'hood-standards-protocol-logo--active'
+              : 'hood-standards-protocol-logo--inactive',
+          ].join(' ')}
+        >
+          <img
+            className="hood-standards-protocol-logo__image"
+            src={logo.src}
+            alt={logo.label}
+            title={`${logo.label}${logo.active ? ' access' : ' — no subscription'}`}
+            draggable={false}
+          />
+          {!logo.active && (
+            <span className="hood-standards-protocol-logo__x" aria-hidden>
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M5 5L19 19" />
+                <path d="M19 5L5 19" />
+              </svg>
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function HoodStandardsPopup({
   index,
   onTypeComplete,
@@ -624,6 +675,8 @@ function HoodStandardsPopup({
   const message = getHoodPopupMessage(index, hoodMessages);
   const isMissing = index === HOOD_MISSING_POPUP_INDEX;
   const databaseAccessIcons = hoodMessages.databaseAccessIcons;
+  const protocolLogos = hoodMessages.protocolLogos;
+  const showProtocolLogos = index >= HOOD_SUBSCRIBED_POPUP_INDEX;
   const [gaugeFillStarted, setGaugeFillStarted] = useState(false);
   const gaugeTarget =
     index === HOOD_CHECKING_POPUP_INDEX ? 0 : hoodMessages.subscribedPct;
@@ -709,6 +762,9 @@ function HoodStandardsPopup({
                   </motion.div>
                 </AnimatePresence>
               </div>
+              {showProtocolLogos && (
+                <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
+              )}
               {showNavButtons && databaseAccessIcons.length > 0 && (
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -787,41 +843,6 @@ function HoodStandardsPopup({
           )}
         </div>
       </div>
-    </motion.div>
-  );
-}
-
-const HOOD_DIPSTICK_HIDDEN_TOP = '115%';
-const HOOD_DIPSTICK_RISE_TOP = '17%';
-const HOOD_DIPSTICK_ELEVATED_TOP = '27%';
-
-function HoodDipstickRise({
-  src,
-  alt,
-  risen,
-  risenTop = HOOD_DIPSTICK_RISE_TOP,
-  className,
-}: {
-  src: string;
-  alt: string;
-  risen: boolean;
-  risenTop?: string;
-  className?: string;
-}) {
-  const isInitialRise = risenTop === HOOD_DIPSTICK_RISE_TOP;
-
-  return (
-    <motion.div
-      className={`hood-dipstick-rise${className ? ` ${className}` : ''}`}
-      initial={{ top: HOOD_DIPSTICK_HIDDEN_TOP }}
-      animate={{ top: risen ? risenTop : HOOD_DIPSTICK_HIDDEN_TOP }}
-      transition={{
-        duration: isInitialRise ? DIPSTICK_RISE.duration : 1.25,
-        ease: DIPSTICK_RISE.ease,
-        delay: isInitialRise ? 0.05 : 0,
-      }}
-    >
-      <img src={src} alt={alt} className="hood-dipstick-rise__img" draggable={false} />
     </motion.div>
   );
 }
@@ -941,11 +962,13 @@ export function HoodTireCheckBadge({
 export function HoodStandardsSummaryDevice({
   subscribedPct,
   databaseAccessIcons,
+  protocolLogos,
   className,
   animateOnMount = true,
 }: {
   subscribedPct: number;
   databaseAccessIcons: ReturnType<typeof getHoodStandardsMessages>['databaseAccessIcons'];
+  protocolLogos: ReturnType<typeof getHoodStandardsMessages>['protocolLogos'];
   className?: string;
   animateOnMount?: boolean;
 }) {
@@ -996,6 +1019,7 @@ export function HoodStandardsSummaryDevice({
               animateFill={gaugeFillStarted}
               showFull={!animateOnMount}
             />
+            <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
             {databaseAccessIcons.length > 0 ? (
               <div className="hood-standards-popup__database-row">
                 <span className="hood-standards-popup__database-label">Database Access:</span>
@@ -1202,9 +1226,10 @@ function HoodTireHubReadout({
                   draggable={false}
                 />
               ) : (
-                <Lottie
+                <LazyLottie
                   key={tirePhase}
-                  animationData={tireGaugeData}
+                  loadAnimation={loadTireGaugeAnimation}
+                  active={showPressureGauge && screenVisible}
                   loop={false}
                   autoplay
                   className="hood-tire-hub__pressure-gauge-lottie"
@@ -1469,13 +1494,16 @@ function HoodTireHubScene({
         <HoodTireBaseArch />
       </motion.div>
       <div className="hood-tire-hub__sky-bg" aria-hidden>
-        <Lottie
-          animationData={wheelAlignmentServiceData}
-          loop
-          autoplay
-          className="hood-tire-hub__sky-bg-player"
-          rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
-        />
+        {!isMobile && (
+          <LazyLottie
+            loadAnimation={loadWheelAlignmentAnimation}
+            active={screenVisible}
+            loop
+            autoplay
+            className="hood-tire-hub__sky-bg-player"
+            rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+          />
+        )}
       </div>
       <div className="hood-tire-hub__lane" aria-hidden={false}>
         {rolling && swapping && rollTarget && (
@@ -1529,8 +1557,7 @@ function HoodTireHubScene({
 }
 
 /**
- * Under the Hood arch — layer stack inside one SVG clip (back → front):
- * 1. Full engine  2. Dipstick  3. Frame overlay (black hole = transparent via mask)
+ * Under the Hood standards — device tablet above a bottom-pinned engine Lottie backdrop.
  */
 export type HoodNavTransition = 'tire-to-standards' | 'standards-to-tire';
 
@@ -1568,17 +1595,6 @@ export function DashboardHoodArch({
   const hoodMessages = useMemo(() => getHoodStandardsMessages(report), [report]);
   const [popupIndex, setPopupIndex] = useState(HOOD_CHECKING_POPUP_INDEX);
   const [popupTyped, setPopupTyped] = useState(false);
-  const [acesRisen, setAcesRisen] = useState(false);
-  const [piesRisen, setPiesRisen] = useState(false);
-  const [showMissing, setShowMissing] = useState(false);
-  const [ipoRisen, setIpoRisen] = useState(false);
-  const [ishopRisen, setIshopRisen] = useState(false);
-  const [superspecRisen, setSuperspecRisen] = useState(false);
-  const missingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const acesPiesTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const missingRisen = [ipoRisen, ishopRisen, superspecRisen];
-  const missingComplete = ipoRisen && ishopRisen && superspecRisen;
 
   const [tireRolling, setTireRolling] = useState(false);
   const [tireRollTarget, setTireRollTarget] = useState<TireRollTarget>(null);
@@ -1588,6 +1604,7 @@ export function DashboardHoodArch({
   const [standardsCloseStep, setStandardsCloseStep] = useState<
     'idle' | 'engine-out' | 'ground-in'
   >('idle');
+  const tireRollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tirePhase = phase === 'standards' ? 'trendlens' : phase;
   const nextTirePhase = getNextTirePhase(tirePhase);
@@ -1606,10 +1623,14 @@ export function DashboardHoodArch({
 
   const rollToTirePhase = useCallback(
     (target: TirePhase) => {
+      if (tireRollTimerRef.current) {
+        window.clearTimeout(tireRollTimerRef.current);
+      }
       setTireReadoutReady(false);
       setTireRollTarget(target);
       setTireRolling(true);
-      setTimeout(() => {
+      tireRollTimerRef.current = window.setTimeout(() => {
+        tireRollTimerRef.current = null;
         onPhaseChange(target);
         setTireRolling(false);
         setTireRollTarget(null);
@@ -1618,54 +1639,21 @@ export function DashboardHoodArch({
     [onPhaseChange],
   );
 
-  const clearAcesPiesTimers = useCallback(() => {
-    acesPiesTimersRef.current.forEach(clearTimeout);
-    acesPiesTimersRef.current = [];
-  }, []);
-
-  const scheduleAcesPiesRise = useCallback(() => {
-    clearAcesPiesTimers();
-    acesPiesTimersRef.current.push(setTimeout(() => setAcesRisen(true), HOOD_ACES_START_MS));
-    acesPiesTimersRef.current.push(
-      setTimeout(() => setPiesRisen(true), HOOD_ACES_START_MS + HOOD_PIES_STAGGER_MS),
-    );
-  }, [clearAcesPiesTimers]);
-
-  const clearMissingTimers = useCallback(() => {
-    missingTimersRef.current.forEach(clearTimeout);
-    missingTimersRef.current = [];
+  useEffect(() => {
+    return () => {
+      if (tireRollTimerRef.current) {
+        window.clearTimeout(tireRollTimerRef.current);
+      }
+    };
   }, []);
 
   const beginReturnToStandards = useCallback(() => {
-    clearMissingTimers();
-    setShowMissing(false);
-    setIpoRisen(false);
-    setIshopRisen(false);
-    setSuperspecRisen(false);
     setPopupIndex(HOOD_VIP_POPUP_INDEX);
     setPopupTyped(true);
-    setAcesRisen(true);
-    setPiesRisen(true);
     setTireIntroComplete(false);
     setTireReadoutReady(false);
     onRequestTireToStandardsTransition?.();
-  }, [clearMissingTimers, onRequestTireToStandardsTransition]);
-
-  const beginMissingSequence = useCallback(() => {
-    clearMissingTimers();
-    setShowMissing(true);
-    setIpoRisen(false);
-    setIshopRisen(false);
-    setSuperspecRisen(false);
-
-    missingTimersRef.current.push(setTimeout(() => setIpoRisen(true), 150));
-    missingTimersRef.current.push(
-      setTimeout(() => setIshopRisen(true), HOOD_MISSING_STAGGER_MS + 150),
-    );
-    missingTimersRef.current.push(
-      setTimeout(() => setSuperspecRisen(true), HOOD_MISSING_STAGGER_MS * 2 + 150),
-    );
-  }, [clearMissingTimers]);
+  }, [onRequestTireToStandardsTransition]);
 
   const handlePrev = useCallback(() => {
     if (prevTirePhase) {
@@ -1681,11 +1669,6 @@ export function DashboardHoodArch({
       return;
     }
     if (popupIndex === HOOD_MISSING_POPUP_INDEX) {
-      clearMissingTimers();
-      setShowMissing(false);
-      setIpoRisen(false);
-      setIshopRisen(false);
-      setSuperspecRisen(false);
       setPopupIndex(HOOD_VIP_POPUP_INDEX);
       return;
     }
@@ -1695,15 +1678,10 @@ export function DashboardHoodArch({
       return;
     }
     if (popupIndex > HOOD_CHECKING_POPUP_INDEX) {
-      if (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX) {
-        clearAcesPiesTimers();
-        setAcesRisen(false);
-        setPiesRisen(false);
-      }
       setPopupIndex((i) => i - 1);
       setPopupTyped(false);
     }
-  }, [phase, prevTirePhase, popupIndex, clearMissingTimers, clearAcesPiesTimers, beginReturnToStandards, rollToTirePhase]);
+  }, [phase, prevTirePhase, popupIndex, beginReturnToStandards, rollToTirePhase]);
 
   const handleNext = useCallback(() => {
     if (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX) {
@@ -1726,27 +1704,15 @@ export function DashboardHoodArch({
   const forwardDisabled =
     popupIndex === HOOD_CHECKING_POPUP_INDEX ||
     (popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped);
-  const pairElevated = popupIndex >= 1 && !showMissing;
-  const pairRisenTop = pairElevated ? HOOD_DIPSTICK_ELEVATED_TOP : HOOD_DIPSTICK_RISE_TOP;
 
   useEffect(() => {
     if (popupIndex !== HOOD_CHECKING_POPUP_INDEX || !popupTyped) return;
-    scheduleAcesPiesRise();
-  }, [popupIndex, popupTyped, scheduleAcesPiesRise]);
-
-  useEffect(() => {
-    if (popupIndex !== HOOD_CHECKING_POPUP_INDEX || !acesRisen) return;
-    setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
-    setPopupTyped(false);
-  }, [popupIndex, acesRisen]);
-
-  useEffect(
-    () => () => {
-      clearMissingTimers();
-      clearAcesPiesTimers();
-    },
-    [clearMissingTimers, clearAcesPiesTimers],
-  );
+    const timer = setTimeout(() => {
+      setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
+      setPopupTyped(false);
+    }, HOOD_CHECKING_ADVANCE_MS);
+    return () => clearTimeout(timer);
+  }, [popupIndex, popupTyped]);
 
   const archSlideTransition = {
     duration: HOOD_PANEL_SLIDE_MS / 1000,
@@ -1768,16 +1734,9 @@ export function DashboardHoodArch({
 
   useEffect(() => {
     if (hoodNavTransition !== 'tire-to-standards') return;
-    clearMissingTimers();
-    setShowMissing(false);
-    setIpoRisen(false);
-    setIshopRisen(false);
-    setSuperspecRisen(false);
     setPopupIndex(HOOD_VIP_POPUP_INDEX);
     setPopupTyped(true);
-    setAcesRisen(true);
-    setPiesRisen(true);
-  }, [hoodNavTransition, clearMissingTimers]);
+  }, [hoodNavTransition]);
 
   useEffect(() => {
     if (standardsHoodClosing) {
@@ -1787,7 +1746,7 @@ export function DashboardHoodArch({
     setStandardsCloseStep('idle');
   }, [standardsHoodClosing]);
 
-  const handleEngineExitComplete = useCallback(() => {
+  const handleEngineBgExitComplete = useCallback(() => {
     setStandardsCloseStep((step) => (step === 'engine-out' ? 'ground-in' : step));
   }, []);
 
@@ -1817,137 +1776,63 @@ export function DashboardHoodArch({
         if (standardsEnterUp) onNavTransitionComplete?.();
       }}
     >
-            {!standardsHoodClosing && (
-              <div className="hood-standards-popup-anchor">
-                <HoodStandardsPopup
-                  index={popupIndex}
-                  hoodMessages={hoodMessages}
-                  onTypeComplete={handlePopupTypeComplete}
-                  onBackToJourney={onBackToJourney}
-                  onNext={handleNext}
-                  nextDisabled={forwardDisabled}
-                  showNavButtons={showStandardsControls}
-                />
-              </div>
-            )}
-            <svg
-              className="dashboard-hood-arch__svg"
-              viewBox={`0 0 ${VB_W} ${VB_H}`}
-              preserveAspectRatio="xMidYMax slice"
-              fill="none"
-            >
-              <defs>
-                <clipPath id={HOOD_CLIP_ID}>
-                  <path d={DASHBOARD_ARCH_PATH} />
-                </clipPath>
-              </defs>
-
-              <path d={DASHBOARD_ARCH_PATH} fill={ARCH_FILL_GREY} />
-
-              <g clipPath={`url(#${HOOD_CLIP_ID})`}>
-                <foreignObject x="0" y="0" width={VB_W} height={VB_H}>
-                  <motion.div
-                    xmlns="http://www.w3.org/1999/xhtml"
-                    className="hood-engine-stack"
-                    animate={{
-                      y:
-                        standardsCloseStep === 'engine-out' ||
-                        standardsCloseStep === 'ground-in'
-                          ? '100%'
-                          : '0%',
-                    }}
-                    transition={{
-                      duration: HOOD_ENGINE_EXIT_MS / 1000,
-                      ease: HOOD_ARCH_SLIDE_EASE,
-                    }}
-                    onAnimationComplete={handleEngineExitComplete}
-                  >
-                    <img
-                      src={engineFullImage}
-                      alt=""
-                      className="hood-engine-img hood-engine-img--back"
-                      draggable={false}
-                    />
-                    <div className="hood-dipstick-slot">
-                      <div className="hood-standards-band">
-                        <div className="hood-standards-dipsticks-group">
-                          <div
-                            className={`hood-dipsticks-row${showMissing ? ' hood-dipsticks-row--triple' : ''}`}
-                          >
-                            <AnimatePresence mode="wait">
-                              {!showMissing ? (
-                                <motion.div
-                                  key="pair"
-                                  className="hood-dipsticks-pair"
-                                  initial={{ opacity: 1 }}
-                                  exit={{ opacity: 0 }}
-                                  transition={{ duration: 0.35 }}
-                                >
-                                  <HoodDipstickRise
-                                    src={acesDipstickImage}
-                                    alt="ACES standard"
-                                    risen={acesRisen}
-                                    risenTop={pairRisenTop}
-                                    className="hood-dipstick-img--aces"
-                                  />
-                                  <HoodDipstickRise
-                                    src={piesDipstickImage}
-                                    alt="PIES standard"
-                                    risen={piesRisen}
-                                    risenTop={pairRisenTop}
-                                    className="hood-dipstick-img--pies"
-                                  />
-                                </motion.div>
-                              ) : (
-                                <motion.div
-                                  key="triple"
-                                  className="hood-dipsticks-triple"
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  transition={{ duration: 0.35 }}
-                                >
-                                  {MISSING_DIPSTICKS.map((stick, i) => (
-                                    <HoodDipstickRise
-                                      key={stick.alt}
-                                      src={stick.src}
-                                      alt={stick.alt}
-                                      risen={missingRisen[i]}
-                                      className={stick.className}
-                                    />
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <img
-                      src={engineHoleFrameImage}
-                      alt=""
-                      className="hood-engine-img hood-engine-img--front"
-                      draggable={false}
-                    />
-                  </motion.div>
-                </foreignObject>
-              </g>
-            </svg>
-            {standardsCloseStep === 'ground-in' && (
-              <motion.div
-                key="hood-ground-close"
-                className="hood-standards-ground-close"
-                initial={{ y: '-100%' }}
-                animate={{ y: 0 }}
-                transition={{
-                  duration: HOOD_GROUND_RISE_MS / 1000,
-                  ease: [0.4, 0, 0.2, 1],
-                }}
-                onAnimationComplete={() => onNavTransitionMidpoint?.()}
-              >
-                <HoodTireBaseArch />
-              </motion.div>
-            )}
-          </motion.div>
+      <div className="hood-standards-scene" aria-hidden>
+        <motion.div
+          className="hood-standards-scene__content"
+          animate={{
+            y:
+              standardsCloseStep === 'engine-out' || standardsCloseStep === 'ground-in'
+                ? '100%'
+                : '0%',
+          }}
+          transition={{
+            duration: HOOD_ENGINE_EXIT_MS / 1000,
+            ease: HOOD_ARCH_SLIDE_EASE,
+          }}
+          onAnimationComplete={handleEngineBgExitComplete}
+        >
+          <HoodStandardsMetallicBackground />
+          <div className="hood-standards-scene__battery-bg">
+            <LazyLottie
+              loadAnimation={loadCarBatteryAnimation}
+              active={phase === 'standards' && standardsCloseStep === 'idle'}
+              loop
+              autoplay
+              className="hood-standards-scene__battery-player"
+              rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
+            />
+          </div>
+          {!standardsHoodClosing && (
+            <div className="hood-standards-popup-anchor">
+              <HoodStandardsPopup
+                index={popupIndex}
+                hoodMessages={hoodMessages}
+                onTypeComplete={handlePopupTypeComplete}
+                onBackToJourney={onBackToJourney}
+                onNext={handleNext}
+                nextDisabled={forwardDisabled}
+                showNavButtons={showStandardsControls}
+              />
+            </div>
+          )}
+        </motion.div>
+      </div>
+      {standardsCloseStep === 'ground-in' && (
+        <motion.div
+          key="hood-ground-close"
+          className="hood-standards-ground-close"
+          initial={{ y: '-100%' }}
+          animate={{ y: 0 }}
+          transition={{
+            duration: HOOD_GROUND_RISE_MS / 1000,
+            ease: [0.4, 0, 0.2, 1],
+          }}
+          onAnimationComplete={() => onNavTransitionMidpoint?.()}
+        >
+          <HoodTireBaseArch />
+        </motion.div>
+      )}
+    </motion.div>
   );
 
   const tireBranch = (

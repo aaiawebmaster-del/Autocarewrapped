@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
-import mapAnimationData from '../../imports/gps-navigation-map.json';
+import { loadGpsMapAnimation } from '@/lib/lazyLottieData';
+import { preferCanvasLottieRenderer } from '@/lib/browserCompat';
 import {
   JOURNEY_MAP_ENTRY_FALLBACK_MS,
   JOURNEY_MAP_STABLE_MS,
@@ -9,10 +10,7 @@ import {
   JOURNEY_NAV_MAP_REPAINT_EVENT,
 } from '@/lib/journeySceneTiming';
 
-const MAP_ANIM_META = mapAnimationData as { op: number; fr: number };
-const MAP_ANIM_FPS = MAP_ANIM_META.fr;
-const MAP_FRAME_END = Math.floor(MAP_ANIM_META.op - 1);
-/** Center-anchored cover fit — keeps frame 0 in view without bottom snap on resize. */
+const MAP_ANIM_META_FALLBACK = { op: 300, fr: 30 };
 const MAP_ANIM_PRESERVE_ASPECT_DESKTOP = 'xMidYMid slice' as const;
 const MAP_ANIM_PRESERVE_ASPECT_MOBILE = 'xMinYMid slice' as const;
 const MOBILE_MAP_MEDIA_QUERY = '(max-width: 768px)';
@@ -47,173 +45,202 @@ function JourneyNavMapAnimationInner() {
     let lastPaintedFrame = -1;
     let entryReleased = false;
     const lastSizeRef = { w: 0, h: 0 };
+    let anim: ReturnType<typeof lottie.loadAnimation> | null = null;
+    let mapAnimFps = MAP_ANIM_META_FALLBACK.fr;
+    let mapFrameEnd = Math.floor(MAP_ANIM_META_FALLBACK.op - 1);
+    let disposed = false;
+    const cleanupRef = { current: () => {} };
 
-    const anim = lottie.loadAnimation({
-      container,
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      animationData: mapAnimationData,
-      rendererSettings: {
-        preserveAspectRatio: getMapPreserveAspectRatio(),
-        progressiveLoad: false,
-        hideOnTransparent: true,
-      },
-    });
+    void loadGpsMapAnimation().then((mapAnimationData) => {
+      if (disposed || !containerRef.current) return;
 
-    const paintFrame = (frame: number) => {
-      const clamped = Math.max(0, Math.min(frame, MAP_FRAME_END));
-      anim.goToAndStop(clamped, true);
-      applyMapPreserveAspectRatio(container);
-      lastPaintedFrame = clamped;
-    };
+      const mapAnimMeta = mapAnimationData as { op: number; fr: number };
+      mapAnimFps = mapAnimMeta.fr;
+      mapFrameEnd = Math.floor(mapAnimMeta.op - 1);
 
-    const finishAtEnd = () => {
-      if (finished) return;
-      finished = true;
-      paintFrame(MAP_FRAME_END);
-    };
+      anim = lottie.loadAnimation({
+        container,
+        renderer: preferCanvasLottieRenderer() ? 'canvas' : 'svg',
+        loop: false,
+        autoplay: false,
+        animationData: mapAnimationData,
+        rendererSettings: {
+          preserveAspectRatio: getMapPreserveAspectRatio(),
+          progressiveLoad: false,
+          hideOnTransparent: true,
+        },
+      });
 
-    const holdAtStartFrame = () => {
-      if (playbackStarted || finished) return;
-      if (!sizeToContainer()) return;
-      paintFrame(0);
-    };
+      const paintFrame = (frame: number) => {
+        if (!anim) return;
+        const clamped = Math.max(0, Math.min(frame, mapFrameEnd));
+        anim.goToAndStop(clamped, true);
+        if (anim.renderer === 'svg') {
+          applyMapPreserveAspectRatio(container);
+        }
+        lastPaintedFrame = clamped;
+      };
 
-    const sizeToContainer = () => {
-      const rect = container.getBoundingClientRect();
-      const width = Math.round(rect.width);
-      const height = Math.round(rect.height);
-      if (width < 8 || height < 8) return false;
+      const finishAtEnd = () => {
+        if (finished) return;
+        finished = true;
+        paintFrame(mapFrameEnd);
+      };
 
-      if (width === lastSizeRef.w && height === lastSizeRef.h) {
+      const holdAtStartFrame = () => {
+        if (playbackStarted || finished) return;
+        if (!sizeToContainer()) return;
+        paintFrame(0);
+      };
+
+      const sizeToContainer = () => {
+        if (!anim) return false;
+        const rect = container.getBoundingClientRect();
+        const width = Math.round(rect.width);
+        const height = Math.round(rect.height);
+        if (width < 8 || height < 8) return false;
+
+        if (width === lastSizeRef.w && height === lastSizeRef.h) {
+          return true;
+        }
+
+        const frameBefore = playbackStarted ? lastPaintedFrame : 0;
+
+        lastSizeRef.w = width;
+        lastSizeRef.h = height;
+        anim.resize(width, height);
+        applyMapPreserveAspectRatio(container);
+
+        if (playbackStarted && frameBefore >= 0) {
+          paintFrame(frameBefore);
+        } else if (!playbackStarted) {
+          holdAtStartFrame();
+        }
+
         return true;
-      }
+      };
 
-      const frameBefore = playbackStarted ? lastPaintedFrame : 0;
+      const tickManualPlayback = () => {
+        if (finished || !playbackStarted) return;
 
-      lastSizeRef.w = width;
-      lastSizeRef.h = height;
-      anim.resize(width, height);
-      applyMapPreserveAspectRatio(container);
+        const elapsedSec = (performance.now() - playStartMs) / 1000;
+        const targetFrame = Math.min(
+          Math.floor(elapsedSec * mapAnimFps),
+          mapFrameEnd,
+        );
 
-      if (playbackStarted && frameBefore >= 0) {
-        paintFrame(frameBefore);
-      } else if (!playbackStarted) {
+        if (targetFrame >= mapFrameEnd) {
+          finishAtEnd();
+          return;
+        }
+
+        if (targetFrame !== lastPaintedFrame) {
+          paintFrame(targetFrame);
+        }
+
+        manualRafId = requestAnimationFrame(tickManualPlayback);
+      };
+
+      const startPlayback = () => {
+        if (finished || playbackStarted) return;
+        if (!sizeToContainer()) return;
+
+        playbackStarted = true;
+        playStartMs = performance.now();
+        paintFrame(0);
+        window.dispatchEvent(new CustomEvent(JOURNEY_NAV_MAP_PLAYBACK_EVENT));
+        manualRafId = requestAnimationFrame(tickManualPlayback);
+      };
+
+      const releaseMapEntry = () => {
+        if (entryReleased) return;
+        entryReleased = true;
         holdAtStartFrame();
+        schedulePlaybackStart();
+      };
+
+      const schedulePlaybackStart = () => {
+        if (playbackStarted || finished || !entryReleased) return;
+        if (!sizeToContainer()) return;
+
+        if (stableTimer) {
+          window.clearTimeout(stableTimer);
+        }
+
+        stableTimer = window.setTimeout(() => {
+          stableTimer = null;
+          startPlayback();
+        }, JOURNEY_MAP_STABLE_MS);
+      };
+
+      const onDomLoaded = () => {
+        holdAtStartFrame();
+        schedulePlaybackStart();
+      };
+
+      anim.addEventListener('DOMLoaded', onDomLoaded);
+
+      if (anim.isLoaded) {
+        holdAtStartFrame();
+        schedulePlaybackStart();
       }
 
-      return true;
-    };
+      let resizeRafId = 0;
+      const observer = new ResizeObserver(() => {
+        if (resizeRafId) return;
+        resizeRafId = requestAnimationFrame(() => {
+          resizeRafId = 0;
+          sizeToContainer();
+          schedulePlaybackStart();
+        });
+      });
+      observer.observe(container);
 
-    const tickManualPlayback = () => {
-      if (finished || !playbackStarted) return;
+      const onEnterComplete = () => {
+        releaseMapEntry();
+      };
+      window.addEventListener(JOURNEY_NAV_MAP_ENTER_EVENT, onEnterComplete);
+      entryFallbackTimer = window.setTimeout(releaseMapEntry, JOURNEY_MAP_ENTRY_FALLBACK_MS);
 
-      const elapsedSec = (performance.now() - playStartMs) / 1000;
-      const targetFrame = Math.min(
-        Math.floor(elapsedSec * MAP_ANIM_FPS),
-        MAP_FRAME_END,
-      );
-
-      if (targetFrame >= MAP_FRAME_END) {
-        finishAtEnd();
-        return;
-      }
-
-      if (targetFrame !== lastPaintedFrame) {
-        paintFrame(targetFrame);
-      }
-
-      manualRafId = requestAnimationFrame(tickManualPlayback);
-    };
-
-    const startPlayback = () => {
-      if (finished || playbackStarted) return;
-      if (!sizeToContainer()) return;
-
-      playbackStarted = true;
-      playStartMs = performance.now();
-      paintFrame(0);
-      window.dispatchEvent(new CustomEvent(JOURNEY_NAV_MAP_PLAYBACK_EVENT));
-      manualRafId = requestAnimationFrame(tickManualPlayback);
-    };
-
-    const releaseMapEntry = () => {
-      if (entryReleased) return;
-      entryReleased = true;
-      holdAtStartFrame();
-      schedulePlaybackStart();
-    };
-
-    const schedulePlaybackStart = () => {
-      if (playbackStarted || finished || !entryReleased) return;
-      if (!sizeToContainer()) return;
-
-      if (stableTimer) {
-        window.clearTimeout(stableTimer);
-      }
-
-      stableTimer = window.setTimeout(() => {
-        stableTimer = null;
-        startPlayback();
-      }, JOURNEY_MAP_STABLE_MS);
-    };
-
-    const onDomLoaded = () => {
-      holdAtStartFrame();
-      schedulePlaybackStart();
-    };
-
-    anim.addEventListener('DOMLoaded', onDomLoaded);
-
-    if (anim.isLoaded) {
-      holdAtStartFrame();
-      schedulePlaybackStart();
-    }
-
-    const observer = new ResizeObserver(() => {
-      sizeToContainer();
-      schedulePlaybackStart();
-    });
-    observer.observe(container);
-
-    const onEnterComplete = () => {
-      releaseMapEntry();
-    };
-    window.addEventListener(JOURNEY_NAV_MAP_ENTER_EVENT, onEnterComplete);
-    entryFallbackTimer = window.setTimeout(releaseMapEntry, JOURNEY_MAP_ENTRY_FALLBACK_MS);
-
-    const onRepaintRequest = () => {
-      if (!playbackStarted || finished) return;
-      paintFrame(lastPaintedFrame);
-    };
-    window.addEventListener(JOURNEY_NAV_MAP_REPAINT_EVENT, onRepaintRequest);
-
-    const mobileMapQuery = window.matchMedia(MOBILE_MAP_MEDIA_QUERY);
-    const onMobileMapQueryChange = () => {
-      applyMapPreserveAspectRatio(container);
-      if (playbackStarted && !finished) {
+      const onRepaintRequest = () => {
+        if (!playbackStarted || finished) return;
         paintFrame(lastPaintedFrame);
-      } else if (!playbackStarted) {
-        holdAtStartFrame();
-      }
-    };
-    mobileMapQuery.addEventListener('change', onMobileMapQueryChange);
+      };
+      window.addEventListener(JOURNEY_NAV_MAP_REPAINT_EVENT, onRepaintRequest);
+
+      const mobileMapQuery = window.matchMedia(MOBILE_MAP_MEDIA_QUERY);
+      const onMobileMapQueryChange = () => {
+        applyMapPreserveAspectRatio(container);
+        if (playbackStarted && !finished) {
+          paintFrame(lastPaintedFrame);
+        } else if (!playbackStarted) {
+          holdAtStartFrame();
+        }
+      };
+      mobileMapQuery.addEventListener('change', onMobileMapQueryChange);
+
+      cleanupRef.current = () => {
+        if (stableTimer) {
+          window.clearTimeout(stableTimer);
+        }
+        if (entryFallbackTimer) {
+          window.clearTimeout(entryFallbackTimer);
+        }
+        if (resizeRafId) cancelAnimationFrame(resizeRafId);
+        cancelAnimationFrame(manualRafId);
+        observer.disconnect();
+        window.removeEventListener(JOURNEY_NAV_MAP_ENTER_EVENT, onEnterComplete);
+        window.removeEventListener(JOURNEY_NAV_MAP_REPAINT_EVENT, onRepaintRequest);
+        mobileMapQuery.removeEventListener('change', onMobileMapQueryChange);
+        anim?.removeEventListener('DOMLoaded', onDomLoaded);
+        anim?.destroy();
+        anim = null;
+      };
+    });
 
     return () => {
-      if (stableTimer) {
-        window.clearTimeout(stableTimer);
-      }
-      if (entryFallbackTimer) {
-        window.clearTimeout(entryFallbackTimer);
-      }
-      cancelAnimationFrame(manualRafId);
-      observer.disconnect();
-      window.removeEventListener(JOURNEY_NAV_MAP_ENTER_EVENT, onEnterComplete);
-      window.removeEventListener(JOURNEY_NAV_MAP_REPAINT_EVENT, onRepaintRequest);
-      mobileMapQuery.removeEventListener('change', onMobileMapQueryChange);
-      anim.removeEventListener('DOMLoaded', onDomLoaded);
-      anim.destroy();
+      disposed = true;
+      cleanupRef.current();
     };
   }, []);
 

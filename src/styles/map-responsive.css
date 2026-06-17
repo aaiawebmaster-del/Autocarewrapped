@@ -162,6 +162,236 @@
   --landing-plate-gap: 15px;
 }
 
+.driving-view-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 6rem;
+  padding: 0 1rem;
+  background: #000000;
+  box-sizing: border-box;
+}
+
+.driving-view-footer__restart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: #f3901d;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.driving-view-footer__restart:hover {
+  color: #fb923c;
+}
+
+.driving-view-footer__restart-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.driving-view-footer__nav-slot {
+  container-type: inline-size;
+  container-name: driving-footer-nav;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.driving-view-footer__nav {
+  width: 100%;
+  min-width: 0;
+}
+
+.driving-view-footer__nav--labels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.driving-view-footer__nav--dots {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.driving-view-footer__nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: #f3901d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.driving-view-footer__nav-arrow svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.driving-view-footer__nav-arrow:hover:not(:disabled) {
+  color: #fdba74;
+}
+
+.driving-view-footer__nav-arrow:disabled {
+  color: #374151;
+  cursor: default;
+}
+
+.driving-view-footer__nav-label {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.driving-view-footer__nav-label.is-active {
+  color: #f3901d;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.driving-view-footer__progress-track {
+  display: flex;
+  align-items: center;
+  width: min(100%, 17.5rem);
+  min-width: 10.5rem;
+  margin-inline: auto;
+  padding-block: 0.35rem;
+}
+
+.driving-view-footer__progress-segment {
+  flex: 1 1 auto;
+  height: 2px;
+  min-width: 0.75rem;
+  background: #4b5563;
+  border-radius: 999px;
+}
+
+.driving-view-footer__progress-segment.is-filled {
+  background: #f3901d;
+}
+
+.driving-view-footer__progress-dot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid #6b7280;
+  border-radius: 50%;
+  background: #000000;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.driving-view-footer__progress-dot.is-complete {
+  border-color: #f3901d;
+  background: #f3901d;
+}
+
+.driving-view-footer__progress-dot.is-active {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-color: #f3901d;
+  background: #f3901d;
+  box-shadow: 0 0 0 3px rgba(243, 144, 29, 0.22);
+}
+
+.driving-view-footer__skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+  border: 1px solid #374151;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.driving-view-footer__skip svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.driving-view-footer__skip:hover {
+  color: #f3901d;
+  border-color: rgba(243, 144, 29, 0.5);
+}
+
+@container driving-footer-nav (max-width: 34rem) {
+  .driving-view-footer__nav--labels {
+    display: none;
+  }
+
+  .driving-view-footer__nav--dots {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .driving-view-footer__nav--labels {
+    display: none;
+  }
+
+  .driving-view-footer__nav--dots {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .driving-view-footer {
+    gap: 0.375rem;
+    padding-inline: 0.75rem;
+  }
+
+  .driving-view-footer__restart-label {
+    display: none;
+  }
+
+  .driving-view-footer__progress-track {
+    width: min(100%, 15rem);
+    min-width: 9rem;
+  }
+}
+
 .landing-hero {
   container-type: size;
   container-name: landing-hero;
@@ -1778,6 +2008,7 @@
 }
 
 /* Kick the Tires — full content area; Under the Hood standards stays bottom-anchored */
+.dashboard-panel--hood:has(.dashboard-hood-arch__standards),
 .dashboard-panel--hood:has(.dashboard-hood-bg--trendlens),
 .dashboard-panel--hood:has(.dashboard-hood-bg--demandindex),
 .dashboard-panel--hood:has(.dashboard-hood-bg--factbook),
@@ -1786,6 +2017,11 @@
   bottom: 0;
   height: 100%;
   max-height: none;
+  overflow: visible;
+}
+
+.dashboard-hood-arch__standards {
+  overflow: visible;
 }
 
 .dashboard-panel--hood .dashboard-hood-bg,
@@ -1979,6 +2215,257 @@
   height: 100%;
 }
 
+/* Under the Hood — side-framed metallic trim, center stays black */
+.hood-standards-metallic-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  --hood-metallic-side-width: 36%;
+}
+
+.hood-standards-metallic-bg__base {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+}
+
+.hood-standards-metallic-bg__side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--hood-metallic-side-width);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.hood-standards-metallic-bg__side--left {
+  left: 0;
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 72%, transparent 100%);
+}
+
+.hood-standards-metallic-bg__side--right {
+  right: 0;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to left, #000 0%, #000 72%, transparent 100%);
+}
+
+.hood-standards-metallic-bg__blooms {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hood-standards-metallic-bg__bloom {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 40%, transparent 72%);
+  filter: blur(24px);
+  opacity: 0.5;
+}
+
+.hood-standards-metallic-bg__bloom--left {
+  width: min(38vw, 380px);
+  height: min(38vw, 380px);
+  top: 8%;
+  left: -8%;
+}
+
+.hood-standards-metallic-bg__bloom--right {
+  width: min(38vw, 380px);
+  height: min(38vw, 380px);
+  top: 8%;
+  right: -8%;
+}
+
+.hood-standards-metallic-bg__panels {
+  position: absolute;
+  inset: -18% -8%;
+  z-index: 2;
+}
+
+.hood-standards-metallic-bg__panel {
+  position: absolute;
+  top: var(--panel-top);
+  width: var(--panel-width);
+  height: 185%;
+  opacity: var(--panel-opacity);
+  transform-origin: center center;
+  border-radius: 2px;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.35) 50%,
+      rgba(255, 255, 255, 0.08) 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.02) 0px,
+      rgba(255, 255, 255, 0.02) 1px,
+      rgba(255, 255, 255, 0.06) 1px,
+      rgba(255, 255, 255, 0.06) 2px
+    ),
+    linear-gradient(
+      180deg,
+      rgba(168, 168, 168, 0.12) 0%,
+      rgba(74, 74, 74, 0.22) 48%,
+      rgba(30, 30, 30, 0.28) 100%
+    );
+  background-blend-mode: screen, overlay, normal;
+  border-left: 1px solid rgba(217, 217, 217, 0.42);
+  box-shadow:
+    inset 2px 0 10px rgba(255, 255, 255, 0.16),
+    inset -3px 0 14px rgba(0, 0, 0, 0.55),
+    0 10px 28px rgba(0, 0, 0, 0.38);
+}
+
+.hood-standards-metallic-bg__panel--left {
+  left: var(--panel-inset);
+  transform: rotate(42deg);
+}
+
+.hood-standards-metallic-bg__panel--right {
+  right: var(--panel-inset);
+  transform: rotate(-42deg);
+}
+
+.hood-standards-metallic-bg__panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.04) 3%,
+    transparent 18%
+  );
+  filter: blur(0.4px);
+  pointer-events: none;
+}
+
+.hood-standards-metallic-bg__panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+  filter: blur(0.6px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.hood-standards-metallic-bg__panel--far {
+  z-index: 1;
+  filter: blur(1.6px);
+  opacity: calc(var(--panel-opacity) * 0.82);
+}
+
+.hood-standards-metallic-bg__panel--mid {
+  z-index: 2;
+  filter: blur(0.45px);
+}
+
+.hood-standards-metallic-bg__panel--near {
+  z-index: 3;
+  filter: none;
+  box-shadow:
+    inset 2px 0 12px rgba(255, 255, 255, 0.22),
+    inset -4px 0 16px rgba(0, 0, 0, 0.62),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+.hood-standards-metallic-bg__side .hood-standards-metallic-bg__noise {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  opacity: 0.018;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: soft-light;
+}
+
+/* Under the Hood standards — battery Lottie pinned near top, device at bottom */
+.hood-standards-scene {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  --hood-standards-battery-max: 800px;
+  --hood-standards-battery-scale: 1.12;
+  --hood-standards-battery-top: 20px;
+  --hood-standards-battery-raise: 100px;
+  --hood-standards-device-bottom: 62px;
+  z-index: 1;
+}
+
+.hood-standards-scene__content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  will-change: transform;
+}
+
+.hood-standards-scene__battery-bg {
+  position: absolute;
+  top: var(--hood-standards-battery-top);
+  left: 50%;
+  right: auto;
+  z-index: 4;
+  width: min(
+    calc(var(--hood-standards-battery-max) * var(--hood-standards-battery-scale)),
+    calc(68vw * var(--hood-standards-battery-scale)),
+    calc(48vh * var(--hood-standards-battery-scale))
+  );
+  max-width: calc(var(--hood-standards-battery-max) * var(--hood-standards-battery-scale));
+  aspect-ratio: 1 / 1;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(calc(-1 * var(--hood-standards-battery-raise)));
+  transform-origin: center top;
+}
+
+.hood-standards-scene__battery-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hood-standards-scene__battery-player svg,
+.hood-standards-scene__battery-player canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  margin-inline: auto;
+}
+
+.dashboard-hood-arch__standards .hood-standards-popup-anchor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--hood-standards-device-bottom, 62px);
+  margin-top: 0;
+  margin-bottom: 0;
+  z-index: 6;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 clamp(16px, 3vw, 24px);
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
 .hood-engine-stack {
   position: relative;
   width: 100%;
@@ -2034,12 +2521,13 @@
 }
 
 .dashboard-hood-arch__standards > .hood-standards-popup-anchor {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: clamp(8px, 1.2vh, 14px);
-  z-index: 10;
+  /* Legacy selector — anchor now lives inside .hood-standards-scene__content */
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin-bottom: 0;
+  z-index: 2;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -2158,11 +2646,11 @@
   width: 100%;
   min-width: 0;
   max-width: min(600px, 92vw);
-  height: 272px;
+  height: 332px;
 }
 
 .hood-standards-popup {
-  --hood-standards-popup-height: 272px;
+  --hood-standards-popup-height: 332px;
   --rugged-case-orange: #e85d0a;
   --rugged-case-orange-dark: #b84300;
   --rugged-case-orange-light: #ff7a1f;
@@ -2541,22 +3029,22 @@
 }
 
 .hood-standards-popup__text-area {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
-  max-height: 100%;
+  max-height: none;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: clamp(10px, 1.6vw, 14px);
   overflow: visible;
-  padding-bottom: 2px;
+  padding-bottom: 0;
 }
 
 .hood-standards-popup__text-scroll {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  max-height: 100%;
+  max-height: clamp(72px, 11vh, 96px);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -2677,16 +3165,79 @@
   user-select: none;
 }
 
+.hood-standards-popup__protocol-row {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(12px, 2vw, 18px);
+  width: 100%;
+  min-height: clamp(44px, 8vh, 64px);
+  padding-block: clamp(2px, 0.4vh, 4px);
+}
+
+.hood-standards-protocol-logo {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(40px, 7.5vh, 56px);
+  max-height: 100%;
+}
+
+.hood-standards-protocol-logo__image {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: clamp(104px, 18vw, 140px);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.hood-standards-protocol-logo--active .hood-standards-protocol-logo__image {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(0, 198, 255, 0.16));
+}
+
+.hood-standards-protocol-logo--inactive .hood-standards-protocol-logo__image {
+  opacity: 0.5;
+  filter: grayscale(0.35) brightness(0.92);
+}
+
+.hood-standards-protocol-logo__x {
+  position: absolute;
+  inset: -2px -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hood-standards-protocol-logo__x svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hood-standards-protocol-logo__x path {
+  fill: none;
+  stroke: #ff4d4d;
+  stroke-width: 2.75;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(255, 77, 77, 0.55));
+}
+
 .hood-standards-popup__database-row {
   flex: 0 0 auto;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: clamp(8px, 1.4vw, 12px);
+  gap: clamp(8px, 1.2vw, 12px);
   width: 100%;
-  min-height: clamp(24px, 4.5vh, 32px);
-  max-height: clamp(24px, 4.5vh, 32px);
+  min-height: clamp(28px, 5vh, 36px);
+  max-height: clamp(28px, 5vh, 36px);
 }
 
 .hood-standards-popup__database-label {
@@ -2707,14 +3258,12 @@
   align-items: center;
   justify-content: flex-start;
   flex-wrap: nowrap;
-  gap: clamp(8px, 1.4vw, 12px);
+  gap: 15px;
   min-width: 0;
-  max-width: 100%;
+  width: auto;
   height: clamp(28px, 5vh, 36px);
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   pointer-events: none;
-  scrollbar-width: none;
 }
 
 .hood-standards-popup__nav-icons::-webkit-scrollbar {
@@ -2723,12 +3272,13 @@
 
 .hood-standards-popup__nav-icon {
   display: block;
+  flex: 0 0 auto;
   height: 100%;
   width: auto;
-  max-width: none;
+  max-width: clamp(30px, 5.5vw, 42px);
   object-fit: contain;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(0, 198, 255, 0.18));
+  object-position: center;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
 }
 
 .hood-standards-popup__text {
@@ -2794,20 +3344,45 @@
     brightness(101%) contrast(92%);
 }
 
+@media (min-width: 1200px) {
+  .hood-standards-scene__battery-bg {
+    width: min(
+      calc(var(--hood-standards-battery-max) * var(--hood-standards-battery-scale)),
+      calc(56vw * var(--hood-standards-battery-scale)),
+      calc(54vh * var(--hood-standards-battery-scale))
+    );
+  }
+}
+
 @media (max-width: 768px) {
   .hood-standards-band {
     max-width: 98%;
   }
 
-  .dashboard-hood-arch__standards > .hood-standards-popup-anchor {
-    margin-bottom: clamp(6px, 1vh, 10px);
+  .hood-standards-scene__battery-bg {
+    left: 50%;
+    right: auto;
+    width: min(
+      calc(var(--hood-standards-battery-max) * var(--hood-standards-battery-scale)),
+      92vw,
+      calc(40vh * var(--hood-standards-battery-scale))
+    );
+    transform: translateX(-50%) translateY(calc(-1 * var(--hood-standards-battery-raise)));
+  }
+
+  .hood-standards-metallic-bg {
+    --hood-metallic-side-width: 30%;
+  }
+
+  .dashboard-hood-arch__standards .hood-standards-popup-anchor {
     padding-left: 12px;
     padding-right: 12px;
+    --hood-standards-device-bottom: 54px;
   }
 
   .hood-standards-popup-row {
     max-width: min(600px, 96vw);
-    height: 272px;
+    height: 332px;
   }
 
   .hood-standards-dipsticks-group {
@@ -2815,7 +3390,7 @@
   }
 
   .hood-standards-popup {
-    --hood-standards-popup-height: 272px;
+    --hood-standards-popup-height: 332px;
     width: min(400px, 96vw);
     min-width: min(340px, 92vw);
     max-width: min(400px, 96vw);
@@ -2849,9 +3424,9 @@
   }
 
   .hood-standards-popup__database-row {
-    min-height: 22px;
-    max-height: 22px;
-    gap: 8px;
+    min-height: 24px;
+    max-height: 24px;
+    gap: 6px;
   }
 
   .hood-standards-popup__database-label {
@@ -2859,7 +3434,24 @@
   }
 
   .hood-standards-popup__nav-icons {
-    gap: 8px;
+    gap: 15px;
+    height: 24px;
+  }
+
+  .hood-standards-popup__nav-icon {
+    max-width: clamp(24px, 6vw, 32px);
+  }
+
+  .hood-standards-popup__protocol-row {
+    min-height: clamp(36px, 7vh, 48px);
+  }
+
+  .hood-standards-protocol-logo {
+    height: clamp(32px, 6.5vh, 44px);
+  }
+
+  .hood-standards-protocol-logo__image {
+    max-width: clamp(84px, 22vw, 112px);
   }
 
   .hood-standards-gauge {
@@ -7697,9 +8289,14 @@
 
 .hood-standards-popup__body--summary {
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   gap: clamp(8px, 1.2vh, 12px);
   padding-block: clamp(10px, 1.6vh, 14px);
+}
+
+.hood-standards-summary .hood-standards-popup__protocol-row {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .hood-standards-summary .hood-standards-popup__database-row {
@@ -8560,9 +9157,9 @@
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-row {
-  min-height: clamp(24px, 4.5vh, 32px);
-  max-height: clamp(24px, 4.5vh, 32px);
-  gap: clamp(8px, 1.4vw, 12px);
+  min-height: clamp(28px, 5vh, 36px);
+  max-height: clamp(28px, 5vh, 36px);
+  gap: clamp(8px, 1.2vw, 12px);
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-label {
@@ -8571,7 +9168,15 @@
 
 .full-diagnostics__standards-tablet .hood-standards-popup__nav-icons {
   height: clamp(28px, 5vh, 36px);
-  gap: clamp(8px, 1.4vw, 12px);
+  gap: 15px;
+  justify-content: flex-start;
+  width: auto;
+  flex: 0 1 auto;
+}
+
+.full-diagnostics__standards-tablet .hood-standards-popup__nav-icon {
+  max-width: clamp(30px, 5.5vw, 42px);
+  flex: 0 0 auto;
 }
 
 .full-diagnostics__map {

@@ -1,0 +1,122 @@
+/* Cross-browser fallbacks and reduced-motion / low-GPU paths */
+
+/* Container query fallback — used by mobile footer dot nav */
+.no-container-queries .driving-view-footer__nav--labels {
+  display: none;
+}
+
+.no-container-queries .driving-view-footer__nav--dots {
+  display: flex;
+}
+
+@media (max-width: 900px) {
+  .no-container-queries .driving-view-footer__nav--labels {
+    display: none;
+  }
+
+  .no-container-queries .driving-view-footer__nav--dots {
+    display: flex;
+  }
+}
+
+/* Browsers without backdrop-filter (older Firefox, some embedded WebViews) */
+.no-backdrop-filter .gps-ui-controls__btn,
+.no-backdrop-filter .gps-attendance-bar,
+.no-backdrop-filter .gps-event-popup--nav,
+.no-backdrop-filter .gps-event-popup--arrival,
+.no-backdrop-filter .journey-layout__nav-message-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(22, 26, 32, 0.94) !important;
+}
+
+/* color-mix() fallbacks for GPS accent glows */
+@supports not (color: color-mix(in srgb, #007ac3 55%, transparent)) {
+  .gps-event-popup--nav,
+  .gps-event-popup--arrival,
+  .gps-ui-controls__btn {
+    box-shadow: 0 0 10px rgba(0, 122, 195, 0.35);
+  }
+}
+
+/* Safari: mix-blend-mode cutout can be expensive — simplify on mobile Safari */
+.is-safari .driving-view-backdrop__lottie-cutout {
+  mix-blend-mode: normal;
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .is-safari .driving-view-backdrop__lottie-cutout {
+    display: none;
+  }
+}
+
+/* Firefox: ensure flex gap fallbacks aren't needed (gap is widely supported) */
+.is-firefox .hood-standards-popup__nav-icons {
+  column-gap: 15px;
+}
+
+/* Reduced motion — disable non-essential continuous animation */
+.reduce-motion .driving-view-backdrop__lottie,
+.reduce-motion .hood-standards-scene__battery-player,
+.reduce-motion .hood-tire-wheel__asset,
+.reduce-motion .journey-nav-map-panel__lottie {
+  animation: none !important;
+}
+
+.reduce-motion .driving-view-sky__star {
+  opacity: 0.45 !important;
+}
+
+.reduce-motion .hood-standards-metallic-bg__bloom {
+  filter: none !important;
+}
+
+.reduce-motion .hood-standards-popup__cursor {
+  animation: none !important;
+  opacity: 0.6;
+}
+
+/* Mobile performance: drop expensive blurs over animated content */
+@media (max-width: 768px) {
+  .gps-ui-controls__btn,
+  .gps-attendance-bar,
+  .gps-event-popup--nav,
+  .gps-event-popup--arrival,
+  .journey-layout__nav-message-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(22, 26, 32, 0.92);
+  }
+
+  .hood-standards-metallic-bg__bloom {
+    filter: blur(12px);
+  }
+
+  .hood-standards-metallic-bg__panel::after {
+    filter: none;
+  }
+
+  .hood-tire-hub__sky-bg {
+    background: linear-gradient(180deg, #1a2230 0%, #0d1218 55%, #06080c 100%);
+  }
+
+  .hood-standards-metallic-bg__panels {
+    opacity: 0.92;
+  }
+
+  .driving-view-backdrop__lottie-cutout {
+    display: none;
+  }
+}
+
+/* GPU hint: only promote layers while animating */
+.dashboard-hood-arch__standards,
+.journey-scene-layer,
+.hood-tire-hub__arch-wrap {
+  will-change: auto;
+}
+
+.is-animating {
+  will-change: transform;
+}

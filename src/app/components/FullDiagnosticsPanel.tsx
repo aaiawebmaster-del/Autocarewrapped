@@ -192,6 +192,7 @@ function DiagnosticsStandardsColumn({ report }: { report: WrappedReport }) {
           className="full-diagnostics__standards-tablet"
           subscribedPct={hoodMessages.subscribedPct}
           databaseAccessIcons={hoodMessages.databaseAccessIcons}
+          protocolLogos={hoodMessages.protocolLogos}
         />
       </motion.div>
     </div>

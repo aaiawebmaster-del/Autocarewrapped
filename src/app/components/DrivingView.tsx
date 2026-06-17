@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback, useRef, useLayoutEffect, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect, Fragment, lazy, Suspense, type ReactNode } from 'react';
 import { motion, AnimatePresence, LayoutGroup, animate, useMotionValue, useTransform } from 'motion/react';
-import Lottie from 'lottie-react';
-import drivingAnimationData from '../../imports/driving-animation-background.json';
 import { JourneyCounterGauge } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
-import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
+import { LazyLottie } from './LazyLottie';
 import { GpsUiControls } from './GpsUiControls';
 import {
   GpsPopupContent,
@@ -20,7 +18,8 @@ import {
 } from './MapSimulation';
 import carStartSound from '../../assets/car-start-drive-off.mp3';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
-import { FullDiagnosticsPanel } from './FullDiagnosticsPanel';
+import { loadDrivingAnimation } from '@/lib/lazyLottieData';
+import { useMobileViewport } from '@/lib/useMobileViewport';
 import { DashboardPrndl } from './DashboardPrndl';
 import { DashboardWideDecor } from './DashboardWideDecor';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
@@ -33,13 +32,23 @@ import {
   JOURNEY_SCENE_SLIDE_TRANSITION,
   JOURNEY_SCENE_TRANSITION,
 } from '@/lib/journeySceneTiming';
-import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
-
-const BRAND_ORANGE = '#f3901d';
+import { prefersReducedMotion } from '@/lib/browserCompat';
 
 const INTRO_WELCOME_GREETING = 'Welcome,';
 
-const STARS = Array.from({ length: 90 }, (_, i) => ({
+const JourneyNavMapAnimation = lazy(() =>
+  import('./JourneyNavMapAnimation').then((module) => ({
+    default: module.JourneyNavMapAnimation,
+  })),
+);
+
+const LazyFullDiagnosticsPanel = lazy(() =>
+  import('./FullDiagnosticsPanel').then((module) => ({
+    default: module.FullDiagnosticsPanel,
+  })),
+);
+
+const STARS = Array.from({ length: 45 }, (_, i) => ({
   x: `${(i * 37 + 13) % 100}%`,
   y: `${(i * 23 + 7) % 45}%`,
   size: i % 5 === 0 ? 2.5 : i % 3 === 0 ? 2 : 1.5,
@@ -137,7 +146,9 @@ function FullDiagnostics({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <FullDiagnosticsPanel onBackToStart={onBackToStart} report={report} />
+      <Suspense fallback={null}>
+        <LazyFullDiagnosticsPanel onBackToStart={onBackToStart} report={report} />
+      </Suspense>
     </motion.div>
   );
 }
@@ -371,12 +382,21 @@ function useDashboardVentMetrics(
       root.style.setProperty('--dashboard-vent-top', `${Math.round(targetRect.top - panelRect.top)}px`);
     };
 
-    const resizeObserver = new ResizeObserver(update);
+    const resizeObserver = new ResizeObserver(() => scheduleUpdate());
+    let updateRafId = 0;
 
-    update();
+    const scheduleUpdate = () => {
+      if (updateRafId) return;
+      updateRafId = requestAnimationFrame(() => {
+        updateRafId = 0;
+        update();
+      });
+    };
+
+    scheduleUpdate();
     resizeObserver.observe(panel);
 
-    const mutationObserver = new MutationObserver(update);
+    const mutationObserver = new MutationObserver(scheduleUpdate);
     mutationObserver.observe(panel, {
       childList: true,
       subtree: true,
@@ -384,17 +404,18 @@ function useDashboardVentMetrics(
       attributeFilter: ['class', 'style'],
     });
 
-    window.addEventListener('resize', update);
+    window.addEventListener('resize', scheduleUpdate);
 
     const syncTimers = [
-      window.setTimeout(update, 80),
-      window.setTimeout(update, 420),
+      window.setTimeout(scheduleUpdate, 80),
+      window.setTimeout(scheduleUpdate, 420),
     ];
 
     return () => {
+      if (updateRafId) cancelAnimationFrame(updateRafId);
       resizeObserver.disconnect();
       mutationObserver.disconnect();
-      window.removeEventListener('resize', update);
+      window.removeEventListener('resize', scheduleUpdate);
       syncTimers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [enabled, panelRef]);
@@ -787,7 +808,9 @@ function GpsNavSection({
   return (
     <div className="journey-nav-stage-inner">
       <div className="journey-nav-slide-bg" aria-hidden>
-        <JourneyNavMapAnimation key={mapReplayKey} />
+        <Suspense fallback={null}>
+          <JourneyNavMapAnimation key={mapReplayKey} />
+        </Suspense>
       </div>
 
       {showNavControls && <GpsUiControls />}
@@ -1754,11 +1777,12 @@ function useDashboardPinnedBackdropBottom(
   panelMounted: boolean,
 ) {
   const [bottomPx, setBottomPx] = useState(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
+  const bottomPxRef = useRef(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
 
   useLayoutEffect(() => {
     if (!enabled) return;
 
-    let frameId = 0;
+    let rafId = 0;
 
     const measure = () => {
       const root = rootRef.current;
@@ -1766,35 +1790,36 @@ function useDashboardPinnedBackdropBottom(
 
       const rootRect = root.getBoundingClientRect();
       const panel = panelRef.current;
+      const nextBottom = panel
+        ? Math.max(DRIVING_FOOTER_HEIGHT_PX, rootRect.bottom - panel.getBoundingClientRect().top)
+        : DRIVING_FOOTER_HEIGHT_PX;
 
-      if (panel) {
-        const panelRect = panel.getBoundingClientRect();
-        setBottomPx(Math.max(DRIVING_FOOTER_HEIGHT_PX, rootRect.bottom - panelRect.top));
-        return;
-      }
+      if (nextBottom === bottomPxRef.current) return;
+      bottomPxRef.current = nextBottom;
+      setBottomPx(nextBottom);
+    };
 
-      setBottomPx(DRIVING_FOOTER_HEIGHT_PX);
+    const scheduleMeasure = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        measure();
+      });
     };
 
     measure();
 
-    const tick = () => {
-      measure();
-      frameId = requestAnimationFrame(tick);
-    };
-    frameId = requestAnimationFrame(tick);
-
-    const observer = new ResizeObserver(measure);
+    const observer = new ResizeObserver(scheduleMeasure);
     const root = rootRef.current;
     if (root) observer.observe(root);
     if (panelRef.current) observer.observe(panelRef.current);
 
-    window.addEventListener('resize', measure);
+    window.addEventListener('resize', scheduleMeasure);
 
     return () => {
-      cancelAnimationFrame(frameId);
+      if (rafId) cancelAnimationFrame(rafId);
       observer.disconnect();
-      window.removeEventListener('resize', measure);
+      window.removeEventListener('resize', scheduleMeasure);
     };
   }, [enabled, panelMounted, rootRef, panelRef]);
 
@@ -1829,7 +1854,8 @@ export function DrivingView({
   const [dashboardPanelMounted, setDashboardPanelMounted] = useState(false);
   const assignDashboardPanelRef = useCallback((node: HTMLDivElement | null) => {
     dashboardPanelRef.current = node;
-    setDashboardPanelMounted(!!node);
+    const mounted = !!node;
+    setDashboardPanelMounted((prev) => (prev === mounted ? prev : mounted));
   }, []);
 
   const screenOrder = NAV_ITEMS.map((n) => n.id);
@@ -1849,6 +1875,10 @@ export function DrivingView({
 
   useEffect(() => {
     if (skyRunId === 0) return;
+    if (prefersReducedMotion()) {
+      skyProgress.set(1);
+      return;
+    }
     skyProgress.set(0);
     const controls = animate(skyProgress, 1, SKY_SUNRISE_ANIMATION);
     return () => controls.stop();
@@ -2099,7 +2129,9 @@ export function DrivingView({
   const showSkyAndRoad =
     showLandingBackdrop || showDrivingBackdrop || isBackdropFadingToBlack;
 
+  const showRoadLottie = showDrivingBackdrop && !prefersReducedMotion();
   const showFooterNav = currentScreen && diagnosticsStage === 'full';
+  const isMobileViewport = useMobileViewport();
   const showDashboardPanel =
     !isDiagnosticsFlow &&
     !isBackdropFadingToBlack &&
@@ -2180,23 +2212,30 @@ export function DrivingView({
                   }}
                 />
               </div>
-              <Lottie
-                animationData={drivingAnimationData}
-                loop
-                autoplay
-                className="driving-view-backdrop__lottie-cutout"
-                style={{ width: '100%', height: '100%' }}
-                rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
-                aria-hidden
-              />
-              <Lottie
-                animationData={drivingAnimationData}
-                loop
-                autoplay
-                className="driving-view-backdrop__lottie"
-                style={{ width: '100%', height: '100%' }}
-                rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
-              />
+              {showRoadLottie && (
+                <>
+                  {!isMobileViewport && (
+                    <LazyLottie
+                      loadAnimation={loadDrivingAnimation}
+                      active={showRoadLottie}
+                      loop
+                      autoplay
+                      className="driving-view-backdrop__lottie-cutout"
+                      style={{ width: '100%', height: '100%' }}
+                      rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+                    />
+                  )}
+                  <LazyLottie
+                    loadAnimation={loadDrivingAnimation}
+                    active={showRoadLottie}
+                    loop
+                    autoplay
+                    className="driving-view-backdrop__lottie"
+                    style={{ width: '100%', height: '100%' }}
+                    rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -2216,65 +2255,108 @@ export function DrivingView({
 
       {/* ── Footer ── */}
       {!isDiagnosticsFlow && (
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-black z-50 flex items-center px-4 gap-2">
-
+      <div className="driving-view-footer">
         <button
+          type="button"
           onClick={handleRestart}
-          className="flex items-center gap-1.5 text-[#f3901d] hover:text-orange-400 transition-colors shrink-0"
+          className="driving-view-footer__restart"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="driving-view-footer__restart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <span className="font-semibold text-sm">Restart</span>
+          <span className="driving-view-footer__restart-label">Restart</span>
         </button>
 
-        <div className="flex-1 flex items-center justify-center gap-2">
-
+        <div className="driving-view-footer__nav-slot">
           {showFooterNav && (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={goToPrev}
-                disabled={currentIdx === 0}
-                className="w-7 h-7 flex items-center justify-center text-[#f3901d] hover:text-orange-300 disabled:text-gray-700 disabled:cursor-default transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              {NAV_ITEMS.map((item) => (
+            <>
+              <nav className="driving-view-footer__nav driving-view-footer__nav--labels" aria-label="Main sections">
                 <button
-                  key={item.id}
-                  onClick={() => goToCheckpoint(item.id)}
-                  className="transition-colors text-sm whitespace-nowrap"
-                  style={{
-                    color: activeNav === item.id ? BRAND_ORANGE : '#6b7280',
-                    fontWeight: activeNav === item.id ? 'bold' : 'normal',
-                    letterSpacing: activeNav === item.id ? '0.02em' : undefined,
-                  }}
+                  type="button"
+                  onClick={goToPrev}
+                  disabled={currentIdx === 0}
+                  className="driving-view-footer__nav-arrow"
+                  aria-label="Previous section"
                 >
-                  {item.label}
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-              ))}
-              <button
-                onClick={goToNext}
-                disabled={currentIdx === screenOrder.length - 1}
-                className="w-7 h-7 flex items-center justify-center text-[#f3901d] hover:text-orange-300 disabled:text-gray-700 disabled:cursor-default transition-colors"
+                {NAV_ITEMS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => goToCheckpoint(item.id)}
+                    className={[
+                      'driving-view-footer__nav-label',
+                      activeNav === item.id ? 'is-active' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={goToNext}
+                  disabled={currentIdx === screenOrder.length - 1}
+                  className="driving-view-footer__nav-arrow"
+                  aria-label="Next section"
+                >
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </nav>
+
+              <nav
+                className="driving-view-footer__nav driving-view-footer__nav--dots"
+                aria-label="Main sections"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
+                <div className="driving-view-footer__progress-track">
+                  {NAV_ITEMS.map((item, idx) => (
+                    <Fragment key={item.id}>
+                      {idx > 0 && (
+                        <span
+                          className={[
+                            'driving-view-footer__progress-segment',
+                            currentIdx >= idx ? 'is-filled' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                          aria-hidden
+                        />
+                      )}
+                      <button
+                        type="button"
+                        className={[
+                          'driving-view-footer__progress-dot',
+                          activeNav === item.id ? 'is-active' : '',
+                          currentIdx > idx ? 'is-complete' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        onClick={() => goToCheckpoint(item.id)}
+                        aria-label={item.label}
+                        aria-current={activeNav === item.id ? 'step' : undefined}
+                      />
+                    </Fragment>
+                  ))}
+                </div>
+              </nav>
+            </>
           )}
         </div>
 
         {isStarted && currentSlide !== null && !currentScreen && (
           <button
+            type="button"
             onClick={handleSkip}
-            className="flex items-center gap-1 text-gray-500 hover:text-[#f3901d] transition-colors border border-gray-700 hover:border-[#f3901d]/50 rounded px-3 py-1.5 text-sm font-medium shrink-0"
+            className="driving-view-footer__skip"
           >
             <span>Skip</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
             </svg>
           </button>
