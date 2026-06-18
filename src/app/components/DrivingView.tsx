@@ -210,6 +210,234 @@ function StartButton({
   );
 }
 
+type DialTilt = 'center' | 'left' | 'right';
+
+function InfotainmentHeadunitFrame({
+  className,
+  contentClassName,
+  children,
+}: {
+  className?: string;
+  contentClassName?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={['infotainment-headunit__frame', className].filter(Boolean).join(' ')}>
+      <span className="infotainment-headunit__shade infotainment-headunit__shade--tl" aria-hidden />
+      <span className="infotainment-headunit__shade infotainment-headunit__shade--tr" aria-hidden />
+      <span className="infotainment-headunit__shade infotainment-headunit__shade--bl" aria-hidden />
+      <span className="infotainment-headunit__shade infotainment-headunit__shade--br" aria-hidden />
+      <span className="infotainment-headunit__facet infotainment-headunit__facet--tl" aria-hidden />
+      <span className="infotainment-headunit__facet infotainment-headunit__facet--tr" aria-hidden />
+      <span className="infotainment-headunit__facet infotainment-headunit__facet--bl" aria-hidden />
+      <span className="infotainment-headunit__facet infotainment-headunit__facet--br" aria-hidden />
+      <div
+        className={['infotainment-headunit__frame-content', contentClassName]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function HeadunitNavButton({
+  label,
+  onClick,
+  disabled,
+  side,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  side: 'left' | 'right';
+}) {
+  return (
+    <button
+      type="button"
+      className={`infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--${side}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {label}
+    </button>
+  );
+}
+
+function HeadunitChevronNavButton({
+  direction,
+  onClick,
+  disabled,
+  ariaLabel,
+}: {
+  direction: 'left' | 'right';
+  onClick: () => void;
+  disabled?: boolean;
+  ariaLabel?: string;
+}) {
+  const side = direction === 'left' ? 'left' : 'right';
+
+  return (
+    <button
+      type="button"
+      className={`infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--chevron infotainment-headunit__nav-btn--${side}`}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={
+        ariaLabel ?? (direction === 'left' ? 'previous section' : 'next section')
+      }
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        {direction === 'left' ? (
+          <path d="M15 19l-7-7 7-7" />
+        ) : (
+          <path d="M9 5l7 7-7 7" />
+        )}
+      </svg>
+    </button>
+  );
+}
+
+function HeadunitDialButton({
+  direction,
+  onClick,
+  disabled,
+  label,
+}: {
+  direction: 'back' | 'next';
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const tilt: DialTilt =
+    hovered && !disabled ? (direction === 'back' ? 'left' : 'right') : 'center';
+
+  return (
+    <button
+      type="button"
+      className={`infotainment-headunit__dial-btn infotainment-headunit__dial-btn--${direction}`}
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+      aria-label={label}
+    >
+      <div
+        className={`infotainment-console__dial infotainment-console__dial--nav infotainment-console__dial--tilt-${tilt}`}
+        aria-hidden
+      >
+        <span className="infotainment-console__dial-ring" />
+        <span className="infotainment-console__dial-cap infotainment-console__dial-cap--nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25">
+            {direction === 'back' ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            )}
+          </svg>
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function InfotainmentHeadUnit({
+  currentSlide,
+  onBack,
+  onNext,
+  backDisabled,
+  companyName,
+  memberDisplayName,
+}: {
+  currentSlide: number;
+  onBack: () => void;
+  onNext: () => void;
+  backDisabled: boolean;
+  companyName: string;
+  memberDisplayName?: string;
+}) {
+  return (
+    <motion.div
+      className="infotainment-headunit"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 6 }}
+      transition={{ ...INTRO_LAYOUT_TRANSITION, delay: 0.06 }}
+    >
+      <InfotainmentHeadunitFrame contentClassName="infotainment-headunit__layout">
+        <div className="infotainment-headunit__side infotainment-headunit__side--left">
+            <HeadunitNavButton
+              label="Back"
+              onClick={onBack}
+              disabled={backDisabled}
+              side="left"
+            />
+            <HeadunitDialButton
+              direction="back"
+              onClick={onBack}
+              label="Previous slide"
+            />
+          </div>
+
+          <div className="infotainment-headunit__main">
+            <div className="infotainment-headunit__screen-well">
+              <div className="infotainment-console__screen infotainment-console__screen--glossy">
+                <span className="infotainment-headunit__clock" aria-hidden>
+                  20:26 YR
+                </span>
+                <div className="pre-journey-stage__intro-panel">
+                  <div className="infotainment-console__screen-glass" aria-hidden />
+                  <div className="pre-journey-stage__intro-text">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={currentSlide}
+                        className="intro-slide__copy"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.55, ease: INTRO_LAYOUT_TRANSITION.ease }}
+                      >
+                        {currentSlide === 0 ? (
+                          <div className="intro-slide__welcome">
+                            <p className="intro-slide__text">{INTRO_WELCOME_GREETING}</p>
+                            <p className="intro-slide__text intro-slide__text--company">
+                              {memberDisplayName ? `${memberDisplayName}, ${companyName}` : companyName}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="intro-slide__text">
+                            {FOLLOW_UP_SLIDE_TEXTS[currentSlide - 1]}
+                          </p>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="infotainment-headunit__side infotainment-headunit__side--right">
+            <HeadunitNavButton label="Next" onClick={onNext} side="right" />
+            <HeadunitDialButton direction="next" onClick={onNext} label="Next slide" />
+          </div>
+      </InfotainmentHeadunitFrame>
+    </motion.div>
+  );
+}
+
 function PreJourneyStage({
   phase,
   currentSlide,
@@ -229,9 +457,7 @@ function PreJourneyStage({
   memberDisplayName?: string;
   reportYear: number;
 }) {
-  const isMobileLayout = useIsCounterMobile();
-  const isIntroDesktop = phase === 'intro' && !isMobileLayout;
-  const showStartButton = !(isMobileLayout && phase === 'intro');
+  const showStartButton = phase === 'landing';
 
   return (
     <div
@@ -240,82 +466,26 @@ function PreJourneyStage({
         phase === 'intro' ? 'pre-journey-stage--intro' : 'pre-journey-stage--landing',
       ].join(' ')}
     >
-      {showStartButton ? (
-        <motion.div
-          className={[
-            'pre-journey-stage__start-float',
-            isIntroDesktop ? 'pre-journey-stage__start-float--grid' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
-          <StartButton onClick={onStart} inactive={phase === 'intro'} reportYear={reportYear} />
-        </motion.div>
-      ) : null}
-      <AnimatePresence>
-        {phase === 'intro' ? (
-          <motion.div
-            className="pre-journey-stage__intro-col"
-            initial={{ opacity: 0, x: 32 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 16 }}
-            transition={{ ...INTRO_LAYOUT_TRANSITION, delay: 0.08 }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentSlide}
-                className="pre-journey-stage__intro-panel"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.55, ease: INTRO_LAYOUT_TRANSITION.ease }}
-              >
-                <div className="intro-slide__back">
-                  <button
-                    type="button"
-                    className="intro-slide__back-btn"
-                    onClick={onBack}
-                    disabled={currentSlide === 0}
-                    aria-label="previous slide"
-                  >
-                    <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
-                      <path d={TURN_RIGHT_PATH} />
-                    </svg>
-                  </button>
-                  <span className="intro-slide__back-label">back</span>
-                </div>
-                <div className="pre-journey-stage__intro-text">
-                  {currentSlide === 0 ? (
-                    <div className="intro-slide__welcome">
-                      <p className="intro-slide__text">{INTRO_WELCOME_GREETING}</p>
-                      <p className="intro-slide__text intro-slide__text--company">
-                        {memberDisplayName ? `${memberDisplayName}, ${companyName}` : companyName}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="intro-slide__text">
-                      {FOLLOW_UP_SLIDE_TEXTS[currentSlide - 1]}
-                    </p>
-                  )}
-                </div>
-                <div className="intro-slide__next">
-                  <button
-                    type="button"
-                    className="intro-slide__next-btn"
-                    onClick={onNext}
-                    aria-label="next slide"
-                  >
-                    <svg viewBox="0 0 640 640" fill="#F3901D" aria-hidden>
-                      <path d={TURN_RIGHT_PATH} />
-                    </svg>
-                  </button>
-                  <span className="intro-slide__next-label">next</span>
-                </div>
+      <div className="infotainment-console">
+        {phase === 'landing' ? (
+          <div className="infotainment-console__display">
+            {showStartButton ? (
+              <motion.div className="pre-journey-stage__start-float">
+                <StartButton onClick={onStart} reportYear={reportYear} />
               </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+            ) : null}
+          </div>
+        ) : (
+          <InfotainmentHeadUnit
+            currentSlide={currentSlide}
+            onBack={onBack}
+            onNext={onNext}
+            backDisabled={currentSlide === 0}
+            companyName={companyName}
+            memberDisplayName={memberDisplayName}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -327,7 +497,9 @@ const TEXT_TOP = 'calc(20px + clamp(28px, 3.5vw, 36px) + 45px)';
 const COUNTER_MOBILE_BREAKPOINT = 640;
 
 const DASHBOARD_VENT_SYNC_SELECTORS = [
-  '.journey-counter-panel__message-row',
+  '.journey-counter-panel__frame',
+  '.infotainment-headunit__main',
+  '.infotainment-console__display',
   '.pre-journey-stage__intro-panel',
   '.pre-journey-stage__start-float',
   '.journey-layout__nav-message-panel',
@@ -441,7 +613,7 @@ const JOURNEY_END_GPS_PHASE = 4;
 
 const JOURNEY_MAP_PANEL_MAX_HEIGHT = 520;
 const DRIVING_FOOTER_HEIGHT_PX = 96;
-const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 316;
+const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 391;
 const DRIVING_DEFAULT_BACKDROP_BOTTOM_PX =
   DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX + DRIVING_FOOTER_HEIGHT_PX;
 
@@ -1021,6 +1193,63 @@ function JourneyGaugeChevron({
   );
 }
 
+function JourneyCounterMessagePanel({
+  footerMessage,
+  footerButton,
+  isFirst,
+  onBack,
+  onNext,
+}: {
+  footerMessage?: string;
+  footerButton?: { label: string; href: string };
+  isFirst: boolean;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="journey-counter-panel__headunit infotainment-headunit">
+      <InfotainmentHeadunitFrame
+        className="journey-counter-panel__frame"
+        contentClassName="journey-counter-panel__frame-body"
+      >
+        <div className="journey-counter-panel__screen-well">
+          <div className="journey-counter-panel__screen">
+            <div className="journey-counter-panel__screen-glass" aria-hidden />
+            {footerMessage ? (
+              <p className="journey-counter-panel__message">{footerMessage}</p>
+            ) : null}
+          </div>
+        </div>
+        <div className="journey-counter-panel__controls">
+          <HeadunitChevronNavButton
+            direction="left"
+            onClick={onBack}
+            disabled={isFirst}
+            ariaLabel="Previous section"
+          />
+          {footerButton ? (
+            <a
+              className="journey-counter-panel__cta"
+              href={footerButton.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {footerButton.label}
+            </a>
+          ) : (
+            <span className="journey-counter-panel__cta-placeholder" aria-hidden />
+          )}
+          <HeadunitChevronNavButton
+            direction="right"
+            onClick={onNext}
+            ariaLabel="Next section"
+          />
+        </div>
+      </InfotainmentHeadunitFrame>
+    </div>
+  );
+}
+
 type CounterSection = Extract<JourneySection, { type: 'counter' }>;
 
 function JourneySectionCounterGauge({
@@ -1254,45 +1483,13 @@ function YourJourney({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
                       >
-                        <div className="journey-counter-panel__stat-row">
-                          <div className="journey-counter-panel__chev journey-counter-panel__chev--left">
-                            <JourneyGaugeChevron
-                              direction="left"
-                              onClick={handleCounterMobileLeftChevron}
-                              ariaLabel="back to gauge readout"
-                            />
-                          </div>
-                          {section.footerMessage ? (
-                            <p className="journey-counter-panel__message journey-counter-panel__message--mobile-stat">
-                              {section.footerMessage}
-                            </p>
-                          ) : null}
-                          <div className="journey-counter-panel__chev journey-counter-panel__chev--right">
-                            <JourneyGaugeChevron
-                              direction="right"
-                              onClick={goToNextCounterSection}
-                            />
-                          </div>
-                        </div>
-                        {section.footerButton ? (
-                          <div className="journey-counter-panel__footer journey-counter-panel__footer--mobile-inline">
-                            <a
-                              className="journey-layout__counter-cta"
-                              href={section.footerButton.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {section.footerButton.label}
-                            </a>
-                          </div>
-                        ) : (
-                          <div
-                            className="journey-counter-panel__footer journey-counter-panel__footer--mobile-inline"
-                            aria-hidden
-                          >
-                            <span className="journey-counter-panel__footer-placeholder" />
-                          </div>
-                        )}
+                        <JourneyCounterMessagePanel
+                          footerMessage={section.footerMessage}
+                          footerButton={section.footerButton}
+                          isFirst={isFirst}
+                          onBack={handleCounterMobileLeftChevron}
+                          onNext={goToNextCounterSection}
+                        />
                       </motion.div>
                     ) : null}
                   </AnimatePresence>
@@ -1310,43 +1507,13 @@ function YourJourney({
             </section>
             {!isCounterMobile ? (
               <section className="journey-counter-panel__aside" aria-label="Journey message">
-                <div className="journey-counter-panel__message-row">
-                  <div className="journey-counter-panel__chev journey-counter-panel__chev--left">
-                    {isFirst ? (
-                      <span className="journey-layout__chev-placeholder" aria-hidden />
-                    ) : (
-                      <JourneyGaugeChevron
-                        direction="left"
-                        onClick={() => changeSectionIdx((i) => i - 1)}
-                      />
-                    )}
-                  </div>
-                  {section.footerMessage ? (
-                    <p className="journey-counter-panel__message">{section.footerMessage}</p>
-                  ) : null}
-                  <div className="journey-counter-panel__chev journey-counter-panel__chev--right">
-                    <JourneyGaugeChevron
-                      direction="right"
-                      onClick={() => changeSectionIdx((i) => i + 1)}
-                    />
-                  </div>
-                </div>
-                {section.footerButton ? (
-                  <div className="journey-counter-panel__footer">
-                    <a
-                      className="journey-layout__counter-cta"
-                      href={section.footerButton.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {section.footerButton.label}
-                    </a>
-                  </div>
-                ) : (
-                  <div className="journey-counter-panel__footer" aria-hidden>
-                    <span className="journey-counter-panel__footer-placeholder" />
-                  </div>
-                )}
+                <JourneyCounterMessagePanel
+                  footerMessage={section.footerMessage}
+                  footerButton={section.footerButton}
+                  isFirst={isFirst}
+                  onBack={() => changeSectionIdx((i) => i - 1)}
+                  onNext={() => changeSectionIdx((i) => i + 1)}
+                />
               </section>
             ) : null}
           </div>
@@ -1519,9 +1686,7 @@ function DashboardPanel({
       ? { y: '115%', opacity: 1 }
     : isHoodPanelRising
       ? { y: 0, opacity: 1 }
-      : journeyPanelActive && journeyPanelHeight != null
-        ? { y: 0, opacity: 1, height: journeyPanelHeight }
-        : { y: 0, opacity: 1 };
+      : { y: 0, opacity: 1 };
   const panelTransition = isDashboardExiting
     ? {
         y: { duration: HOOD_ENTRY_DASHBOARD_EXIT_MS, ease: [0.45, 0, 0.75, 1] as const },
@@ -1543,8 +1708,11 @@ function DashboardPanel({
             duration: skipPanelEnterAnimation ? 0 : 0.55,
             ease: JOURNEY_SCENE_TRANSITION.ease,
           },
-          height: journeyPanelActive ? { duration: 0 } : JOURNEY_SCENE_TRANSITION,
         };
+  const panelHeightStyle =
+    journeyPanelActive && journeyPanelHeight != null
+      ? ({ height: `${journeyPanelHeight}px` } as const)
+      : undefined;
   const dashboardExitingRef = useRef(false);
   const hoodPanelRisingRef = useRef(false);
   const hoodPanelFallingRef = useRef(false);
@@ -1557,6 +1725,19 @@ function DashboardPanel({
   useEffect(() => {
     hoodPanelFallingRef.current = isHoodPanelFalling;
   }, [isHoodPanelFalling]);
+
+  useEffect(() => {
+    if (isJourney) return;
+    if (journeySceneSlideTimerRef.current) {
+      window.clearTimeout(journeySceneSlideTimerRef.current);
+      journeySceneSlideTimerRef.current = null;
+    }
+    setIsJourneySceneSliding(false);
+    mapEntryDispatchedRef.current = false;
+    setMapPanelHeight(JOURNEY_MAP_PANEL_MAX_HEIGHT);
+    const node = panelRef.current;
+    if (node) node.style.removeProperty('height');
+  }, [isJourney]);
 
   useLayoutEffect(() => {
     if (!isJourney) return;
@@ -1574,10 +1755,27 @@ function DashboardPanel({
     return () => observer.disconnect();
   }, [isJourney, measureMapPanelHeight]);
 
+  useEffect(() => {
+    const resetJourneySlide = () => {
+      if (journeySceneSlideTimerRef.current) {
+        window.clearTimeout(journeySceneSlideTimerRef.current);
+        journeySceneSlideTimerRef.current = null;
+      }
+      setIsJourneySceneSliding(false);
+      if (isJourney) {
+        setMapPanelHeight(measureMapPanelHeight());
+      }
+    };
+
+    window.addEventListener('resize', resetJourneySlide);
+    return () => window.removeEventListener('resize', resetJourneySlide);
+  }, [isJourney, measureMapPanelHeight]);
+
   return (
     <motion.div
       ref={assignPanelRef}
-      layout={journeyPanelActive ? false : undefined}
+      layout={false}
+      style={panelHeightStyle}
       className={[
         'dashboard-panel',
         isLanding ? 'dashboard-panel--landing' : '',
@@ -1780,7 +1978,11 @@ function useDashboardPinnedBackdropBottom(
   const bottomPxRef = useRef(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
 
   useLayoutEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      bottomPxRef.current = DRIVING_DEFAULT_BACKDROP_BOTTOM_PX;
+      setBottomPx(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
+      return;
+    }
 
     let rafId = 0;
 
@@ -1792,7 +1994,7 @@ function useDashboardPinnedBackdropBottom(
       const panel = panelRef.current;
       const nextBottom = panel
         ? Math.max(DRIVING_FOOTER_HEIGHT_PX, rootRect.bottom - panel.getBoundingClientRect().top)
-        : DRIVING_FOOTER_HEIGHT_PX;
+        : DRIVING_DEFAULT_BACKDROP_BOTTOM_PX;
 
       if (nextBottom === bottomPxRef.current) return;
       bottomPxRef.current = nextBottom;
@@ -1848,6 +2050,7 @@ export function DrivingView({
   const [hoodEntryPhase, setHoodEntryPhase] = useState<HoodEntryPhase | null>(null);
   const [hoodNavTransition, setHoodNavTransition] = useState<HoodNavTransition | null>(null);
   const [skyRunId, setSkyRunId] = useState(0);
+  const [dashboardEpoch, setDashboardEpoch] = useState(0);
   const pendingCheckpointRef = useRef<NavCheckpoint | null>(null);
   const drivingRootRef = useRef<HTMLDivElement>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
@@ -1916,6 +2119,12 @@ export function DrivingView({
     setCurrentSlide(null);
     setCurrentScreen(null);
     setDiagnosticsStage('full');
+    setJourneyResumeSectionIdx(undefined);
+    setJourneyResumeGpsPhase(undefined);
+    setHoodEntryPhase(null);
+    setHoodNavTransition(null);
+    setHoodPhase('standards');
+    setDashboardEpoch((epoch) => epoch + 1);
     skyProgress.set(0);
   };
 
@@ -2413,15 +2622,11 @@ export function DrivingView({
 
           {showDashboardPanel && (
             <DashboardPanel
-              key={
+              key={`dashboard-${dashboardEpoch}-${
                 currentScreen === 'hood'
-                  ? `hood-panel-${hoodSession}`
-                  : currentScreen === 'journey'
-                    ? 'dashboard-journey'
-                    : currentScreen === 'diagnostics'
-                      ? 'dashboard-diagnostics'
-                      : 'dashboard-pre-journey'
-              }
+                  ? `hood-${hoodSession}`
+                  : currentScreen ?? 'pre-journey'
+              }`}
               report={report}
               journeySections={journeySections}
               isLanding={!isStarted}

@@ -8,9 +8,9 @@ export const JOURNEY_GAUGE_SIZE = 'clamp(200px, 32vw, 280px)';
 export const JOURNEY_GAUGE_WIDE_SIZE = 'min(100%, clamp(18rem, 64vw, 25rem))';
 export const JOURNEY_GAUGE_VALUE_FONT = '35px';
 export const JOURNEY_GAUGE_LABEL_FONT = 'clamp(11px, 1.6vw, 14px)';
-/** Compact readout sizing for Full Diagnostics 4-up stat row (~50% of journey dial scale). */
-export const DIAGNOSTICS_GAUGE_VALUE_FONT = 'clamp(11px, 2.2vw, 19px)';
-export const DIAGNOSTICS_GAUGE_LABEL_FONT = 'clamp(7px, 1.2vw, 10px)';
+/** Compact readout sizing for Full Diagnostics 4-up stat row. */
+export const DIAGNOSTICS_GAUGE_VALUE_FONT = 'clamp(14px, 2.4vw, 24px)';
+export const DIAGNOSTICS_GAUGE_LABEL_FONT = 'clamp(8px, 1.4vw, 12px)';
 
 /** Bottom arc — 0 left, 100 right (standard dashboard speedometer sweep). */
 const SPEEDO_MIN_ANGLE = 180;
@@ -30,8 +30,13 @@ function parseViewBoxHeight(viewBox: string) {
   return Number(parts[3]) || 240;
 }
 
-function getGaugeWarningCenterPercent(cy: number, radius: number, viewBox: string, wide: boolean) {
-  const centerY = wide ? getSemicircleContentCenterY(cy, radius) : cy;
+function getGaugeWarningCenterPercent(
+  cy: number,
+  radius: number,
+  viewBox: string,
+  useSemicircleLayout: boolean,
+) {
+  const centerY = useSemicircleLayout ? getSemicircleContentCenterY(cy, radius) : cy;
   return `${(centerY / parseViewBoxHeight(viewBox)) * 100}%`;
 }
 
@@ -263,8 +268,12 @@ function WideGaugeHousingPaths({
           strokeLinejoin="round"
         />
       ) : null}
-      <path d={semicircleBezelBaseBandD} fill={`url(#${bezelGradientId})`} stroke="none" />
-      <path d={semicircleBezelLipD} fill={`url(#${bezelBaseLipGradientId})`} stroke="none" />
+      {semicircleBezelBaseBandD ? (
+        <path d={semicircleBezelBaseBandD} fill={`url(#${bezelGradientId})`} stroke="none" />
+      ) : null}
+      {semicircleBezelLipD ? (
+        <path d={semicircleBezelLipD} fill={`url(#${bezelBaseLipGradientId})`} stroke="none" />
+      ) : null}
       <path
         d={semicircleBezelBaseD}
         fill="none"
@@ -414,6 +423,8 @@ export function JourneyCounterGauge({
     housingClipD,
   } = layout;
 
+  const useSemicircleHousing = wide || counterDialBox;
+
   const resolvedValueFontSize =
     valueFontSize ??
     (wideSemicircle
@@ -535,7 +546,7 @@ export function JourneyCounterGauge({
     const fuelFillSweep = fuelFillAngle - FUEL_MIN_ANGLE;
     const fuelFillLargeArc = fuelFillSweep >= 180 ? 1 : 0;
     const fuelFillD = `M ${fuelTrackStart.x} ${fuelTrackStart.y} A ${trackR} ${trackR} 0 ${fuelFillLargeArc} 1 ${fuelFillPoint.x} ${fuelFillPoint.y}`;
-    const warningCenterY = getGaugeWarningCenterPercent(cy, faceR, vb, wide);
+    const warningCenterY = getGaugeWarningCenterPercent(cy, faceR, vb, useSemicircleHousing);
 
     return (
       <div className={rootClassName} style={shellStyle}>
@@ -547,7 +558,7 @@ export function JourneyCounterGauge({
           <svg
             className="journey-fuel-gauge__svg"
             viewBox={vb}
-            preserveAspectRatio="xMidYMax meet"
+            preserveAspectRatio={useSemicircleHousing ? 'xMidYMax meet' : 'xMidYMid meet'}
             aria-hidden
           >
             <defs>
@@ -587,7 +598,7 @@ export function JourneyCounterGauge({
             </defs>
 
             <g clipPath={`url(#${uid}-fuel-housing)`}>
-              {wide ? (
+              {useSemicircleHousing ? (
                 <WideGaugeHousingPaths
                   semicircleBezelD={semicircleBezelD}
                   semicircleFaceD={semicircleFaceD}
@@ -713,8 +724,8 @@ export function JourneyCounterGauge({
     const terminalY = bodyTop - terminalGap - terminalH;
     const terminalLeftX = -terminalW - 4 * batteryScale;
     const terminalRightX = 4 * batteryScale;
-    const batteryCy = wide ? getSemicircleContentCenterY(cy, faceR) : cy;
-    const warningCenterY = getGaugeWarningCenterPercent(cy, faceR, vb, wide);
+    const batteryCy = useSemicircleHousing ? getSemicircleContentCenterY(cy, faceR) : cy;
+    const warningCenterY = getGaugeWarningCenterPercent(cy, faceR, vb, useSemicircleHousing);
 
     return (
       <div className={rootClassName} style={shellStyle}>
@@ -726,7 +737,7 @@ export function JourneyCounterGauge({
             <svg
               className="journey-speedometer-gauge__svg journey-battery-gauge__svg"
               viewBox={vb}
-              preserveAspectRatio={wide ? 'xMidYMax meet' : 'xMidYMid meet'}
+              preserveAspectRatio={useSemicircleHousing ? 'xMidYMax meet' : 'xMidYMid meet'}
               aria-hidden
             >
               <defs>
@@ -755,7 +766,7 @@ export function JourneyCounterGauge({
               </defs>
 
               <g clipPath={`url(#${uid}-battery-housing)`}>
-                {wide ? (
+                {useSemicircleHousing ? (
                   <WideGaugeHousingPaths
                     semicircleBezelD={semicircleBezelD}
                     semicircleFaceD={semicircleFaceD}
@@ -876,7 +887,7 @@ export function JourneyCounterGauge({
       <svg
         className="journey-speedometer-gauge__svg"
         viewBox={vb}
-        preserveAspectRatio={wide ? 'xMidYMax meet' : 'xMidYMid meet'}
+        preserveAspectRatio={useSemicircleHousing ? 'xMidYMax meet' : 'xMidYMid meet'}
         aria-hidden
       >
         <defs>
@@ -930,7 +941,7 @@ export function JourneyCounterGauge({
         </defs>
 
         <g clipPath={`url(#${uid}-speedo-housing)`}>
-          {wide ? (
+          {useSemicircleHousing ? (
             <WideGaugeHousingPaths
               semicircleBezelD={semicircleBezelD}
               semicircleFaceD={semicircleFaceD}

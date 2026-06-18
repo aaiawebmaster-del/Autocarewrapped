@@ -124,6 +124,11 @@ const HOOD_READOUT_BEZEL_HEIGHT_PX =
 const HOOD_READOUT_GLASS_HEIGHT_PX =
   108 + HOOD_READOUT_GAUGE_SLOT_PX + HOOD_READOUT_CONTENT_SLOT_PX;
 
+/** Mirrors --driving-content-gutter: clamp(12px, 3vw, 20px) */
+function drivingContentGutterPx(viewportWidth: number): number {
+  return Math.max(12, Math.min(viewportWidth * 0.03, 20));
+}
+
 /** Scale tablet chrome proportionally from the 340×486 design width. */
 function hoodReadoutDimensions(widthPx: number) {
   const readoutWidth = Math.min(
@@ -215,10 +220,11 @@ function useWheelLaneMetrics() {
     const update = () => {
       const laneW = window.innerWidth;
       const isMobile = laneW <= HOOD_TIRE_LAYOUT_BREAKPOINT;
+      const contentGutter = drivingContentGutterPx(laneW);
       const wheelW = Math.min(laneW * 0.82, HOOD_WHEEL_MAX_PX);
       let readoutWidth = isMobile ? HOOD_READOUT_WIDTH_MOBILE : HOOD_READOUT_WIDTH_DESKTOP;
       let groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
-      const maxGroupWidth = laneW - 24;
+      const maxGroupWidth = laneW - contentGutter * 2;
       if (groupWidth > maxGroupWidth) {
         readoutWidth = maxGroupWidth - HOOD_READOUT_GAP_PX - wheelW;
         groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
@@ -227,7 +233,10 @@ function useWheelLaneMetrics() {
       readoutWidth = readout.readoutWidth;
       groupWidth = readoutWidth + HOOD_READOUT_GAP_PX + wheelW;
       const groupLeft = Math.round(
-        Math.max(12, Math.min((laneW - groupWidth) / 2, laneW - groupWidth - 12)),
+        Math.max(
+          contentGutter,
+          Math.min((laneW - groupWidth) / 2, laneW - groupWidth - contentGutter),
+        ),
       );
       const parkX = groupLeft + readoutWidth + HOOD_READOUT_GAP_PX;
 
@@ -622,34 +631,37 @@ function HoodStandardsProtocolLogos({
   protocolLogos: StandardsProtocolLogo[];
 }) {
   return (
-    <div className="hood-standards-popup__protocol-row" aria-label="ACES and PIES access">
-      {protocolLogos.map((logo) => (
-        <div
-          key={logo.id}
-          className={[
-            'hood-standards-protocol-logo',
-            logo.active
-              ? 'hood-standards-protocol-logo--active'
-              : 'hood-standards-protocol-logo--inactive',
-          ].join(' ')}
-        >
-          <img
-            className="hood-standards-protocol-logo__image"
-            src={logo.src}
-            alt={logo.label}
-            title={`${logo.label}${logo.active ? ' access' : ' — no subscription'}`}
-            draggable={false}
-          />
-          {!logo.active && (
-            <span className="hood-standards-protocol-logo__x" aria-hidden>
-              <svg viewBox="0 0 24 24" focusable="false">
-                <path d="M5 5L19 19" />
-                <path d="M19 5L5 19" />
-              </svg>
-            </span>
-          )}
-        </div>
-      ))}
+    <div className="hood-standards-popup__protocol-block">
+      <span className="hood-standards-popup__protocol-label">Subscriptions</span>
+      <div className="hood-standards-popup__protocol-row" aria-label="ACES and PIES access">
+        {protocolLogos.map((logo) => (
+          <div
+            key={logo.id}
+            className={[
+              'hood-standards-protocol-logo',
+              logo.active
+                ? 'hood-standards-protocol-logo--active'
+                : 'hood-standards-protocol-logo--inactive',
+            ].join(' ')}
+          >
+            <img
+              className="hood-standards-protocol-logo__image"
+              src={logo.src}
+              alt={logo.label}
+              title={`${logo.label}${logo.active ? ' access' : ' — no subscription'}`}
+              draggable={false}
+            />
+            {!logo.active && (
+              <span className="hood-standards-protocol-logo__x" aria-hidden>
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M5 5L19 19" />
+                  <path d="M19 5L5 19" />
+                </svg>
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -736,35 +748,39 @@ function HoodStandardsPopup({
               </div>
             </div>
             <div className="hood-standards-popup__body">
-              <div className="hood-standards-popup__text-area">
-                <HoodStandardsGauge
-                  targetProgress={gaugeTarget}
-                  animateFill={gaugeAnimateFill}
-                  showFull={gaugeShowFull}
-                />
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={index}
-                    className="hood-standards-popup__text-scroll"
-                    ref={textAreaRef}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <HoodTypewriterText
-                      text={message}
-                      onComplete={handleTypeComplete}
-                      onTypingStart={handleGaugeTypingStart}
-                      scrollContainerRef={textAreaRef}
-                      showCursorAfterComplete={showNavButtons}
-                    />
-                  </motion.div>
-                </AnimatePresence>
+              <div className="hood-standards-popup__main">
+                <div className="hood-standards-popup__gauge-column">
+                  <HoodStandardsGauge
+                    targetProgress={gaugeTarget}
+                    animateFill={gaugeAnimateFill}
+                    showFull={gaugeShowFull}
+                  />
+                </div>
+                <div className="hood-standards-popup__copy-column">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={index}
+                      className="hood-standards-popup__text-scroll"
+                      ref={textAreaRef}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <HoodTypewriterText
+                        text={message}
+                        onComplete={handleTypeComplete}
+                        onTypingStart={handleGaugeTypingStart}
+                        scrollContainerRef={textAreaRef}
+                        showCursorAfterComplete={showNavButtons}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                  {showProtocolLogos ? (
+                    <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
+                  ) : null}
+                </div>
               </div>
-              {showProtocolLogos && (
-                <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
-              )}
               {showNavButtons && databaseAccessIcons.length > 0 && (
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -1014,12 +1030,16 @@ export function HoodStandardsSummaryDevice({
             </div>
           </div>
           <div className="hood-standards-popup__body hood-standards-popup__body--summary">
-            <HoodStandardsGauge
-              targetProgress={subscribedPct}
-              animateFill={gaugeFillStarted}
-              showFull={!animateOnMount}
-            />
-            <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
+            <div className="hood-standards-popup__main hood-standards-popup__main--summary">
+              <div className="hood-standards-popup__gauge-column">
+                <HoodStandardsGauge
+                  targetProgress={subscribedPct}
+                  animateFill={gaugeFillStarted}
+                  showFull={!animateOnMount}
+                />
+              </div>
+              <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
+            </div>
             {databaseAccessIcons.length > 0 ? (
               <div className="hood-standards-popup__database-row">
                 <span className="hood-standards-popup__database-label">Database Access:</span>

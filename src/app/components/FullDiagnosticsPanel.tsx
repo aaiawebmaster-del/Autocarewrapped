@@ -6,11 +6,7 @@ import {
   TIRE_PHASE_ORDER,
   type TirePhase,
 } from './MapSimulation';
-import {
-  JourneyCounterGauge,
-  DIAGNOSTICS_GAUGE_VALUE_FONT,
-  DIAGNOSTICS_GAUGE_LABEL_FONT,
-} from './JourneyCounterGauge';
+import { JourneyCounterGauge } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
 import { GpsUiControls } from './GpsUiControls';
@@ -18,6 +14,7 @@ import { GpsPopupContent, GpsAttendanceRoutePanel } from './GpsNavPopupContent';
 import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
 import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
+import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
@@ -107,8 +104,6 @@ function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
               readoutMode="below"
               circleSize="100%"
               counterDialBox
-              valueFontSize={DIAGNOSTICS_GAUGE_VALUE_FONT}
-              labelFontSize={DIAGNOSTICS_GAUGE_LABEL_FONT}
             />
           ) : (
             <JourneyCounterGauge
@@ -119,9 +114,8 @@ function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
               readoutMode="below"
               circleSize="100%"
               counterDialBox
+              wideSemicircle
               variant={stat.gaugeVariant}
-              valueFontSize={DIAGNOSTICS_GAUGE_VALUE_FONT}
-              labelFontSize={DIAGNOSTICS_GAUGE_LABEL_FONT}
             />
           )}
         </section>
@@ -198,28 +192,18 @@ function DiagnosticsStandardsColumn({ report }: { report: WrappedReport }) {
     </div>
   );
 }
-function DiagnosticsShareSlide({ onBackToStart }: { onBackToStart: () => void }) {
-  const handleShare = async () => {
-    const shareData = {
-      title: 'My Auto Care Wrapped',
-      text: DIAGNOSTICS_SHARE_MESSAGE,
-      url: typeof window !== 'undefined' ? window.location.href : '',
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-    } catch {
-      /* user cancelled or share unavailable */
-    }
-    try {
-      await navigator.clipboard.writeText(
-        `${shareData.text}\n${shareData.url}`.trim(),
-      );
-    } catch {
-      /* clipboard unavailable */
-    }
+function DiagnosticsShareSlide({
+  onBackToStart,
+  report,
+}: {
+  onBackToStart: () => void;
+  report: WrappedReport;
+}) {
+  const handleShare = () => {
+    const reportPageUrl = companyReportPageUrl(
+      report.company.recordNumber ?? report.company.id,
+    );
+    window.location.href = buildShareMailtoUrl(reportPageUrl);
   };
 
   return (
@@ -376,7 +360,7 @@ function DiagnosticsTopCarousel({
             {step === 0 && <DiagnosticsJourneyStatsRow key="stats" report={report} />}
             {step === 1 && <DiagnosticsTiresRoll key="tires" report={report} />}
             {shareFocus && step === TOP_STEP_MAX && (
-              <DiagnosticsShareSlide key="share" onBackToStart={onBackToStart} />
+              <DiagnosticsShareSlide key="share" onBackToStart={onBackToStart} report={report} />
             )}
           </AnimatePresence>
         </div>

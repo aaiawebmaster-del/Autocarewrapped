@@ -77,6 +77,13 @@
   opacity: 0.6;
 }
 
+.reduce-motion .infotainment-console__dial--tilt-left,
+.reduce-motion .infotainment-console__dial--tilt-right,
+.reduce-motion .infotainment-console__dial--tilt-left .infotainment-console__dial-tick,
+.reduce-motion .infotainment-console__dial--tilt-right .infotainment-console__dial-tick {
+  transform: none !important;
+}
+
 /* Mobile performance: drop expensive blurs over animated content */
 @media (max-width: 768px) {
   .gps-ui-controls__btn,

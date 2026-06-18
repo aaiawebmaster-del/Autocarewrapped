@@ -1,6 +1,8 @@
 /* Driving scene — Lottie backdrop pinned to the dashboard top edge */
 .driving-view-backdrop {
   --driving-content-top: 0;
+  /* Road/buildings band height; sky fills the full content area above the dashboard */
+  --driving-road-fill: 0.75;
   position: absolute;
   top: var(--driving-content-top);
   left: 0;
@@ -17,7 +19,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 100%;
+  min-height: 0;
 }
 
 .driving-view-backdrop__compositor {
@@ -25,7 +27,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 100%;
+  min-height: 0;
   isolation: isolate;
 }
 
@@ -118,15 +120,18 @@
     0 0 48px 16px rgba(255, 120, 0, 0.15);
 }
 
-/* Punch sky out wherever the Lottie artwork is opaque */
+/* Punch sky out wherever the Lottie artwork is opaque — road band only */
 .driving-view-backdrop__lottie-cutout {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
   z-index: 1;
   display: block;
   width: 100%;
-  height: 100%;
-  min-height: 100%;
+  height: calc(100% * var(--driving-road-fill));
+  min-height: 0;
   pointer-events: none;
   mix-blend-mode: destination-out;
 }
@@ -135,17 +140,20 @@
   display: block;
   width: 100% !important;
   height: 100% !important;
-  min-height: 100%;
+  min-height: 0;
 }
 
 .driving-view-backdrop__lottie {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
   z-index: 2;
   display: block;
   width: 100%;
-  height: 100%;
-  min-height: 100%;
+  height: calc(100% * var(--driving-road-fill));
+  min-height: 0;
   pointer-events: none;
 }
 
@@ -153,13 +161,14 @@
   display: block;
   width: 100% !important;
   height: 100% !important;
-  min-height: 100%;
+  min-height: 0;
 }
 
 /* Landing screen — license plate hero over road, push to start in dashboard body */
 .driving-view-stage {
-  --landing-dashboard-height: 316px;
+  --landing-dashboard-height: 391px;
   --landing-plate-gap: 15px;
+  --driving-content-gutter: clamp(12px, 3vw, 20px);
 }
 
 .driving-view-footer {
@@ -1119,6 +1128,8 @@
 
 .dashboard-body--pre-journey {
   overflow: visible;
+  padding-inline: var(--driving-content-gutter);
+  box-sizing: border-box;
 }
 
 .pre-journey-stage {
@@ -1145,13 +1156,13 @@
 
 .pre-journey-stage--intro {
   --landing-start-size: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
   width: 100%;
   height: 100%;
   min-height: 0;
+  box-sizing: border-box;
 }
 
 .pre-journey-stage__start-float {
@@ -1196,17 +1207,556 @@
   aspect-ratio: 1;
 }
 
-.pre-journey-stage--intro .pre-journey-stage__intro-col {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: stretch;
-  position: relative;
-  top: auto;
+/* ── Infotainment console (pre-journey landing + intro) ── */
+.infotainment-console {
+  --infotainment-dial-size: clamp(70px, 8.5vw, 88px);
+  --infotainment-control-h: clamp(58px, 9.5vh, 74px);
+  --infotainment-plastic: #121418;
+  --infotainment-plastic-mid: #1a1d24;
+  --infotainment-plastic-light: #252932;
+  --infotainment-led: rgba(0, 198, 255, 0.55);
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  height: 100%;
   min-height: 0;
+  box-sizing: border-box;
+}
+
+.infotainment-console__display {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+}
+
+.pre-journey-stage--landing .infotainment-console__display {
+  align-items: stretch;
+  justify-content: center;
+}
+
+.pre-journey-stage--intro .infotainment-console__display {
+  display: block;
+}
+
+/* ── VW-style infotainment head unit (intro slides) ── */
+.infotainment-headunit {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.infotainment-headunit__frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.6vw, 14px);
+  border-radius: clamp(4px, 0.6vw, 6px);
+  box-sizing: border-box;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.014) 0 1px,
+      transparent 1px 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.05) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(180deg, #242424 0%, #141414 42%, #0a0a0a 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -3px 10px rgba(0, 0, 0, 0.55),
+    0 8px 22px rgba(0, 0, 0, 0.45);
+}
+
+.infotainment-headunit__frame-content {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+}
+
+.infotainment-headunit__frame-content.infotainment-headunit__layout {
+  display: grid;
+}
+
+.infotainment-headunit__shade {
+  position: absolute;
+  width: 42%;
+  height: 38%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.infotainment-headunit__shade--tl {
+  top: 0;
+  left: 0;
+  background: radial-gradient(ellipse 100% 100% at 0% 0%, rgba(0, 0, 0, 0.62) 0%, transparent 72%);
+}
+
+.infotainment-headunit__shade--tr {
+  top: 0;
+  right: 0;
+  background: radial-gradient(ellipse 100% 100% at 100% 0%, rgba(0, 0, 0, 0.62) 0%, transparent 72%);
+}
+
+.infotainment-headunit__shade--bl {
+  bottom: 0;
+  left: 0;
+  background: radial-gradient(ellipse 100% 100% at 0% 100%, rgba(0, 0, 0, 0.58) 0%, transparent 72%);
+}
+
+.infotainment-headunit__shade--br {
+  bottom: 0;
+  right: 0;
+  background: radial-gradient(ellipse 100% 100% at 100% 100%, rgba(0, 0, 0, 0.58) 0%, transparent 72%);
+}
+
+.infotainment-headunit__facet {
+  position: absolute;
+  width: 28%;
+  height: 24%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.55;
+}
+
+.infotainment-headunit__facet--tl {
+  top: 8%;
+  left: 10%;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.28) 0%, transparent 58%);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.infotainment-headunit__facet--tr {
+  top: 8%;
+  right: 10%;
+  background: linear-gradient(225deg, rgba(0, 0, 0, 0.28) 0%, transparent 58%);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+}
+
+.infotainment-headunit__facet--bl {
+  bottom: 10%;
+  left: 8%;
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0.35) 0%, transparent 62%);
+  clip-path: polygon(0 100%, 100% 100%, 0 0);
+}
+
+.infotainment-headunit__facet--br {
+  bottom: 10%;
+  right: 8%;
+  background: linear-gradient(315deg, rgba(0, 0, 0, 0.35) 0%, transparent 62%);
+  clip-path: polygon(100% 100%, 0 100%, 100% 0);
+}
+
+.infotainment-headunit__layout {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 0.17fr) minmax(0, 1fr) minmax(0, 0.17fr);
+  gap: clamp(6px, 1.2vw, 10px);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.infotainment-headunit__side {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: clamp(8px, 1.3vh, 11px);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding-block: clamp(2px, 0.5vh, 4px);
+}
+
+.infotainment-headunit__softkey {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(44px, 7vh, 56px);
+  padding: 0.4rem 0.35rem;
+  border: none;
+  border-radius: 3px;
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(12px, 2.1vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(236, 236, 236, 0.94);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.65);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 38%),
+    linear-gradient(180deg, #2a2a2a 0%, #161616 58%, #0d0d0d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+    0 2px 0 rgba(0, 0, 0, 0.35);
+  clip-path: polygon(6% 0%, 94% 0%, 100% 100%, 0% 100%);
+}
+
+.infotainment-headunit__nav-btn {
+  cursor: pointer;
+  transition:
+    filter 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background 0.1s ease;
+}
+
+.infotainment-headunit__nav-btn:hover:not(:disabled),
+.infotainment-headunit__nav-btn:focus-visible:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.infotainment-headunit__nav-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  filter: brightness(0.9);
+  color: rgba(210, 210, 210, 0.88);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0%, transparent 45%),
+    linear-gradient(180deg, #181818 0%, #101010 62%, #080808 100%);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.infotainment-headunit__nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.infotainment-headunit__nav-btn--left,
+.infotainment-headunit__side--left .infotainment-headunit__softkey {
+  clip-path: polygon(0 0, 100% 4%, 94% 100%, 0 100%);
+}
+
+.infotainment-headunit__nav-btn--right,
+.infotainment-headunit__side--right .infotainment-headunit__softkey {
+  clip-path: polygon(0 4%, 100% 0%, 100% 100%, 6% 100%);
+}
+
+.infotainment-headunit__nav-btn--chevron {
+  padding: 0.35rem;
+}
+
+.infotainment-headunit__nav-btn--chevron svg {
+  width: clamp(18px, 3vw, 24px);
+  height: clamp(18px, 3vw, 24px);
+  display: block;
+  flex-shrink: 0;
+}
+
+.infotainment-headunit__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.infotainment-headunit__screen-well {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  padding: clamp(6px, 1vw, 9px);
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, #1f1f1f 0%, #101010 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 8px 18px rgba(0, 0, 0, 0.72),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.03);
+}
+
+.infotainment-headunit__screen-well::before {
+  content: '';
+  position: absolute;
+  inset: clamp(6px, 1vw, 9px);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow:
+    inset 2px 2px 8px rgba(0, 0, 0, 0.55),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.infotainment-headunit__dial-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--infotainment-dial-size);
+  height: var(--infotainment-dial-size);
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.infotainment-headunit__dial-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.infotainment-headunit__dial-btn .infotainment-console__dial {
+  width: 100%;
+  height: 100%;
+}
+
+.infotainment-headunit__dial-btn:hover:not(:disabled) .infotainment-console__dial-ring,
+.infotainment-headunit__dial-btn:focus-visible:not(:disabled) .infotainment-console__dial-ring {
+  filter: brightness(1.06);
+}
+
+.infotainment-headunit__dial-btn:active:not(:disabled) .infotainment-console__dial--tilt-left {
+  transform: rotate(-20deg) translateY(1px);
+}
+
+.infotainment-headunit__dial-btn:active:not(:disabled) .infotainment-console__dial--tilt-right {
+  transform: rotate(20deg) translateY(1px);
+}
+
+.infotainment-headunit__dial-btn:active:not(:disabled) .infotainment-console__dial--tilt-center {
+  transform: translateY(1px);
+}
+
+.infotainment-console__dial--nav .infotainment-console__dial-tick {
+  display: none;
+}
+
+.infotainment-console__dial-cap--nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(220, 225, 232, 0.92);
+}
+
+.infotainment-console__dial-cap--nav svg {
+  width: 36%;
+  height: 36%;
+  display: block;
+}
+
+.infotainment-headunit__clock {
+  position: absolute;
+  top: clamp(10px, 1.5vh, 14px);
+  left: clamp(12px, 1.6vw, 16px);
+  z-index: 4;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: clamp(11px, 1.35vw, 13px);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: #3ecf5a;
+  text-shadow:
+    0 0 4px rgba(62, 207, 90, 0.85),
+    0 0 10px rgba(62, 207, 90, 0.45),
+    0 0 1px rgba(120, 255, 140, 0.95);
+  pointer-events: none;
+}
+
+.infotainment-console__screen {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  isolation: isolate;
+  border-radius: 1px;
+  padding: clamp(5px, 0.8vw, 7px);
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #1c1c1c 0%, #0a0a0a 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.85),
+    inset 0 2px 6px rgba(255, 255, 255, 0.04);
+}
+
+.infotainment-console__screen::before {
+  display: none;
+}
+
+.infotainment-console__screen-led {
+  display: none;
+}
+
+.infotainment-console__screen-glass {
+  position: absolute;
+  inset: clamp(5px, 0.8vw, 7px);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 24%,
+      transparent 48%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 30%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.infotainment-console__screen--glossy {
+  overflow: hidden;
+  background: linear-gradient(180deg, #121212 0%, #080808 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.9),
+    inset 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.infotainment-console__screen--glossy .infotainment-console__screen-glass {
+  inset: 0;
+  border-radius: 1px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 18%,
+      transparent 42%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 28%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0%, transparent 22%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.pre-journey-stage--intro .pre-journey-stage__intro-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  padding:
+    clamp(1.75rem, 3.2vh, 2.25rem)
+    clamp(0.85rem, 1.8vw, 1.25rem)
+    clamp(0.75rem, 1.6vh, 1.1rem);
+  box-sizing: border-box;
+  border-radius: 1px;
+  border: none;
+  background:
+    radial-gradient(ellipse 110% 75% at 50% -8%, rgba(255, 255, 255, 0.07) 0%, transparent 52%),
+    linear-gradient(180deg, #141820 0%, #080a0e 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    inset 0 2px 8px rgba(255, 255, 255, 0.04),
+    inset 0 -6px 16px rgba(0, 0, 0, 0.55);
+}
+
+.pre-journey-stage--intro .pre-journey-stage__intro-panel::before,
+.pre-journey-stage--intro .pre-journey-stage__intro-panel::after {
+  display: none;
+}
+
+.infotainment-console__dial {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition:
+    transform 0.24s ease,
+    filter 0.24s ease;
+}
+
+.infotainment-console__dial--tilt-left {
+  transform: rotate(-20deg);
+  filter: brightness(1.04);
+}
+
+.infotainment-console__dial--tilt-right {
+  transform: rotate(20deg);
+  filter: brightness(1.04);
+}
+
+.infotainment-console__dial--tilt-center {
+  transform: rotate(0deg);
+}
+
+.infotainment-console__dial--tilt-left .infotainment-console__dial-tick {
+  transform: rotate(-14deg);
+}
+
+.infotainment-console__dial--tilt-right .infotainment-console__dial-tick {
+  transform: rotate(14deg);
+}
+
+.infotainment-console__dial-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 210deg,
+      #eef1f6 0deg,
+      #9aa3ad 40deg,
+      #eef1f6 80deg,
+      #5c6470 140deg,
+      #d8dde4 200deg,
+      #6b737e 260deg,
+      #eef1f6 320deg,
+      #9aa3ad 360deg
+    );
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    inset 0 2px 3px rgba(255, 255, 255, 0.45),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+}
+
+.infotainment-console__dial-cap {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, #3a4048 0%, #1a1d22 42%, #0a0c10 100%);
+  box-shadow:
+    inset 0 2px 6px rgba(255, 255, 255, 0.12),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.infotainment-console__dial-tick {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  width: 3px;
+  height: 14%;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(180, 190, 200, 0.35) 100%);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.25);
+  transform-origin: center 320%;
+  transition: transform 0.24s ease;
 }
 
 .pre-journey-stage__intro-col {
@@ -1252,8 +1802,6 @@
 }
 
 .hmi-chrome-frame,
-.pre-journey-stage__intro-panel,
-.journey-counter-panel__message-row,
 .journey-nav-stage-inner,
 .full-diagnostics__map-stage-inner,
 .journey-layout__nav-message-panel {
@@ -1283,8 +1831,6 @@
 }
 
 .hmi-chrome-frame::before,
-.pre-journey-stage__intro-panel::before,
-.journey-counter-panel__message-row::before,
 .journey-nav-stage-inner::before,
 .full-diagnostics__map-stage-inner::before,
 .journey-layout__nav-message-panel::before {
@@ -1305,8 +1851,6 @@
 }
 
 .hmi-chrome-frame::after,
-.pre-journey-stage__intro-panel::after,
-.journey-counter-panel__message-row::after,
 .journey-nav-stage-inner::after,
 .full-diagnostics__map-stage-inner::after,
 .journey-layout__nav-message-panel::after {
@@ -1336,31 +1880,8 @@
 }
 
 /* Text/message panels: chrome lives on the border only; interior is ::before */
-.pre-journey-stage__intro-panel,
-.journey-counter-panel__message-row,
 .journey-layout__nav-message-panel {
   --hmi-chrome-padding-fill: linear-gradient(transparent, transparent);
-}
-
-.pre-journey-stage__intro-panel {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: clamp(0.5rem, 1.5vw, 1rem);
-  width: 100%;
-  height: var(--landing-start-size);
-  min-height: var(--landing-start-size);
-  max-height: var(--landing-start-size);
-  padding-block: clamp(0.65rem, 1.4vh, 1rem);
-  padding-inline: clamp(0.5rem, 1.2vw, 0.85rem);
-  box-sizing: border-box;
-}
-
-.pre-journey-stage--intro .pre-journey-stage__intro-panel {
-  flex: 1 1 auto;
-  height: 100%;
-  min-height: 100%;
-  max-height: 100%;
 }
 
 .pre-journey-stage__intro-text {
@@ -1373,26 +1894,36 @@
   height: 100%;
   max-width: none;
   margin: 0;
-  padding: 0;
+  padding-inline: clamp(0.25rem, 1vw, 0.5rem);
   box-sizing: border-box;
   position: relative;
   z-index: 2;
+  overflow: hidden;
 }
 
-.pre-journey-stage__intro-panel .intro-slide__back,
-.pre-journey-stage__intro-panel .intro-slide__next {
-  position: static;
-  top: auto;
-  left: auto;
-  right: auto;
-  transform: none;
-  z-index: 2;
+.intro-slide__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+.intro-slide__copy .intro-slide__welcome,
+.intro-slide__copy .intro-slide__text {
+  width: 100%;
 }
 
 .pre-journey-stage__intro-panel .intro-slide__text,
 .pre-journey-stage__intro-panel .intro-slide__welcome {
   width: 100%;
   max-width: none;
+}
+
+.pre-journey-stage--intro .intro-slide__text {
+  font-size: clamp(15px, 2.1vw, 23px);
+  color: rgba(236, 240, 245, 0.94);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
 }
 
 @media (max-width: 640px) {
@@ -1403,31 +1934,33 @@
     );
   }
 
-  .pre-journey-stage--intro {
-    --landing-start-size: min(
-      clamp(6.5rem, min(42vw, 18vh), 10rem),
-      calc(100% - 0.25rem)
-    );
-    grid-template-columns: 1fr;
-    gap: clamp(0.75rem, 2vh, 1.25rem);
-    align-items: stretch;
+  .infotainment-headunit__layout {
+    grid-template-columns: minmax(0, 0.2fr) minmax(0, 1fr) minmax(0, 0.2fr);
+    gap: clamp(4px, 1vw, 6px);
   }
 
-  .pre-journey-stage--intro .pre-journey-stage__intro-col {
-    grid-column: 1;
-    top: 0;
-    width: 100%;
-    height: 100%;
+  .infotainment-headunit__softkey {
+    min-height: clamp(36px, 5.5vh, 44px);
+    font-size: clamp(10px, 2.6vw, 13px);
+  }
+
+  .infotainment-console {
+    --infotainment-dial-size: clamp(52px, 14vw, 68px);
+  }
+
+  .infotainment-headunit__dial-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .infotainment-headunit__clock {
+    font-size: clamp(10px, 2.8vw, 12px);
   }
 
   .pre-journey-stage--intro .pre-journey-stage__intro-panel {
     height: 100%;
-    min-height: 100%;
-    max-height: 100%;
-  }
-
-  .pre-journey-stage--intro .pre-journey-stage__start-float {
-    display: none;
+    min-height: 0;
+    max-height: none;
   }
 }
 
@@ -1682,7 +2215,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 316px;
+  height: var(--landing-dashboard-height, 391px);
   z-index: 20;
   isolation: isolate;
   vertical-align: middle;
@@ -2461,7 +2994,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 0 clamp(16px, 3vw, 24px);
+  padding: 0 var(--driving-content-gutter);
   pointer-events: auto;
   box-sizing: border-box;
 }
@@ -2531,7 +3064,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 0 clamp(16px, 3vw, 24px);
+  padding: 0 var(--driving-content-gutter);
   pointer-events: auto;
   box-sizing: border-box;
 }
@@ -2645,7 +3178,7 @@
   justify-content: center;
   width: 100%;
   min-width: 0;
-  max-width: min(600px, 92vw);
+  max-width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
   height: 332px;
 }
 
@@ -2660,11 +3193,11 @@
   --rugged-btn-face-dark: #25282d;
   position: relative;
   flex: 0 0 auto;
-  width: min(560px, 58vw);
-  min-width: min(360px, 50vw);
+  width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
+  min-width: 0;
   height: var(--hood-standards-popup-height);
   min-height: var(--hood-standards-popup-height);
-  max-width: min(560px, 58vw);
+  max-width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
   padding: clamp(9px, 1.4vw, 13px) clamp(14px, 2vw, 18px);
   box-sizing: border-box;
   display: flex;
@@ -3028,23 +3561,73 @@
   box-sizing: border-box;
 }
 
-.hood-standards-popup__text-area {
-  flex: 0 0 auto;
+.hood-standards-popup__main {
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: none;
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   gap: clamp(10px, 1.6vw, 14px);
-  overflow: visible;
-  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.hood-standards-popup__gauge-column {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.hood-standards-popup__copy-column {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 10px);
+  overflow: hidden;
+}
+
+.hood-standards-popup__copy-column .hood-standards-popup__protocol-block {
+  flex: 0 0 auto;
+  width: 100%;
+  margin-top: auto;
+}
+
+.hood-standards-popup__protocol-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(3px, 0.5vh, 5px);
+  width: 100%;
+  min-width: 0;
+}
+
+.hood-standards-popup__protocol-label {
+  display: block;
+  width: 100%;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(9px, 1.4vw, 11px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  color: rgba(190, 210, 228, 0.72);
+  white-space: nowrap;
+}
+
+.hood-standards-popup__copy-column .hood-standards-popup__protocol-row {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: clamp(40px, 7vh, 56px);
 }
 
 .hood-standards-popup__text-scroll {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  max-height: clamp(72px, 11vh, 96px);
+  max-height: none;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -3071,19 +3654,30 @@
 }
 
 .hood-standards-gauge {
-  flex: 0 0 auto;
+  --hood-standards-gauge-aspect: 0.69;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: clamp(54px, 7.5vw, 66px);
+  justify-content: stretch;
+  width: auto;
+  height: 100%;
+  min-height: 0;
+  max-width: clamp(64px, 14vw, 92px);
+  aspect-ratio: var(--hood-standards-gauge-aspect);
   margin-top: 0;
-  padding-top: 4px;
+  padding-top: 0;
   overflow: visible;
 }
 
 .hood-standards-gauge__shell {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   padding: 2px;
   border: 2px solid #42d84f;
   border-radius: 3px;
@@ -3121,8 +3715,10 @@
 
 .hood-standards-gauge__well {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
-  height: clamp(68px, 9vh, 82px);
+  min-height: 0;
+  height: auto;
   border-radius: 1px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 18%),
@@ -3285,7 +3881,7 @@
   margin: 0;
   width: 100%;
   font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 400;
   line-height: 1.35;
   letter-spacing: 0.03em;
@@ -3375,13 +3971,13 @@
   }
 
   .dashboard-hood-arch__standards .hood-standards-popup-anchor {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: var(--driving-content-gutter);
+    padding-right: var(--driving-content-gutter);
     --hood-standards-device-bottom: 54px;
   }
 
   .hood-standards-popup-row {
-    max-width: min(600px, 96vw);
+    max-width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
     height: 332px;
   }
 
@@ -3391,9 +3987,9 @@
 
   .hood-standards-popup {
     --hood-standards-popup-height: 332px;
-    width: min(400px, 96vw);
-    min-width: min(340px, 92vw);
-    max-width: min(400px, 96vw);
+    width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
+    min-width: 0;
+    max-width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
     height: var(--hood-standards-popup-height);
     min-height: var(--hood-standards-popup-height);
     padding: 9px 12px;
@@ -3455,24 +4051,28 @@
   }
 
   .hood-standards-gauge {
-    width: 50px;
-    padding-top: 3px;
+    max-width: 58px;
+    padding-top: 0;
   }
 
   .hood-standards-gauge__well {
-    height: 64px;
+    min-height: 0;
   }
 
   .hood-standards-gauge__label {
     font-size: 14px;
   }
 
-  .hood-standards-popup__text-area {
+  .hood-standards-popup__main {
     gap: 8px;
   }
 
+  .hood-standards-popup__copy-column .hood-standards-popup__protocol-row {
+    min-height: clamp(32px, 6.5vh, 44px);
+  }
+
   .hood-standards-popup__text {
-    font-size: 22px;
+    font-size: 23px;
   }
 
   /* Let dipsticks use full size inside the arch (row may extend slightly past narrow viewports) */
@@ -3530,6 +4130,52 @@
     right: 0;
     width: var(--hood-dipstick-triple-slot);
     max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .hood-standards-device__controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 6px;
+  }
+
+  .hood-standards-device__controls-center {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .hood-standards-device__controls-center .hood-standards-device__btn--cta:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .hood-standards-device__btn--back {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .hood-standards-device__btn--next {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .hood-standards-device__btn {
+    min-height: 32px;
+    padding: 8px 6px;
+    font-size: clamp(9px, 2.2vw, 11px);
+    white-space: normal;
+    text-align: center;
+  }
+
+  .hood-standards-device__btn--cta {
+    width: 100%;
+    padding-inline: 4px;
   }
 }
 
@@ -5236,6 +5882,7 @@
   min-height: 0;
   position: relative;
   z-index: 4;
+  padding-inline: var(--driving-content-gutter);
 }
 
 .dashboard-body--journey > * {
@@ -6397,66 +7044,201 @@
 .journey-counter-panel__aside {
   flex: 1 1 50%;
   min-width: 0;
-  align-self: flex-start;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: clamp(0.5rem, 1.2vh, 0.875rem);
+  gap: 0;
   overflow: visible;
+  height: 100%;
+  min-height: 0;
 }
 
-.journey-counter-panel__message-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--journey-counter-nav-gap);
+.journey-counter-panel__headunit {
   width: 100%;
-  min-width: 0;
-  flex: 0 0 auto;
-  padding-block: clamp(0.65rem, 1.4vh, 1rem);
-  padding-inline: clamp(0.5rem, 1.2vw, 0.85rem);
+  height: 100%;
+  min-height: 0;
 }
 
-.journey-counter-panel__message-row .journey-counter-panel__chev,
-.journey-counter-panel__message-row .journey-counter-panel__message {
+.journey-counter-panel__frame-body {
+  gap: clamp(6px, 1vw, 10px);
+}
+
+.journey-counter-panel__screen-well {
   position: relative;
-  z-index: 2;
-}
-
-.journey-counter-panel__footer {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  margin: 0;
-  padding: 0;
-  flex-shrink: 0;
-  vertical-align: middle;
+  padding: clamp(6px, 1vw, 9px);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #1f1f1f 0%, #101010 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 8px 18px rgba(0, 0, 0, 0.72),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.03);
 }
 
-.journey-counter-panel__footer .journey-layout__counter-cta {
-  display: inline-flex;
+.journey-counter-panel__screen-well::before {
+  content: '';
+  position: absolute;
+  inset: clamp(6px, 1vw, 9px);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow:
+    inset 2px 2px 8px rgba(0, 0, 0, 0.55),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.journey-counter-panel__screen {
+  position: relative;
+  z-index: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  align-self: stretch;
-  box-sizing: border-box;
   width: 100%;
-  height: 55px;
-  line-height: 1.15;
-  max-width: 100%;
-  text-align: center;
-  white-space: normal;
+  height: 100%;
+  min-height: clamp(7.5rem, 16vh, 10.5rem);
+  overflow: hidden;
+  padding:
+    clamp(1rem, 2vh, 1.5rem)
+    clamp(0.85rem, 1.8vw, 1.25rem);
+  box-sizing: border-box;
+  border-radius: 1px;
+  background:
+    radial-gradient(ellipse 110% 75% at 50% -8%, rgba(255, 255, 255, 0.07) 0%, transparent 52%),
+    linear-gradient(180deg, #141820 0%, #080a0e 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    inset 0 2px 8px rgba(255, 255, 255, 0.04),
+    inset 0 -6px 16px rgba(0, 0, 0, 0.55);
 }
 
-.journey-counter-panel__footer-placeholder {
+.journey-counter-panel__screen-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 18%,
+      transparent 42%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 28%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0%, transparent 22%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.journey-counter-panel__controls {
+  --journey-counter-nav-size: clamp(44px, 7vh, 56px);
+  display: grid;
+  grid-template-columns: var(--journey-counter-nav-size) minmax(0, 1fr) var(--journey-counter-nav-size);
+  align-items: stretch;
+  gap: clamp(6px, 1vw, 10px);
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.journey-counter-panel__controls .infotainment-headunit__nav-btn--chevron {
+  width: 100%;
+  min-height: var(--journey-counter-nav-size);
+  height: 100%;
+}
+
+.journey-counter-panel__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--journey-counter-nav-size, clamp(44px, 7vh, 56px));
+  height: 100%;
+  padding: 0.45rem 0.75rem;
+  border: none;
+  border-radius: 3px;
+  box-sizing: border-box;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: lowercase;
+  color: #1a1208;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 38%),
+    linear-gradient(180deg, #f8b04a 0%, #f3901d 42%, #c86808 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 0 rgba(120, 50, 0, 0.45),
+    0 2px 0 rgba(0, 0, 0, 0.35);
+  transition:
+    filter 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background 0.1s ease;
+}
+
+.journey-counter-panel__cta:hover {
+  filter: brightness(1.04);
+}
+
+.journey-counter-panel__cta:active {
+  transform: translateY(2px);
+  filter: brightness(0.94);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 45%),
+    linear-gradient(180deg, #d87810 0%, #b86008 58%, #9a5006 100%);
+  box-shadow:
+    inset 0 3px 6px rgba(80, 35, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.journey-counter-panel__cta:focus-visible {
+  outline: 2px solid rgba(243, 144, 29, 0.85);
+  outline-offset: 3px;
+}
+
+.journey-counter-panel__cta-placeholder {
   display: block;
   width: 100%;
-  height: 55px;
+  min-height: var(--journey-counter-nav-size, clamp(44px, 7vh, 56px));
+  height: 100%;
   flex-shrink: 0;
   box-sizing: border-box;
+}
+
+.journey-counter-panel__message {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 3;
+  color: rgba(236, 240, 245, 0.94);
+  font-size: clamp(15px, 2.1vw, 23px);
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+}
+
+.journey-counter-panel__aside .journey-gauge-chevron {
+  flex: 0 0 auto;
 }
 
 @media (min-width: 641px) {
@@ -6542,33 +7324,23 @@
     gap: 0;
   }
 
-  .journey-counter-panel__message-row {
+  .journey-counter-panel__headunit,
+  .journey-counter-panel__frame {
     flex: 1 1 auto;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
     min-height: 0;
-    width: 100%;
+    height: 100%;
   }
 
-  .journey-counter-panel__message {
+  .journey-counter-panel__screen-well {
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 17px;
-    text-align: center;
   }
 
-  .journey-counter-panel__aside .journey-counter-panel__chev {
-    align-self: center;
-  }
-
-  .journey-counter-panel__footer {
-    flex: 0 0 auto;
-    margin-top: auto;
-    padding-top: clamp(0.35rem, 0.8vh, 0.65rem);
+  .journey-counter-panel__screen {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
@@ -6576,30 +7348,6 @@
     margin-top: auto;
     padding-block: clamp(4px, 0.5vh, 8px);
   }
-}
-
-.journey-counter-panel__message {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  color: #ffffff;
-  font-size: 17px;
-  font-weight: 400;
-  line-height: 1.35;
-  text-align: center;
-  vertical-align: bottom;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  text-shadow:
-    0 0.0625em 0.5em rgba(0, 0, 0, 0.85),
-    0 0 1.5em rgba(0, 0, 0, 0.9);
-}
-
-.journey-counter-panel__aside .journey-gauge-chevron {
-  flex: 0 0 auto;
 }
 
 @media (max-width: 640px) {
@@ -6655,15 +7403,6 @@
     max-width: 100%;
   }
 
-  .journey-counter-panel__stat-row .journey-counter-panel__message--mobile-stat {
-    flex: 1 1 auto;
-    min-width: 0;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.35;
-    text-align: center;
-  }
-
   .journey-counter-panel__mobile-detail {
     display: flex;
     flex-direction: column;
@@ -6672,9 +7411,12 @@
     gap: clamp(0.35rem, 1vh, 0.65rem);
   }
 
-  .journey-counter-panel__footer--mobile-inline {
-    width: 100%;
-    padding-top: 0;
+  .journey-counter-panel__mobile-detail .journey-counter-panel__screen {
+    min-height: clamp(6.5rem, 18vh, 9.5rem);
+  }
+
+  .journey-counter-panel__mobile-detail .journey-counter-panel__message {
+    font-size: clamp(13px, 3.6vw, 17px);
   }
 
   .journey-layout--counter-mobile .journey-counter-panel__gauge {
@@ -6727,23 +7469,6 @@
     width: 100%;
     max-width: none;
     margin-inline: 0;
-  }
-
-  .journey-counter-panel__message {
-    flex: 1 1 auto;
-    text-align: center;
-  }
-
-  .journey-counter-panel__aside {
-    align-items: stretch;
-  }
-
-  .journey-counter-panel__message-row {
-    justify-content: center;
-  }
-
-  .journey-counter-panel__footer {
-    padding-top: clamp(0.35rem, 1vh, 0.65rem);
   }
 }
 
@@ -7966,6 +8691,7 @@
   inset: 0;
   overflow: visible;
   --hood-tire-ground-height: 42%;
+  --driving-content-gutter: clamp(12px, 3vw, 20px);
 }
 
 .hood-tire-hub__black {
@@ -8288,15 +9014,29 @@
 }
 
 .hood-standards-popup__body--summary {
-  justify-content: center;
+  justify-content: space-between;
   align-items: stretch;
   gap: clamp(8px, 1.2vh, 12px);
   padding-block: clamp(10px, 1.6vh, 14px);
 }
 
+.hood-standards-popup__main--summary {
+  align-items: center;
+}
+
+.hood-standards-summary .hood-standards-popup__protocol-block {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  justify-content: center;
+  align-items: stretch;
+}
+
 .hood-standards-summary .hood-standards-popup__protocol-row {
+  flex: 0 0 auto;
   width: 100%;
   justify-content: flex-start;
+  align-items: center;
 }
 
 .hood-standards-summary .hood-standards-popup__database-row {
@@ -8577,7 +9317,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(8px, 2vw, 24px);
+  padding: 0 var(--driving-content-gutter);
   pointer-events: none;
 }
 
@@ -8628,14 +9368,17 @@
   height: 100%;
   padding-top: 8px;
   padding-bottom: 0;
+  padding-inline: var(--driving-content-gutter, clamp(12px, 3vw, 20px));
   box-sizing: border-box;
   overflow: hidden;
+  --driving-content-gutter: clamp(12px, 3vw, 20px);
+  --full-diagnostics-content-max: 1100px;
 }
 
 .full-diagnostics__header {
   flex-shrink: 0;
   text-align: center;
-  padding: 8px 16px 4px;
+  padding: 8px 0 4px;
 }
 
 .full-diagnostics__title {
@@ -8656,7 +9399,7 @@
 .full-diagnostics__top {
   position: relative;
   flex-shrink: 0;
-  min-height: clamp(160px, 28vh, 220px);
+  min-height: clamp(200px, 32vh, 280px);
   overflow: hidden;
   z-index: 2;
 }
@@ -8687,8 +9430,11 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   column-gap: clamp(10px, 2vw, 20px);
-  min-height: clamp(160px, 28vh, 220px);
-  padding: clamp(12px, 2vh, 20px) clamp(8px, 2vw, 16px);
+  min-height: clamp(200px, 32vh, 280px);
+  width: 100%;
+  max-width: var(--full-diagnostics-content-max);
+  margin-inline: auto;
+  padding: clamp(12px, 2vh, 20px) 0;
   box-sizing: border-box;
 }
 
@@ -8851,35 +9597,37 @@
 .full-diagnostics__stats-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-items: start;
-  justify-items: center;
+  align-items: end;
+  justify-items: stretch;
   gap: clamp(8px, 2vw, 22px);
   width: 100%;
-  max-width: min(100%, 720px);
+  max-width: 100%;
   margin-inline: auto;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge {
-  --journey-counter-dial-size: clamp(4.25rem, 13vw, 6.5rem);
-  --journey-counter-stat-min-h: calc(clamp(11px, 2.2vw, 16px) * 2.2 + 0.4rem);
+  --journey-counter-dial-height: clamp(5.25rem, 14vw, 8rem);
+  --journey-counter-dial-width: 100%;
+  --journey-counter-dial-gap: 0;
+  --journey-counter-stat-min-h: calc(var(--journey-counter-dial-height) * 0.34375);
   grid-column: auto;
   grid-row: auto;
   flex: none;
-  align-self: start;
-  justify-self: center;
+  align-self: end;
+  justify-self: stretch;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: calc(var(--journey-counter-dial-size) + var(--journey-counter-stat-min-h));
-  font-size: clamp(7px, 1.2vw, 10px);
+  align-items: stretch;
+  justify-content: flex-end;
+  height: auto;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge:has(.community-logo-gauge--dual) {
-  --journey-counter-dial-size: clamp(4.75rem, 14.5vw, 7.25rem);
+  --journey-counter-dial-height: clamp(5.25rem, 14vw, 8rem);
+  --journey-counter-stat-min-h: calc(var(--journey-counter-dial-height) * 0.34375);
 }
 
 /* Keep gauge markup in a real box — display:contents broke dial SVG rendering in the stats grid. */
@@ -8889,33 +9637,37 @@
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge > .community-logo-gauge {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  justify-content: flex-end;
   flex: none;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  height: 100%;
+  height: auto;
   margin: 0;
+  gap: 0;
 }
 
-.full-diagnostics__stat-gauge.journey-counter-panel__gauge .journey-counter-gauge__dial-slot {
-  flex: 0 0 var(--journey-counter-dial-size);
-  width: var(--journey-counter-dial-size);
-  height: var(--journey-counter-dial-size);
-  min-height: var(--journey-counter-dial-size);
+.full-diagnostics__stat-gauge.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter {
+  width: 100%;
   max-width: 100%;
-  margin: 0;
+  height: var(--journey-counter-dial-height);
+  flex: 0 0 var(--journey-counter-dial-height);
+  margin-inline: 0;
+  margin-bottom: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  overflow: visible;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge
-  .journey-counter-gauge__dial-slot--community-logo {
-  width: min(100%, calc(var(--journey-counter-dial-size) * 300 / 126));
-  height: var(--journey-counter-dial-size);
-  flex: 0 0 auto;
-  aspect-ratio: 300 / 126;
+  .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--community-logo {
+  width: 100%;
+  max-width: 100%;
+  height: var(--journey-counter-dial-height);
+  flex: 0 0 var(--journey-counter-dial-height);
+  aspect-ratio: unset;
   align-items: stretch;
 }
 
@@ -8923,6 +9675,9 @@
 .full-diagnostics__stat-gauge .journey-battery-gauge__dial {
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge__button {
@@ -8956,33 +9711,41 @@
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge
   .journey-speedometer-gauge__stat-below {
-  flex: 0 0 var(--journey-counter-stat-min-h);
+  flex: 0 0 auto;
   width: 100%;
-  height: var(--journey-counter-stat-min-h);
   min-height: var(--journey-counter-stat-min-h);
-  max-height: var(--journey-counter-stat-min-h);
+  height: auto;
+  max-height: none;
   margin: 0;
-  gap: 0.2em;
-  padding-block: clamp(3px, 0.45vh, 6px);
-  padding-inline: clamp(4px, 1vw, 8px);
+  gap: 0.35em;
+  padding-block: clamp(2px, 0.35vh, 6px);
+  padding-inline: clamp(8px, 1.5vw, 14px);
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot .journey-speedometer-gauge__svg,
 .full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot .journey-fuel-gauge__svg,
 .full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot .journey-battery-gauge__svg {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   max-width: 100%;
   max-height: 100%;
+  margin: 0;
   aspect-ratio: unset;
+}
+
+.full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot--wide .journey-speedometer-gauge__svg,
+.full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot--wide .journey-fuel-gauge__svg,
+.full-diagnostics__stat-gauge .journey-counter-gauge__dial-slot--wide .journey-battery-gauge__svg {
+  align-self: flex-end;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge
@@ -8990,11 +9753,19 @@
   .journey-speedometer-gauge__stat-value {
   position: relative;
   z-index: 2;
-  display: inline;
+  display: inline-flex;
+  flex-direction: column;
   flex: 0 0 auto;
   white-space: nowrap;
   line-height: 1.15;
-  vertical-align: baseline;
+  vertical-align: middle;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(var(--journey-counter-dial-height) * 0.375);
+  text-shadow:
+    0 0 10px rgba(243, 144, 29, 0.4),
+    0 0 20px rgba(243, 144, 29, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.95);
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge
@@ -9002,13 +9773,19 @@
   .journey-speedometer-gauge__stat-label {
   position: relative;
   z-index: 2;
-  display: inline;
+  display: inline-flex;
+  flex-direction: column;
   flex: 0 1 auto;
   min-width: 0;
-  padding-left: 0;
+  padding-left: calc(var(--journey-counter-dial-height) * 0.08);
   line-height: 1.15;
   text-align: left;
-  vertical-align: baseline;
+  vertical-align: middle;
+  color: rgba(232, 237, 242, 0.92);
+  font-size: calc(var(--journey-counter-dial-height) * 0.125);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 12px rgba(0, 0, 0, 0.65);
   white-space: normal;
   overflow: visible;
   hyphens: auto;
@@ -9020,7 +9797,7 @@
   align-items: center;
   gap: clamp(6px, 1.5vw, 14px);
   width: 100%;
-  max-width: min(100%, 920px);
+  max-width: 100%;
   overflow: hidden;
 }
 
@@ -9088,6 +9865,8 @@
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
+  max-width: var(--full-diagnostics-content-max);
+  margin-inline: auto;
   position: relative;
   overflow: visible;
 }
@@ -9138,27 +9917,46 @@
 
 .full-diagnostics__standards-tablet .hood-standards-popup__body--summary {
   flex: 1 1 auto;
-  justify-content: center;
+  justify-content: space-between;
   gap: clamp(10px, 2vh, 16px);
   padding-block: clamp(10px, 1.6vh, 14px);
 }
 
+.full-diagnostics__standards-tablet .hood-standards-popup__main--summary {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: center;
+}
+
 .full-diagnostics__standards-tablet .hood-standards-gauge {
-  width: clamp(58px, 8.5vw, 72px);
-  padding-top: 4px;
+  --hood-standards-gauge-aspect: 0.68;
+  max-width: clamp(72px, 16vw, 104px);
+  padding-top: 0;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-gauge__well {
-  height: clamp(82px, 13vh, 112px);
+  min-height: 0;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-gauge__label {
   font-size: clamp(17px, 2.4vw, 22px);
 }
 
+.full-diagnostics__standards-tablet .hood-standards-summary .hood-standards-popup__protocol-row {
+  min-height: clamp(48px, 9vh, 72px);
+}
+
+.full-diagnostics__standards-tablet .hood-standards-protocol-logo {
+  height: clamp(48px, 9vh, 72px);
+}
+
+.full-diagnostics__standards-tablet .hood-standards-protocol-logo__image {
+  max-width: clamp(112px, 22vw, 168px);
+}
+
 .full-diagnostics__standards-tablet .hood-standards-popup__database-row {
-  min-height: clamp(28px, 5vh, 36px);
-  max-height: clamp(28px, 5vh, 36px);
+  min-height: clamp(36px, 6.5vh, 48px);
+  max-height: clamp(36px, 6.5vh, 48px);
   gap: clamp(8px, 1.2vw, 12px);
 }
 
@@ -9167,15 +9965,15 @@
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__nav-icons {
-  height: clamp(28px, 5vh, 36px);
-  gap: 15px;
+  height: clamp(36px, 6.5vh, 48px);
+  gap: clamp(12px, 2vw, 18px);
   justify-content: flex-start;
   width: auto;
   flex: 0 1 auto;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__nav-icon {
-  max-width: clamp(30px, 5.5vw, 42px);
+  max-width: clamp(38px, 7vw, 56px);
   flex: 0 0 auto;
 }
 
@@ -9462,7 +10260,7 @@
 @media (max-width: 768px) {
   .full-diagnostics__top-carousel {
     column-gap: 6px;
-    padding-inline: 4px;
+    padding-inline: 0;
   }
 
   .full-diagnostics__share-slide {
@@ -9500,24 +10298,23 @@
   }
 
   .full-diagnostics__stat-gauge.journey-counter-panel__gauge {
-    --journey-counter-dial-size: clamp(3.75rem, 11vw, 5.5rem);
-    --journey-counter-stat-min-h: calc(clamp(10px, 2vw, 13px) * 2.15 + 0.35rem);
+    --journey-counter-dial-height: clamp(4.5rem, 20vw, 6.5rem);
+    --journey-counter-stat-min-h: calc(var(--journey-counter-dial-height) * 0.34375);
     width: 100%;
     max-width: 100%;
-    font-size: clamp(6px, 1.1vw, 9px);
   }
 
   .full-diagnostics__stat-gauge.journey-counter-panel__gauge
     .journey-speedometer-gauge__stat-below
     .journey-speedometer-gauge__stat-value {
-    font-size: clamp(10px, 2.4vw, 14px) !important;
+    font-size: calc(var(--journey-counter-dial-height) * 0.375);
   }
 
   .full-diagnostics__stat-gauge.journey-counter-panel__gauge
     .journey-speedometer-gauge__stat-below
     .journey-speedometer-gauge__stat-label {
-    font-size: clamp(6px, 1.1vw, 8px) !important;
-    padding-left: 3px;
+    font-size: calc(var(--journey-counter-dial-height) * 0.125);
+    padding-left: calc(var(--journey-counter-dial-height) * 0.06);
   }
 
   .full-diagnostics__tire-roll-img {
@@ -9529,11 +10326,11 @@
   }
 
   .full-diagnostics__standards-tablet .hood-standards-gauge {
-    width: clamp(52px, 16vw, 68px);
+    max-width: clamp(52px, 16vw, 68px);
   }
 
   .full-diagnostics__standards-tablet .hood-standards-gauge__well {
-    height: clamp(72px, 14vh, 100px);
+    min-height: 0;
   }
 
   .full-diagnostics__map-webinar-wrap {
@@ -9559,6 +10356,48 @@
     .journey-nav-attendance-bar__route-slot
     .journey-nav-attendance-bar__route {
     padding-right: clamp(10px, 2.5vw, 12px);
+  }
+}
+
+@media (max-width: 640px) {
+  .full-diagnostics__split {
+    flex-direction: column;
+  }
+
+  .full-diagnostics__standards-column,
+  .full-diagnostics__map {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .full-diagnostics__standards-column {
+    min-height: clamp(180px, 28vh, 260px);
+  }
+
+  .full-diagnostics__map {
+    min-height: clamp(200px, 32vh, 280px);
+  }
+
+  .full-diagnostics__standards-tablet-wrap {
+    position: relative;
+    inset: auto;
+    padding: 0;
+    min-height: clamp(180px, 28vh, 260px);
+  }
+
+  .full-diagnostics__stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: clamp(8px, 2vh, 14px);
+    column-gap: clamp(8px, 2vw, 14px);
+    max-width: 100%;
+  }
+
+  .full-diagnostics__tires-roll {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: clamp(8px, 2vh, 12px);
+    column-gap: clamp(8px, 2vw, 12px);
+    max-width: 100%;
   }
 }
 

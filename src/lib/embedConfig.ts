@@ -35,3 +35,28 @@ export function staticReportUrl(recordNumber: string): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   return `${base}/data/reports/${encodeURIComponent(recordNumber)}.json`;
 }
+
+const ENGAGEMENT_PAGE_ORIGIN = 'https://my.autocare.org';
+
+/** Public my.autocare.org page where colleagues view a company's Wrapped report. */
+export function companyReportPageUrl(recordNumber?: string | number | null): string {
+  const record =
+    recordNumber != null && String(recordNumber).trim() !== ''
+      ? String(recordNumber).trim()
+      : getEmbedConfig().recordNumber;
+
+  if (record) {
+    return `${ENGAGEMENT_PAGE_ORIGIN}/engagement/${encodeURIComponent(record)}`;
+  }
+
+  if (typeof window === 'undefined') return '';
+  const url = new URL(window.location.href);
+  url.hash = '';
+  return url.toString();
+}
+
+export function buildShareMailtoUrl(reportPageUrl: string): string {
+  const subject = 'Our Year with the Auto Care Association';
+  const body = `View our company's Auto Care Wrapped report:\n\n${reportPageUrl}`;
+  return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
