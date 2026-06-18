@@ -21,13 +21,16 @@ const REPORT_PRODUCT_OVERRIDES = {
   '1101050': {
     products: {
       trendLensUsers: 4,
-      trendLensContactPct: 6,
       demandIndexGroups: 7,
       demandIndexGroupsTotal: 200,
     },
     factbook: {
       users: 3,
-      contactPct: 3,
+    },
+  },
+  '1257307': {
+    products: {
+      trendLensUsers: 1,
     },
   },
 };
@@ -169,7 +172,7 @@ function buildReports(workbook) {
         trendLensUsers,
         trendLensContactPct: contactPct(trendLensUsers, activeContacts),
         demandIndexGroups: demandProducts.length,
-        demandIndexGroupsTotal: allDemandProducts.length || 200,
+        demandIndexGroupsTotal: 200,
         academyUsers,
         academyCoursesCompleted,
       },
@@ -194,6 +197,15 @@ function buildReports(workbook) {
     if (override?.factbook) {
       Object.assign(report.factbook, override.factbook);
     }
+
+    report.products.trendLensContactPct = contactPct(
+      report.products.trendLensUsers,
+      report.journey.activeContacts,
+    );
+    report.factbook.contactPct = contactPct(
+      report.factbook.users,
+      report.journey.activeContacts,
+    );
 
     return report;
   });

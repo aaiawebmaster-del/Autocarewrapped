@@ -10,6 +10,7 @@ import {
   type RefObject,
 } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { debugSessionLog } from '@/lib/debugSessionLog';
 import { LazyLottie } from './LazyLottie';
 import {
   loadCarBatteryAnimation,
@@ -17,11 +18,15 @@ import {
   loadWheelAlignmentAnimation,
 } from '@/lib/lazyLottieData';
 import { HoodStandardsMetallicBackground } from './HoodStandardsMetallicBackground';
+import { HoodDemandIndexProductListScroll } from './HoodDemandIndexProductListScroll';
+import { HoodAcademyCourseList } from './HoodAcademyCourseList';
 import gpsMapTexture from '../../assets/gps-map-dark.png';
 import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
+import factbookTizraTileImage from '../../assets/factbook-2027-tizra-tile-600x460.png?url';
+import trendlensLogoImage from '../../assets/trendlens-logo-black.png?url';
 import tireAcademyImage from '../../assets/tire-academy.svg?url';
 import tireCheckNullImage from '../../assets/tire-check-null.png?url';
 import tireCheck2Image from '../../assets/tire-check-2.png?url';
@@ -460,6 +465,8 @@ function getHoodPopupMessage(
 }
 
 const HOOD_CHECKING_ADVANCE_MS = 600;
+const HOOD_DATABASE_ICON_REVEAL_MS = 300;
+const HOOD_DATABASE_ICON_REVEAL_INITIAL_MS = 120;
 
 function HoodNavChevron({
   direction,
@@ -542,7 +549,12 @@ function HoodTypewriterText({
   useEffect(() => {
     const el = scrollContainerRef?.current;
     if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (overflow <= 0) {
+      el.scrollTop = 0;
+      return;
+    }
+    el.scrollTop = overflow;
   }, [count, scrollContainerRef]);
 
   const done = count >= text.length;
@@ -627,39 +639,132 @@ function HoodStandardsGauge({
 
 function HoodStandardsProtocolLogos({
   protocolLogos,
+  showLogos = true,
 }: {
   protocolLogos: StandardsProtocolLogo[];
+  showLogos?: boolean;
 }) {
   return (
     <div className="hood-standards-popup__protocol-block">
       <span className="hood-standards-popup__protocol-label">Subscriptions</span>
-      <div className="hood-standards-popup__protocol-row" aria-label="ACES and PIES access">
-        {protocolLogos.map((logo) => (
-          <div
-            key={logo.id}
-            className={[
-              'hood-standards-protocol-logo',
-              logo.active
-                ? 'hood-standards-protocol-logo--active'
-                : 'hood-standards-protocol-logo--inactive',
-            ].join(' ')}
-          >
+      <div
+        className={[
+          'hood-standards-popup__protocol-row',
+          showLogos ? '' : 'hood-standards-popup__protocol-row--empty',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        aria-label={showLogos ? 'ACES and PIES access' : undefined}
+        aria-hidden={showLogos ? undefined : true}
+      >
+        {showLogos
+          ? protocolLogos.map((logo) => (
+              <div
+                key={logo.id}
+                className={[
+                  'hood-standards-protocol-logo',
+                  logo.active
+                    ? 'hood-standards-protocol-logo--active'
+                    : 'hood-standards-protocol-logo--inactive',
+                ].join(' ')}
+              >
+                <img
+                  className="hood-standards-protocol-logo__image"
+                  src={logo.src}
+                  alt={logo.label}
+                  title={`${logo.label}${logo.active ? ' access' : ' — no subscription'}`}
+                  draggable={false}
+                />
+                {!logo.active && (
+                  <span className="hood-standards-protocol-logo__x" aria-hidden>
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M5 5L19 19" />
+                      <path d="M19 5L5 19" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+            ))
+          : null}
+      </div>
+    </div>
+  );
+}
+
+function HoodStandardsDatabaseAccess({
+  icons,
+  layout = 'row',
+  visibleCount,
+}: {
+  icons: ReturnType<typeof getHoodStandardsMessages>['databaseAccessIcons'];
+  layout?: 'row' | 'grid' | 'stack';
+  /** When set, logos appear one-by-one up to this count (stack layout reserves all slots). */
+  visibleCount?: number;
+}) {
+  if (icons.length === 0) return null;
+
+  const revealAll = visibleCount === undefined;
+  const revealedCount = revealAll ? icons.length : Math.min(visibleCount, icons.length);
+
+  if (layout === 'grid') {
+    return (
+      <div className="hood-standards-popup__database-panel">
+        <span className="hood-standards-popup__database-label">Database Access:</span>
+        <div className="hood-standards-popup__database-grid" aria-label="Database access">
+          {icons.map((icon) => (
             <img
-              className="hood-standards-protocol-logo__image"
-              src={logo.src}
-              alt={logo.label}
-              title={`${logo.label}${logo.active ? ' access' : ' — no subscription'}`}
+              key={icon.id}
+              className="hood-standards-popup__database-grid-icon"
+              src={icon.src}
+              alt={icon.label}
+              title={icon.label}
               draggable={false}
             />
-            {!logo.active && (
-              <span className="hood-standards-protocol-logo__x" aria-hidden>
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="M5 5L19 19" />
-                  <path d="M19 5L5 19" />
-                </svg>
-              </span>
-            )}
-          </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === 'stack') {
+    return (
+      <div className="hood-standards-popup__database-panel hood-standards-popup__database-panel--copy">
+        <span className="hood-standards-popup__database-label">Database Access:</span>
+        <div className="hood-standards-popup__nav-icons hood-standards-popup__nav-icons--copy" aria-label="Database access">
+          {icons.map((icon, iconIndex) => (
+            <img
+              key={icon.id}
+              className={[
+                'hood-standards-popup__nav-icon',
+                'hood-standards-popup__nav-icon--copy',
+                iconIndex < revealedCount
+                  ? 'hood-standards-popup__nav-icon--revealed'
+                  : 'hood-standards-popup__nav-icon--pending',
+              ].join(' ')}
+              src={icon.src}
+              alt={icon.label}
+              title={icon.label}
+              draggable={false}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hood-standards-popup__database-row">
+      <span className="hood-standards-popup__database-label">Database Access:</span>
+      <div className="hood-standards-popup__nav-icons" aria-hidden>
+        {icons.map((icon) => (
+          <img
+            key={icon.id}
+            className="hood-standards-popup__nav-icon"
+            src={icon.src}
+            alt={icon.label}
+            title={icon.label}
+            draggable={false}
+          />
         ))}
       </div>
     </div>
@@ -689,7 +794,10 @@ function HoodStandardsPopup({
   const databaseAccessIcons = hoodMessages.databaseAccessIcons;
   const protocolLogos = hoodMessages.protocolLogos;
   const showProtocolLogos = index >= HOOD_SUBSCRIBED_POPUP_INDEX;
+  const showProtocolColumn = index >= HOOD_CHECKING_POPUP_INDEX;
   const [gaugeFillStarted, setGaugeFillStarted] = useState(false);
+  const [databaseRevealActive, setDatabaseRevealActive] = useState(false);
+  const [databaseVisibleCount, setDatabaseVisibleCount] = useState(0);
   const gaugeTarget =
     index === HOOD_CHECKING_POPUP_INDEX ? 0 : hoodMessages.subscribedPct;
   const gaugeAnimateFill =
@@ -700,11 +808,37 @@ function HoodStandardsPopup({
     setGaugeFillStarted(false);
   }, [index]);
 
+  useEffect(() => {
+    if (!databaseRevealActive) return;
+    if (databaseVisibleCount >= databaseAccessIcons.length) return;
+    const delay =
+      databaseVisibleCount === 0
+        ? HOOD_DATABASE_ICON_REVEAL_INITIAL_MS
+        : HOOD_DATABASE_ICON_REVEAL_MS;
+    const timer = window.setTimeout(() => {
+      setDatabaseVisibleCount((count) => count + 1);
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [databaseRevealActive, databaseVisibleCount, databaseAccessIcons.length]);
+
+  useEffect(() => {
+    if (index < HOOD_VIP_POPUP_INDEX || databaseAccessIcons.length === 0) return;
+    setDatabaseRevealActive(true);
+    setDatabaseVisibleCount(databaseAccessIcons.length);
+  }, [index, databaseAccessIcons.length]);
+
   const handleGaugeTypingStart = useCallback(() => {
     if (index === HOOD_SUBSCRIBED_POPUP_INDEX) {
       setGaugeFillStarted(true);
     }
   }, [index]);
+
+  const handleTypingStart = useCallback(() => {
+    handleGaugeTypingStart();
+    if (databaseAccessIcons.length > 0) {
+      setDatabaseRevealActive(true);
+    }
+  }, [handleGaugeTypingStart, databaseAccessIcons.length]);
 
   const handleTypeComplete = useCallback(() => {
     onTypeComplete?.();
@@ -749,12 +883,20 @@ function HoodStandardsPopup({
             </div>
             <div className="hood-standards-popup__body">
               <div className="hood-standards-popup__main">
-                <div className="hood-standards-popup__gauge-column">
-                  <HoodStandardsGauge
-                    targetProgress={gaugeTarget}
-                    animateFill={gaugeAnimateFill}
-                    showFull={gaugeShowFull}
-                  />
+                <div className="hood-standards-popup__metrics-column">
+                  {showProtocolColumn ? (
+                    <HoodStandardsProtocolLogos
+                      protocolLogos={protocolLogos}
+                      showLogos={showProtocolLogos}
+                    />
+                  ) : null}
+                  <div className="hood-standards-popup__gauge-column">
+                    <HoodStandardsGauge
+                      targetProgress={gaugeTarget}
+                      animateFill={gaugeAnimateFill}
+                      showFull={gaugeShowFull}
+                    />
+                  </div>
                 </div>
                 <div className="hood-standards-popup__copy-column">
                   <AnimatePresence mode="wait">
@@ -770,43 +912,21 @@ function HoodStandardsPopup({
                       <HoodTypewriterText
                         text={message}
                         onComplete={handleTypeComplete}
-                        onTypingStart={handleGaugeTypingStart}
+                        onTypingStart={handleTypingStart}
                         scrollContainerRef={textAreaRef}
                         showCursorAfterComplete={showNavButtons}
                       />
                     </motion.div>
                   </AnimatePresence>
-                  {showProtocolLogos ? (
-                    <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
+                  {databaseAccessIcons.length > 0 ? (
+                    <HoodStandardsDatabaseAccess
+                      icons={databaseAccessIcons}
+                      layout="stack"
+                      visibleCount={databaseVisibleCount}
+                    />
                   ) : null}
                 </div>
               </div>
-              {showNavButtons && databaseAccessIcons.length > 0 && (
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`db-${index}`}
-                    className="hood-standards-popup__database-row"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <span className="hood-standards-popup__database-label">Database Access:</span>
-                    <div className="hood-standards-popup__nav-icons" aria-hidden>
-                      {databaseAccessIcons.map((icon) => (
-                        <img
-                          key={icon.id}
-                          className="hood-standards-popup__nav-icon"
-                          src={icon.src}
-                          alt={icon.label}
-                          title={icon.label}
-                          draggable={false}
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              )}
             </div>
           </div>
           {showNavButtons && (
@@ -1031,32 +1151,18 @@ export function HoodStandardsSummaryDevice({
           </div>
           <div className="hood-standards-popup__body hood-standards-popup__body--summary">
             <div className="hood-standards-popup__main hood-standards-popup__main--summary">
-              <div className="hood-standards-popup__gauge-column">
-                <HoodStandardsGauge
-                  targetProgress={subscribedPct}
-                  animateFill={gaugeFillStarted}
-                  showFull={!animateOnMount}
-                />
-              </div>
-              <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
-            </div>
-            {databaseAccessIcons.length > 0 ? (
-              <div className="hood-standards-popup__database-row">
-                <span className="hood-standards-popup__database-label">Database Access:</span>
-                <div className="hood-standards-popup__nav-icons" aria-hidden>
-                  {databaseAccessIcons.map((icon) => (
-                    <img
-                      key={icon.id}
-                      className="hood-standards-popup__nav-icon"
-                      src={icon.src}
-                      alt={icon.label}
-                      title={icon.label}
-                      draggable={false}
-                    />
-                  ))}
+              <div className="hood-standards-popup__metrics-column">
+                <HoodStandardsProtocolLogos protocolLogos={protocolLogos} />
+                <div className="hood-standards-popup__gauge-column">
+                  <HoodStandardsGauge
+                    targetProgress={subscribedPct}
+                    animateFill={gaugeFillStarted}
+                    showFull={!animateOnMount}
+                  />
                 </div>
               </div>
-            ) : null}
+              <HoodStandardsDatabaseAccess icons={databaseAccessIcons} layout="grid" />
+            </div>
           </div>
         </div>
       </div>
@@ -1091,11 +1197,27 @@ function HoodTireReadoutNav({
   onBack,
   onNext,
   nextDisabled,
+  reserved = false,
 }: {
   onBack: () => void;
   onNext: () => void;
   nextDisabled?: boolean;
+  /** Occupies nav slot without interaction while stats count up. */
+  reserved?: boolean;
 }) {
+  if (reserved) {
+    return (
+      <div className="hood-tire-hub__screen-nav hood-tire-hub__screen-nav--reserved" aria-hidden>
+        <button type="button" className="hood-tire-hub__btn hood-tire-hub__btn--back" tabIndex={-1} disabled>
+          Back
+        </button>
+        <button type="button" className="hood-tire-hub__btn hood-tire-hub__btn--next" tabIndex={-1} disabled>
+          Next
+        </button>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       className="hood-tire-hub__screen-nav"
@@ -1194,10 +1316,19 @@ function HoodTireHubReadout({
   const showPressureGauge =
     readoutPhase === 'counting' || readoutPhase === 'secondary' || readoutPhase === 'cta';
   const showCta = readoutPhase === 'cta' && ctaConfig;
-  const showStatsNav = readoutPhase === 'secondary';
-  const showGaugeCheck = readoutPhase === 'secondary' || readoutPhase === 'cta';
+  const showFactbookCtaArt = showCta && tirePhase === 'factbook';
+  const showTrendlensCtaArt = showCta && tirePhase === 'trendlens';
+  const showDemandIndexCtaList = showCta && tirePhase === 'demandindex';
+  const showAcademyCtaList = showCta && tirePhase === 'academy';
+  const showCtaListVisual = showDemandIndexCtaList || showAcademyCtaList;
+  const showCtaGaugeVisual =
+    showFactbookCtaArt || showTrendlensCtaArt || showCtaListVisual;
+  const showGaugeCheck =
+    (readoutPhase === 'secondary' || readoutPhase === 'cta') && !showCtaGaugeVisual;
   const gaugeCheckVariant = config.primaryValue === 0 ? 'fail' : 'success';
   const readoutInteractive = readoutPhase === 'secondary' || readoutPhase === 'cta';
+  const showStatsSlide = showPressureGauge && !showCta;
+  const showReadoutFooter = showStatsSlide || readoutInteractive;
   const nextTirePhase = getNextTirePhase(tirePhase);
 
   const handleCtaNext = () => {
@@ -1228,16 +1359,46 @@ function HoodTireHubReadout({
         <div
           className={
             showPressureGauge
-              ? 'hood-tire-hub__screen-glass hood-tire-hub__screen-glass--with-gauge'
+              ? `hood-tire-hub__screen-glass hood-tire-hub__screen-glass--with-gauge${
+                  showStatsSlide ? ' hood-tire-hub__screen-glass--stats-slide' : ''
+                }${
+                  showReadoutFooter ? ' hood-tire-hub__screen-glass--with-nav' : ''
+                }${showCta ? ' hood-tire-hub__screen-glass--cta-slide' : ''}`
               : 'hood-tire-hub__screen-glass'
           }
         >
           {showPressureGauge && (
             <div
-              className={`hood-tire-hub__pressure-gauge${tabletShowsTireArt ? ' hood-tire-hub__pressure-gauge--tire-art' : ''}`}
-              aria-hidden
+              className={`hood-tire-hub__pressure-gauge${
+                showCtaGaugeVisual
+                  ? ' hood-tire-hub__pressure-gauge--cta-slot'
+                  : tabletShowsTireArt
+                    ? ' hood-tire-hub__pressure-gauge--tire-art'
+                    : ''
+              }${showCtaListVisual ? ' hood-tire-hub__pressure-gauge--product-list' : ''}`}
+              aria-hidden={showCtaListVisual ? undefined : true}
             >
-              {tabletShowsTireArt ? (
+              {showFactbookCtaArt ? (
+                <img
+                  src={factbookTizraTileImage}
+                  alt=""
+                  className="hood-tire-hub__pressure-gauge-cta-art"
+                  draggable={false}
+                />
+              ) : showTrendlensCtaArt ? (
+                <img
+                  src={trendlensLogoImage}
+                  alt=""
+                  className="hood-tire-hub__pressure-gauge-cta-art"
+                  draggable={false}
+                />
+              ) : showDemandIndexCtaList ? (
+                <HoodDemandIndexProductListScroll
+                  active={showDemandIndexCtaList && screenVisible}
+                />
+              ) : showAcademyCtaList ? (
+                <HoodAcademyCourseList />
+              ) : tabletShowsTireArt ? (
                 <img
                   key={tirePhase}
                   src={TIRE_WHEEL_IMAGES[tirePhase]}
@@ -1277,88 +1438,107 @@ function HoodTireHubReadout({
               </AnimatePresence>
             </div>
           )}
-          {readoutPhase === 'idle' ? null : (
+          {readoutPhase !== 'idle' && !showCta ? (
             <div className="hood-tire-hub__screen-content">
-              {showCta ? (
-                <div className="hood-tire-hub__results hood-tire-hub__results--cta">
-                  <motion.p className="hood-tire-hub__line hood-tire-hub__line--momentum" {...readoutMotion}>
-                    {ctaConfig.message}
-                  </motion.p>
-                  <motion.a
-                    href={ctaConfig.href}
-                    className="hood-tire-hub__btn hood-tire-hub__btn--visit"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    {...readoutMotion}
-                    transition={{ ...readoutMotion.transition, delay: 0.12 }}
+              <div className="hood-tire-hub__results">
+                <div className="hood-tire-hub__stat-block">
+                  <p className="hood-tire-hub__line hood-tire-hub__line--primary">
+                    <span className="hood-tire-hub__stat-value">
+                      <HoodCountUp value={config.primaryValue} active={counting} />
+                    </span>
+                  </p>
+                  <p className="hood-tire-hub__line hood-tire-hub__stat-label">{config.primaryLabel}</p>
+                </div>
+                {readoutPhase === 'counting' ? (
+                  <p
+                    className="hood-tire-hub__line hood-tire-hub__line--secondary hood-tire-hub__line--secondary--reserved"
+                    aria-hidden
                   >
-                    {ctaConfig.linkLabel}
-                  </motion.a>
-                  <HoodTireReadoutNav
-                    onBack={() => setReadoutPhase('secondary')}
-                    onNext={handleCtaNext}
-                    nextDisabled={!ctaConfig.nextTarget && !onFinishTireSequence}
-                  />
-                </div>
-              ) : (
-                <div className="hood-tire-hub__results">
-                  <div className="hood-tire-hub__stat-block">
-                    <p className="hood-tire-hub__line hood-tire-hub__line--primary">
-                      <span className="hood-tire-hub__stat-value">
-                        <HoodCountUp value={config.primaryValue} active={counting} />
-                      </span>
-                    </p>
-                    <p className="hood-tire-hub__line hood-tire-hub__stat-label">{config.primaryLabel}</p>
-                  </div>
-                  {readoutPhase === 'secondary' && (
-                    <motion.p className="hood-tire-hub__line hood-tire-hub__line--secondary" {...readoutMotion}>
-                      {config.secondary.type === 'percent' ? (
-                        <>
-                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
-                            <HoodCountUp value={config.secondary.value} active />
-                          </span>
-                          % {config.secondary.suffix}
-                        </>
-                      ) : config.secondary.type === 'fraction' ? (
-                        <>
-                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
-                            <HoodCountUp value={config.secondary.completed} active />
-                          </span>{' '}
-                          of{' '}
-                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
-                            <HoodCountUp value={config.secondary.total} active />
-                          </span>{' '}
-                          {config.secondary.suffix}
-                        </>
-                      ) : config.secondary.type === 'overTotal' ? (
-                        <>
-                          of over{' '}
-                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
-                            <HoodCountUp value={config.secondary.total} active />
-                          </span>{' '}
-                          {config.secondary.suffix}
-                        </>
-                      ) : (
-                        <>
-                          <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
-                            <HoodCountUp value={config.secondary.value} active />
-                          </span>{' '}
-                          {config.secondary.suffix}
-                        </>
-                      )}
-                    </motion.p>
-                  )}
-                  {showStatsNav && (
-                    <HoodTireReadoutNav
-                      onBack={() => onReadoutBack?.()}
-                      onNext={handleStatsNext}
-                      nextDisabled={!hasCta && !nextTirePhase && !onFinishTireSequence}
-                    />
-                  )}
-                </div>
-              )}
+                    &nbsp;
+                  </p>
+                ) : readoutPhase === 'secondary' ? (
+                  <motion.p className="hood-tire-hub__line hood-tire-hub__line--secondary" {...readoutMotion}>
+                    {config.secondary.type === 'percent' ? (
+                      <>
+                        <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                          <HoodCountUp value={config.secondary.value} active />
+                        </span>
+                        % {config.secondary.suffix}
+                      </>
+                    ) : config.secondary.type === 'fraction' ? (
+                      <>
+                        <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                          <HoodCountUp value={config.secondary.completed} active />
+                        </span>{' '}
+                        of{' '}
+                        <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                          <HoodCountUp value={config.secondary.total} active />
+                        </span>{' '}
+                        {config.secondary.suffix}
+                      </>
+                    ) : config.secondary.type === 'overTotal' ? (
+                      <>
+                        of over{' '}
+                        <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                          <HoodCountUp value={config.secondary.total} active />
+                        </span>{' '}
+                        {config.secondary.suffix}
+                      </>
+                    ) : (
+                      <>
+                        <span className="hood-tire-hub__stat-value hood-tire-hub__stat-value--inline">
+                          <HoodCountUp value={config.secondary.value} active />
+                        </span>{' '}
+                        {config.secondary.suffix}
+                      </>
+                    )}
+                  </motion.p>
+                ) : null}
+              </div>
             </div>
-          )}
+          ) : null}
+          {readoutInteractive ? (
+            <div className="hood-tire-hub__screen-footer">
+              {showCta && ctaConfig ? (
+                <motion.p className="hood-tire-hub__line hood-tire-hub__line--momentum" {...readoutMotion}>
+                  {ctaConfig.message}
+                </motion.p>
+              ) : null}
+              {showCta && ctaConfig ? (
+                <motion.a
+                  href={ctaConfig.href}
+                  className="hood-tire-hub__btn hood-tire-hub__btn--visit"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  {...readoutMotion}
+                  transition={{ ...readoutMotion.transition, delay: 0.12 }}
+                >
+                  {ctaConfig.linkLabel}
+                </motion.a>
+              ) : null}
+              <HoodTireReadoutNav
+                onBack={
+                  showCta
+                    ? () => setReadoutPhase('secondary')
+                    : () => onReadoutBack?.()
+                }
+                onNext={showCta ? handleCtaNext : handleStatsNext}
+                nextDisabled={
+                  showCta
+                    ? !ctaConfig?.nextTarget && !onFinishTireSequence
+                    : !hasCta && !nextTirePhase && !onFinishTireSequence
+                }
+              />
+            </div>
+          ) : showStatsSlide ? (
+            <div className="hood-tire-hub__screen-footer hood-tire-hub__screen-footer--reserved">
+              <HoodTireReadoutNav
+                onBack={() => onReadoutBack?.()}
+                onNext={handleStatsNext}
+                reserved
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </motion.div>
@@ -1508,6 +1688,14 @@ function HoodTireHubScene({
         onAnimationComplete={() => {
           if (!slideGroundOut || groundExitReportedRef.current) return;
           groundExitReportedRef.current = true;
+          // #region agent log
+          debugSessionLog({
+            location: 'MapSimulation.tsx:HoodTireHubScene.groundExit',
+            message: 'Tire ground exit animation complete',
+            data: { phase, slideGroundOut },
+            hypothesisId: 'A',
+          });
+          // #endregion
           onGroundExitComplete?.();
         }}
       >
@@ -1793,7 +1981,17 @@ export function DashboardHoodArch({
       }
       onAnimationComplete={() => {
         if (!hoodNavTransition) return;
-        if (standardsEnterUp) onNavTransitionComplete?.();
+        if (standardsEnterUp) {
+          // #region agent log
+          debugSessionLog({
+            location: 'MapSimulation.tsx:standardsBranch.enterUp',
+            message: 'Standards enter-up animation complete',
+            data: { hoodNavTransition, phase },
+            hypothesisId: 'A',
+          });
+          // #endregion
+          onNavTransitionComplete?.();
+        }
       }}
     >
       <div className="hood-standards-scene" aria-hidden>

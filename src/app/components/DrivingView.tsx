@@ -17,7 +17,6 @@ import {
   type HoodPhase,
 } from './MapSimulation';
 import carStartSound from '../../assets/car-start-drive-off.mp3';
-import svgPaths from '../../imports/FrameDesktop/svg-4mwluzb7sj';
 import { loadDrivingAnimation } from '@/lib/lazyLottieData';
 import { useMobileViewport } from '@/lib/useMobileViewport';
 import { DashboardPrndl } from './DashboardPrndl';
@@ -33,6 +32,8 @@ import {
   JOURNEY_SCENE_TRANSITION,
 } from '@/lib/journeySceneTiming';
 import { prefersReducedMotion } from '@/lib/browserCompat';
+import { debugSessionLog } from '@/lib/debugSessionLog';
+import type { WrappedReport } from '@/types/wrappedReport';
 
 const INTRO_WELCOME_GREETING = 'Welcome,';
 
@@ -139,6 +140,16 @@ function FullDiagnostics({
   onBackToStart: () => void;
   report: WrappedReport;
 }) {
+  // #region agent log
+  useEffect(() => {
+    debugSessionLog({
+      location: 'DrivingView.tsx:FullDiagnostics',
+      message: 'FullDiagnostics mounted',
+      data: { companyId: report.company.id },
+      hypothesisId: 'A',
+    });
+  }, [report.company.id]);
+  // #endregion
   return (
     <motion.div
       className="absolute inset-0 bg-black z-40 overflow-hidden"
@@ -157,34 +168,12 @@ function FullDiagnostics({
 const ARROW_PATH = 'M105.4 342.6C92.9 330.1 92.9 309.8 105.4 297.3L265.4 137.3C274.6 128.1 288.3 125.4 300.3 130.4C312.3 135.4 320 147.1 320 160L320 256L496 256C522.5 256 544 277.5 544 304L544 336C544 362.5 522.5 384 496 384L320 384L320 480C320 492.9 312.2 504.6 300.2 509.6C288.2 514.6 274.5 511.8 265.3 502.7L105.3 342.7z';
 const ARROW_SIZE = 'clamp(28px, 3.5vw, 36px)';
 
-function DashboardGasIcon() {
-  return (
-    <div className="dashboard-panel__indicator dashboard-panel__indicator--gas" aria-hidden>
-      <svg viewBox="0 0 53.3783 42.6199" fill="none">
-        <path d={svgPaths.p1d2c9100} fill="#F3901D" fillOpacity="0.5" />
-      </svg>
-    </div>
-  );
-}
-
-function DashboardTireWarningIcon() {
-  return (
-    <div className="dashboard-panel__indicator dashboard-panel__indicator--tire" aria-hidden>
-      <svg viewBox="0 0 61 42.6612" fill="none">
-        <path d={svgPaths.p3f6e2800} fill="#737373" />
-      </svg>
-    </div>
-  );
-}
-
 function StartButton({
   onClick,
   inactive = false,
-  reportYear,
 }: {
   onClick?: () => void;
   inactive?: boolean;
-  reportYear: number;
 }) {
   return (
     <button
@@ -201,9 +190,19 @@ function StartButton({
       tabIndex={inactive ? -1 : 0}
     >
       <span className="landing-push-start__glow" aria-hidden />
+      <span className="landing-push-start__power-symbol" aria-hidden>
+        <svg className="landing-push-start__power-svg" viewBox="0 0 64 64" focusable="false">
+          <circle cx="32" cy="32" r="21" fill="none" stroke="currentColor" strokeWidth="2.75" />
+          <path
+            d="M32 20V10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.75"
+            strokeLinecap="round"
+          />
+        </svg>
+      </span>
       <span className="landing-push-start__label">
-        <span className="landing-push-start__year">{reportYear}</span>
-        <span className="landing-push-start__divider" aria-hidden />
         <span className="landing-push-start__action">Start</span>
       </span>
     </button>
@@ -446,7 +445,6 @@ function PreJourneyStage({
   onNext,
   companyName,
   memberDisplayName,
-  reportYear,
 }: {
   phase: 'landing' | 'intro';
   currentSlide: number;
@@ -455,7 +453,6 @@ function PreJourneyStage({
   onNext: () => void;
   companyName: string;
   memberDisplayName?: string;
-  reportYear: number;
 }) {
   const showStartButton = phase === 'landing';
 
@@ -471,7 +468,7 @@ function PreJourneyStage({
           <div className="infotainment-console__display">
             {showStartButton ? (
               <motion.div className="pre-journey-stage__start-float">
-                <StartButton onClick={onStart} reportYear={reportYear} />
+                <StartButton onClick={onStart} />
               </motion.div>
             ) : null}
           </div>
@@ -606,8 +603,6 @@ function useIsCounterMobile() {
 
   return isCounterMobile;
 }
-
-type CounterMobilePhase = 'gauge' | 'message';
 
 const JOURNEY_END_GPS_PHASE = 4;
 
@@ -1197,12 +1192,15 @@ function JourneyCounterMessagePanel({
   footerMessage,
   footerButton,
   isFirst,
+  showNextLabel = false,
   onBack,
   onNext,
 }: {
   footerMessage?: string;
   footerButton?: { label: string; href: string };
   isFirst: boolean;
+  /** Membership tenure (first counter slide): show NEXT label beside the right chevron. */
+  showNextLabel?: boolean;
   onBack: () => void;
   onNext: () => void;
 }) {
@@ -1220,7 +1218,14 @@ function JourneyCounterMessagePanel({
             ) : null}
           </div>
         </div>
-        <div className="journey-counter-panel__controls">
+        <div
+          className={[
+            'journey-counter-panel__controls',
+            showNextLabel ? 'journey-counter-panel__controls--with-next-label' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
           <HeadunitChevronNavButton
             direction="left"
             onClick={onBack}
@@ -1239,11 +1244,24 @@ function JourneyCounterMessagePanel({
           ) : (
             <span className="journey-counter-panel__cta-placeholder" aria-hidden />
           )}
-          <HeadunitChevronNavButton
-            direction="right"
-            onClick={onNext}
-            ariaLabel="Next section"
-          />
+          {showNextLabel ? (
+            <div className="journey-counter-panel__controls-next">
+              <span className="journey-counter-panel__next-label" aria-hidden>
+                NEXT
+              </span>
+              <HeadunitChevronNavButton
+                direction="right"
+                onClick={onNext}
+                ariaLabel="Next section"
+              />
+            </div>
+          ) : (
+            <HeadunitChevronNavButton
+              direction="right"
+              onClick={onNext}
+              ariaLabel="Next section"
+            />
+          )}
         </div>
       </InfotainmentHeadunitFrame>
     </div>
@@ -1256,14 +1274,12 @@ function JourneySectionCounterGauge({
   section,
   sectionIdx,
   communities,
-  counterMobilePhase,
   renderStatBelow,
   hideStatBelow,
 }: {
   section: CounterSection;
   sectionIdx: number;
   communities?: string[];
-  counterMobilePhase?: CounterMobilePhase;
   renderStatBelow?: (stat: ReactNode) => ReactNode;
   hideStatBelow?: boolean;
 }) {
@@ -1318,9 +1334,7 @@ function YourJourney({
   communities?: string[];
 }) {
   const [sectionIdx, setSectionIdx] = useState(initialSectionIdx);
-  const [counterMobilePhase, setCounterMobilePhase] = useState<CounterMobilePhase>('gauge');
   const isCounterMobile = useIsCounterMobile();
-  const skipSectionResetRef = useRef(true);
 
   const changeSectionIdx = useCallback(
     (updater: number | ((prev: number) => number)) => {
@@ -1333,44 +1347,15 @@ function YourJourney({
     [onSectionChange],
   );
 
-  useEffect(() => {
-    if (skipSectionResetRef.current) {
-      skipSectionResetRef.current = false;
-      return;
-    }
-    setCounterMobilePhase('gauge');
-  }, [sectionIdx]);
-
   const section = journeySections[sectionIdx];
   const isFirst = sectionIdx === 0;
-  const hasCounterMobileDetailStep =
-    section.type === 'counter' &&
-    Boolean(section.footerMessage || section.footerButton);
 
   const goToPrevCounterSection = () => {
-    setCounterMobilePhase('gauge');
     changeSectionIdx((i) => i - 1);
   };
 
   const goToNextCounterSection = () => {
-    setCounterMobilePhase('gauge');
     changeSectionIdx((i) => i + 1);
-  };
-
-  const handleCounterMobileRightChevron = () => {
-    if (isCounterMobile && counterMobilePhase === 'gauge' && hasCounterMobileDetailStep) {
-      setCounterMobilePhase('message');
-      return;
-    }
-    goToNextCounterSection();
-  };
-
-  const handleCounterMobileLeftChevron = () => {
-    if (isCounterMobile && counterMobilePhase === 'message') {
-      setCounterMobilePhase('gauge');
-      return;
-    }
-    if (!isFirst) goToPrevCounterSection();
   };
 
   // Counter ↔ map: pure horizontal carousel (mirror of map → committee exit).
@@ -1424,9 +1409,6 @@ function YourJourney({
         'journey-layout--counter',
         'journey-scene-layer',
         isCounterMobile ? 'journey-layout--counter-mobile' : '',
-        isCounterMobile && counterMobilePhase === 'message'
-          ? 'journey-layout--counter-mobile-message'
-          : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -1439,60 +1421,21 @@ function YourJourney({
               {isCounterMobile ? (
                 <>
                   <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
+                  <div className="journey-counter-panel__mobile-detail">
+                    <JourneyCounterMessagePanel
+                      footerMessage={section.footerMessage}
+                      footerButton={section.footerButton}
+                      isFirst={isFirst}
+                      showNextLabel={isFirst}
+                      onBack={goToPrevCounterSection}
+                      onNext={goToNextCounterSection}
+                    />
+                  </div>
                   <JourneySectionCounterGauge
                     section={section}
                     sectionIdx={sectionIdx}
                     communities={communities}
-                    hideStatBelow={counterMobilePhase === 'message'}
-                    renderStatBelow={
-                      counterMobilePhase === 'gauge'
-                        ? (stat) => (
-                            <div className="journey-counter-panel__stat-row">
-                              <div className="journey-counter-panel__chev journey-counter-panel__chev--left">
-                                {isFirst ? (
-                                  <span className="journey-layout__chev-placeholder" aria-hidden />
-                                ) : (
-                                  <JourneyGaugeChevron
-                                    direction="left"
-                                    onClick={handleCounterMobileLeftChevron}
-                                  />
-                                )}
-                              </div>
-                              <div className="journey-counter-panel__stat-row-content">{stat}</div>
-                              <div className="journey-counter-panel__chev journey-counter-panel__chev--right">
-                                <JourneyGaugeChevron
-                                  direction="right"
-                                  onClick={handleCounterMobileRightChevron}
-                                  ariaLabel={
-                                    hasCounterMobileDetailStep ? 'view message' : 'next section'
-                                  }
-                                />
-                              </div>
-                            </div>
-                          )
-                        : undefined
-                    }
                   />
-                  <AnimatePresence mode="wait" initial={false}>
-                    {counterMobilePhase === 'message' ? (
-                      <motion.div
-                        key="counter-mobile-message-detail"
-                        className="journey-counter-panel__mobile-detail"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                      >
-                        <JourneyCounterMessagePanel
-                          footerMessage={section.footerMessage}
-                          footerButton={section.footerButton}
-                          isFirst={isFirst}
-                          onBack={handleCounterMobileLeftChevron}
-                          onNext={goToNextCounterSection}
-                        />
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
                 </>
               ) : (
                 <>
@@ -1511,6 +1454,7 @@ function YourJourney({
                   footerMessage={section.footerMessage}
                   footerButton={section.footerButton}
                   isFirst={isFirst}
+                  showNextLabel={isFirst}
                   onBack={() => changeSectionIdx((i) => i - 1)}
                   onNext={() => changeSectionIdx((i) => i + 1)}
                 />
@@ -1610,7 +1554,7 @@ function DashboardPanel({
     },
     [onPanelRef],
   );
-  useDashboardVentMetrics(panelRef, showDashboardChrome);
+  useDashboardVentMetrics(panelRef, false);
   const [mapPanelHeight, setMapPanelHeight] = useState(JOURNEY_MAP_PANEL_MAX_HEIGHT);
   const journeySceneSlideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mapEntryDispatchedRef = useRef(false);
@@ -1802,6 +1746,14 @@ function DashboardPanel({
       transition={panelTransition}
       onAnimationComplete={() => {
         if (dashboardExitingRef.current) {
+          // #region agent log
+          debugSessionLog({
+            location: 'DrivingView.tsx:DashboardPanel.onAnimationComplete',
+            message: 'Panel animation complete: dashboard exiting',
+            data: { isJourney, isHood, hoodEntryPhase },
+            hypothesisId: 'B',
+          });
+          // #endregion
           dashboardExitingRef.current = false;
           onDashboardExitComplete?.();
           return;
@@ -1854,10 +1806,6 @@ function DashboardPanel({
       {showDashboardChrome && (
         <div className="dashboard-content-shell">
           <div className="dashboard-panel__nav" style={{ top: NAV_TOP }}>
-            <div className="dashboard-panel__nav-flank dashboard-panel__nav-flank--left">
-              <DashboardTireWarningIcon />
-            </div>
-
             <div className="dashboard-panel__nav-cluster">
               <button
                 type="button"
@@ -1884,10 +1832,6 @@ function DashboardPanel({
                   <path d={ARROW_PATH} />
                 </svg>
               </button>
-            </div>
-
-            <div className="dashboard-panel__nav-flank dashboard-panel__nav-flank--right">
-              <DashboardGasIcon />
             </div>
           </div>
 
@@ -1953,7 +1897,6 @@ function DashboardPanel({
                       onNext={onNext}
                       companyName={report.company.name}
                       memberDisplayName={undefined}
-                      reportYear={report.reportYear}
                     />
                   </motion.div>
                 ) : null}
@@ -2160,15 +2103,59 @@ export function DrivingView({
   };
 
   const goToCheckpoint = (checkpoint: NavCheckpoint) => {
+    // #region agent log
+    debugSessionLog({
+      location: 'DrivingView.tsx:goToCheckpoint',
+      message: 'goToCheckpoint called',
+      data: { checkpoint, activeNav, currentScreen, hoodPhase, hoodEntryPhase, hoodNavTransition, currentSlide },
+      hypothesisId: 'D',
+    });
+    // #endregion
     if (checkpoint === activeNav) return;
-    if (hoodEntryPhase || hoodNavTransition) return;
-
-    if (!isStarted) setIsStarted(true);
-    setCurrentSlide(null);
 
     const onHood = currentScreen === 'hood';
     const onStandards = onHood && hoodPhase === 'standards';
     const onTires = onHood && isTirePhase(hoodPhase);
+    const leavingHoodForMainSection =
+      onHood && (checkpoint === 'journey' || checkpoint === 'diagnostics');
+    const hoodEntryBlocksNavigation =
+      hoodEntryPhase === 'sliding-dashboard' || hoodEntryPhase === 'fading-to-black';
+
+    if (
+      (hoodEntryPhase || hoodNavTransition) &&
+      leavingHoodForMainSection &&
+      !hoodEntryBlocksNavigation
+    ) {
+      // #region agent log
+      debugSessionLog({
+        location: 'DrivingView.tsx:goToCheckpoint',
+        message: 'goToCheckpoint superseding hood transition to leave',
+        data: { checkpoint, hoodEntryPhase, hoodNavTransition, hoodPhase },
+        hypothesisId: 'A,D',
+      });
+      // #endregion
+      if (!isStarted) setIsStarted(true);
+      setCurrentSlide(null);
+      setHoodNavTransition(null);
+      pendingCheckpointRef.current = checkpoint;
+      setHoodEntryPhase('hood-panel-falling');
+      return;
+    }
+
+    if (hoodEntryPhase || hoodNavTransition) {
+      // #region agent log
+      debugSessionLog({
+        location: 'DrivingView.tsx:goToCheckpoint',
+        message: 'goToCheckpoint blocked by in-flight transition',
+        data: { checkpoint, hoodEntryPhase, hoodNavTransition, activeNav },
+        hypothesisId: 'A,D',
+      });
+      // #endregion
+      return;
+    }
+
+    if (!isStarted) setIsStarted(true);
+    setCurrentSlide(null);
 
     if (onTires && checkpoint === 'hood') {
       setHoodNavTransition('tire-to-standards');
@@ -2246,11 +2233,27 @@ export function DrivingView({
   };
 
   const handleDashboardExitComplete = useCallback(() => {
+    // #region agent log
+    debugSessionLog({
+      location: 'DrivingView.tsx:handleDashboardExitComplete',
+      message: 'Dashboard exit complete',
+      data: { currentScreen, pendingCheckpoint: pendingCheckpointRef.current },
+      hypothesisId: 'B',
+    });
+    // #endregion
     setHoodEntryPhase('fading-to-black');
   }, []);
 
   const handleBackdropFadeComplete = useCallback(() => {
     const pending = pendingCheckpointRef.current;
+    // #region agent log
+    debugSessionLog({
+      location: 'DrivingView.tsx:handleBackdropFadeComplete',
+      message: 'Backdrop fade complete',
+      data: { pending, currentScreen },
+      hypothesisId: 'B',
+    });
+    // #endregion
     pendingCheckpointRef.current = null;
     if (pending === 'tires') {
       if (!isStarted) setIsStarted(true);
@@ -2272,6 +2275,14 @@ export function DrivingView({
 
   const handleHoodPanelFallComplete = useCallback(() => {
     const pending = pendingCheckpointRef.current;
+    // #region agent log
+    debugSessionLog({
+      location: 'DrivingView.tsx:handleHoodPanelFallComplete',
+      message: 'Hood panel fall complete',
+      data: { pending, currentScreen },
+      hypothesisId: 'B',
+    });
+    // #endregion
     pendingCheckpointRef.current = null;
     setHoodEntryPhase(null);
     if (pending === 'journey') {
@@ -2287,6 +2298,14 @@ export function DrivingView({
   }, []);
 
   const handleHoodNavTransitionMidpoint = useCallback(() => {
+    // #region agent log
+    debugSessionLog({
+      location: 'DrivingView.tsx:handleHoodNavTransitionMidpoint',
+      message: 'Hood nav transition midpoint',
+      data: { hoodNavTransition, hoodPhase },
+      hypothesisId: 'A',
+    });
+    // #endregion
     if (hoodNavTransition === 'tire-to-standards') {
       setHoodPhase('standards');
       return;
@@ -2297,8 +2316,16 @@ export function DrivingView({
   }, [hoodNavTransition]);
 
   const handleHoodNavTransitionComplete = useCallback(() => {
+    // #region agent log
+    debugSessionLog({
+      location: 'DrivingView.tsx:handleHoodNavTransitionComplete',
+      message: 'Hood nav transition complete',
+      data: { hoodNavTransition },
+      hypothesisId: 'A',
+    });
+    // #endregion
     setHoodNavTransition(null);
-  }, []);
+  }, [hoodNavTransition]);
 
   const beginStandardsToTireTransition = useCallback(() => {
     if (hoodEntryPhase || hoodNavTransition) return;
@@ -2345,6 +2372,55 @@ export function DrivingView({
     !isDiagnosticsFlow &&
     !isBackdropFadingToBlack &&
     (!isStarted || currentSlide !== null || currentScreen === 'journey' || currentScreen === 'hood');
+
+  // #region agent log
+  useEffect(() => {
+    const onError = (event: ErrorEvent) => {
+      debugSessionLog({
+        location: 'DrivingView.tsx:window.error',
+        message: 'Uncaught error',
+        data: { message: event.message, filename: event.filename, lineno: event.lineno, colno: event.colno },
+        hypothesisId: 'E',
+      });
+    };
+    const onRejection = (event: PromiseRejectionEvent) => {
+      debugSessionLog({
+        location: 'DrivingView.tsx:unhandledrejection',
+        message: 'Unhandled rejection',
+        data: { reason: String(event.reason) },
+        hypothesisId: 'E',
+      });
+    };
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, []);
+
+  useEffect(() => {
+    debugSessionLog({
+      location: 'DrivingView.tsx:renderState',
+      message: 'DrivingView render state',
+      data: {
+        currentScreen,
+        currentSlide,
+        hoodPhase,
+        hoodEntryPhase,
+        hoodNavTransition,
+        diagnosticsStage,
+        showDashboardPanel,
+        showFooterNav,
+        isBackdropFadingToBlack,
+        isDiagnosticsFlow,
+        activeNav,
+        pendingCheckpoint: pendingCheckpointRef.current,
+      },
+      hypothesisId: 'B,C,D',
+    });
+  }, [currentScreen, currentSlide, hoodPhase, hoodEntryPhase, hoodNavTransition, diagnosticsStage, showDashboardPanel, showFooterNav, isBackdropFadingToBlack, isDiagnosticsFlow, activeNav]);
+  // #endregion
 
   const backdropBottomPx = useDashboardPinnedBackdropBottom(
     drivingRootRef,

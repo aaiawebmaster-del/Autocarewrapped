@@ -13,6 +13,9 @@ import {
 
 export type TirePhase = 'trendlens' | 'demandindex' | 'factbook' | 'academy';
 
+/** Total DemandIndex product groups in the catalog — constant across all companies. */
+export const DEMAND_INDEX_AVAILABLE_PRODUCT_GROUPS = 200;
+
 export type AttendanceVariant = 'none' | 'some' | 'high';
 export type WebinarVariant = 'none' | 'some' | 'many';
 
@@ -212,7 +215,7 @@ export function buildTireReadoutConfig(
       primaryLabel: 'product groups',
       secondary: {
         type: 'overTotal',
-        total: products.demandIndexGroupsTotal,
+        total: DEMAND_INDEX_AVAILABLE_PRODUCT_GROUPS,
         suffix: 'available product groups',
       },
       upsellMessage:

@@ -171,6 +171,27 @@
   --driving-content-gutter: clamp(12px, 3vw, 20px);
 }
 
+@media (max-width: 640px) {
+  .driving-view-stage {
+    --landing-dashboard-height: 560px;
+  }
+
+  .dashboard-panel {
+    height: var(--landing-dashboard-height, 560px);
+  }
+
+  .dashboard-panel--journey-scene,
+  .dashboard-panel--map {
+    height: min(560px, calc(100% - 10px));
+    max-height: calc(100vh - 6rem - 10px);
+  }
+
+  .dashboard-panel--counter {
+    height: 560px;
+    min-height: 560px;
+  }
+}
+
 .driving-view-footer {
   position: absolute;
   bottom: 0;
@@ -1030,17 +1051,34 @@
   z-index: 2;
 }
 
+.landing-push-start__power-symbol {
+  position: absolute;
+  inset: calc(var(--hmi-chrome-border) + 6%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(243, 144, 29, 0.92);
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(243, 144, 29, 0.45));
+}
+
+.landing-push-start__power-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .landing-push-start__label {
   position: absolute;
-  inset: 21%;
+  inset: 28%;
   z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.28em;
-  padding: 18% 6% 0;
-  transform: translateY(-20px);
+  padding: 0 6%;
+  transform: none;
   box-sizing: border-box;
   color: #ffffff;
   font-family: 'Istok Web', sans-serif;
@@ -1052,26 +1090,6 @@
     0 -1px 0 rgba(0, 0, 0, 0.35);
   pointer-events: none;
   filter: saturate(0.92) brightness(0.94);
-}
-
-.landing-push-start__year {
-  font-size: clamp(11px, 1.65vw, 15px);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-
-.landing-push-start__divider {
-  display: block;
-  width: clamp(20px, 72%, 36px);
-  height: 1px;
-  flex-shrink: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(243, 144, 29, 0.95) 50%,
-    transparent 100%
-  );
-  box-shadow: 0 0 8px rgba(243, 144, 29, 0.55);
 }
 
 .landing-push-start__action {
@@ -1111,6 +1129,22 @@
 
 .landing-push-start--inactive .landing-push-start__glow {
   opacity: 0.35;
+}
+
+@media (max-width: 900px) {
+  .landing-push-start__action {
+    font-size: clamp(21px, 4.8vw, 30px);
+  }
+
+  .landing-push-start__label {
+    inset: 26%;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-push-start__action {
+    font-size: clamp(22px, 5.6vw, 32px);
+  }
 }
 
 .dashboard-panel__stage {
@@ -1927,11 +1961,37 @@
 }
 
 @media (max-width: 640px) {
+  .pre-journey-stage--intro .intro-slide__text,
+  .pre-journey-stage--intro .intro-slide__welcome .intro-slide__text {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 640px) {
   .pre-journey-stage {
     --landing-start-size: min(
-      clamp(6.5rem, min(42vw, 18vh), 10rem),
+      clamp(6.5rem, 42vw, 10rem),
       calc(100% - 0.25rem)
     );
+  }
+
+  .pre-journey-stage--landing .infotainment-console__display {
+    align-items: center;
+  }
+
+  .pre-journey-stage--landing .pre-journey-stage__start-float {
+    width: var(--landing-start-size);
+    height: var(--landing-start-size);
+    max-width: 100%;
+    max-height: 100%;
+    align-self: center;
+    flex: 0 0 auto;
+  }
+
+  .pre-journey-stage--landing .pre-journey-stage__start-float .landing-push-start {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
   }
 
   .infotainment-headunit__layout {
@@ -2103,9 +2163,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(2px, 0.45vw, 4px);
-  min-width: clamp(9.5rem, 22vw, 11.5rem);
-  padding: clamp(4px, 0.65vh, 6px) clamp(10px, 1.6vw, 14px);
+  gap: clamp(3px, 0.55vw, 6px);
+  min-width: clamp(11.5rem, 28vw, 14.5rem);
+  padding: clamp(6px, 0.85vh, 9px) clamp(14px, 2vw, 18px);
   border-radius: 999px;
   background:
     linear-gradient(180deg, rgba(28, 30, 34, 0.98) 0%, rgba(10, 11, 13, 0.99) 100%);
@@ -2122,12 +2182,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: clamp(1.15rem, 2.8vw, 1.45rem);
-  padding: clamp(2px, 0.35vh, 3px) clamp(3px, 0.5vw, 5px);
-  border-radius: clamp(4px, 0.55vw, 6px);
+  min-width: clamp(1.45rem, 3.4vw, 1.9rem);
+  padding: clamp(3px, 0.45vh, 5px) clamp(4px, 0.65vw, 7px);
+  border-radius: clamp(5px, 0.65vw, 7px);
   color: rgba(255, 255, 255, 0.28);
   font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
-  font-size: clamp(11px, 1.9vw, 15px);
+  font-size: clamp(14px, 2.4vw, 19px);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -2250,12 +2310,12 @@
   pointer-events: auto;
 }
 
-/* Side vent mounts — 40px outside the content shell edges */
+/* Side vent mounts — fixed scale by viewport; 40px outside the content shell edges */
 .dashboard-vent-mount {
   position: absolute;
-  top: var(--dashboard-vent-top, calc(20px + clamp(28px, 3.5vw, 36px) + 45px));
-  height: var(--dashboard-vent-height, min(62%, 15rem));
-  width: var(--dashboard-vent-height, min(62%, 15rem));
+  top: calc(20px + clamp(28px, 3.5vw, 36px) + 45px);
+  height: clamp(7.5rem, 14vw, 15rem);
+  width: clamp(7.5rem, 14vw, 15rem);
   pointer-events: none;
   overflow: visible;
 }
@@ -3552,7 +3612,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: clamp(6px, 1vw, 8px);
+  gap: 0;
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -3564,35 +3624,188 @@
 .hood-standards-popup__main {
   flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: clamp(10px, 1.6vw, 14px);
-  overflow: hidden;
+  gap: clamp(16px, 2.4vw, 22px);
+  overflow: visible;
+}
+
+.hood-standards-popup__metrics-column {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  align-self: stretch;
+  gap: clamp(6px, 1vw, 10px);
+  min-height: 0;
+  height: 100%;
+  padding-top: 6px;
+  box-sizing: border-box;
+  overflow: visible;
+  --hood-standards-metric-width: clamp(64px, 14vw, 92px);
+}
+
+.hood-standards-popup__metrics-column .hood-standards-popup__protocol-block {
+  flex: 0 0 auto;
+  width: var(--hood-standards-metric-width);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.hood-standards-popup__metrics-column .hood-standards-popup__protocol-label {
+  flex: 0 0 auto;
+  text-align: left;
+}
+
+.hood-standards-popup__metrics-column .hood-standards-popup__protocol-row {
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  width: 100%;
+  min-height: 0;
+  gap: clamp(4px, 0.6vh, 8px);
+  padding-block: 0;
+}
+
+.hood-standards-popup__metrics-column .hood-standards-popup__protocol-row--empty {
+  min-height: 0;
+}
+
+.hood-standards-popup__metrics-column .hood-standards-protocol-logo {
+  flex: 1 1 0;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hood-standards-popup__metrics-column .hood-standards-protocol-logo__image {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
 }
 
 .hood-standards-popup__gauge-column {
   flex: 0 0 auto;
   display: flex;
   align-items: stretch;
+  width: var(--hood-standards-metric-width, clamp(64px, 14vw, 92px));
+  min-width: 0;
   min-height: 0;
   align-self: stretch;
+  overflow: visible;
 }
 
 .hood-standards-popup__copy-column {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: clamp(6px, 1vh, 10px);
   overflow: hidden;
+  padding-left: clamp(2px, 0.6vw, 6px);
 }
 
-.hood-standards-popup__copy-column .hood-standards-popup__protocol-block {
+.hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__copy-column {
+  padding-top: clamp(6px, 1vh, 10px);
+}
+
+.hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+  flex: 0 1 auto;
+  flex-shrink: 0;
+  align-self: stretch;
+  max-height: min(56%, 240px);
+  padding-top: clamp(2px, 0.4vh, 6px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (min-width: 769px) {
+  .hood-standards-popup:not(.hood-standards-summary) {
+    --hood-standards-desktop-copy-height: min(68%, 320px);
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+    flex: 0 0 var(--hood-standards-desktop-copy-height);
+    height: var(--hood-standards-desktop-copy-height);
+    min-height: var(--hood-standards-desktop-copy-height);
+    max-height: var(--hood-standards-desktop-copy-height);
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__text {
+    min-height: calc(var(--hood-standards-desktop-copy-height) - clamp(2px, 0.4vh, 6px));
+  }
+}
+
+.hood-standards-popup__database-panel--copy {
+  flex: 0 0 auto;
+  min-height: clamp(72px, 16vh, 140px);
+  max-height: clamp(88px, 20vh, 160px);
+  margin-top: auto;
+  margin-bottom: 0;
+  padding-top: 0;
+  gap: clamp(4px, 0.6vh, 8px);
+}
+
+.hood-standards-popup__database-panel--copy .hood-standards-popup__database-label {
   flex: 0 0 auto;
   width: 100%;
-  margin-top: auto;
+  text-align: center;
+  white-space: normal;
+}
+
+.hood-standards-popup__nav-icons.hood-standards-popup__nav-icons--copy {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vw, 20px);
+  width: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hood-standards-popup__nav-icon--copy {
+  flex: 0 0 auto;
+  display: block;
+  height: 100%;
+  max-height: clamp(56px, 14vh, 120px);
+  width: clamp(44px, 11%, 76px);
+  max-width: clamp(44px, 11%, 76px);
+  object-fit: contain;
+  object-position: center center;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+}
+
+.hood-standards-popup__nav-icon--copy.hood-standards-popup__nav-icon--pending {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.hood-standards-popup__nav-icon--copy.hood-standards-popup__nav-icon--revealed {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.28s ease;
 }
 
 .hood-standards-popup__protocol-block {
@@ -3617,14 +3830,8 @@
   white-space: nowrap;
 }
 
-.hood-standards-popup__copy-column .hood-standards-popup__protocol-row {
-  flex: 0 0 auto;
-  width: 100%;
-  min-height: clamp(40px, 7vh, 56px);
-}
-
 .hood-standards-popup__text-scroll {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   min-height: 0;
   max-height: none;
@@ -3660,10 +3867,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: stretch;
-  width: auto;
+  width: 100%;
   height: 100%;
   min-height: 0;
-  max-width: clamp(64px, 14vw, 92px);
+  max-width: 100%;
   aspect-ratio: var(--hood-standards-gauge-aspect);
   margin-top: 0;
   padding-top: 0;
@@ -3688,6 +3895,7 @@
     inset 0 -2px 0 rgba(0, 0, 0, 0.45),
     0 2px 6px rgba(0, 0, 0, 0.45),
     0 0 10px rgba(66, 216, 79, 0.16);
+  overflow: visible;
 }
 
 .hood-standards-gauge__caps {
@@ -3836,6 +4044,51 @@
   max-height: clamp(28px, 5vh, 36px);
 }
 
+.hood-standards-popup__database-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(4px, 0.6vh, 8px);
+  padding-top: 6px;
+  box-sizing: border-box;
+}
+
+.hood-standards-popup__database-panel .hood-standards-popup__database-label {
+  flex: 0 0 auto;
+  width: 100%;
+  text-align: center;
+  white-space: normal;
+}
+
+.hood-standards-popup__database-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row;
+  grid-auto-rows: 1fr;
+  gap: clamp(6px, 1vh, 10px) clamp(8px, 1.2vw, 12px);
+  align-content: stretch;
+  justify-items: center;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+}
+
+.hood-standards-popup__database-grid-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+}
+
 .hood-standards-popup__database-label {
   flex: 0 0 auto;
   font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
@@ -3973,12 +4226,30 @@
   .dashboard-hood-arch__standards .hood-standards-popup-anchor {
     padding-left: var(--driving-content-gutter);
     padding-right: var(--driving-content-gutter);
-    --hood-standards-device-bottom: 54px;
+    --hood-standards-device-gap: 40px;
+    --hood-standards-device-mobile-extra-top: 75px;
+    top: calc(
+      var(--hood-standards-battery-top, 20px) +
+        min(
+          calc(var(--hood-standards-battery-max, 800px) * var(--hood-standards-battery-scale, 1.12)),
+          92vw,
+          calc(40vh * var(--hood-standards-battery-scale, 1.12))
+        ) -
+        var(--hood-standards-battery-raise, 100px) +
+        var(--hood-standards-device-gap) -
+        var(--hood-standards-device-mobile-extra-top)
+    );
+    bottom: auto;
+    height: auto;
+    max-height: calc(100% - var(--hood-standards-device-gap));
+    align-items: stretch;
   }
 
   .hood-standards-popup-row {
     max-width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
-    height: 332px;
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
   }
 
   .hood-standards-dipsticks-group {
@@ -3986,13 +4257,136 @@
   }
 
   .hood-standards-popup {
-    --hood-standards-popup-height: 332px;
+    --hood-standards-popup-height: min(495px, calc(100vh - 165px));
     width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
     min-width: 0;
     max-width: min(750px, calc(100% - 2 * var(--driving-content-gutter, 12px)));
-    height: var(--hood-standards-popup-height);
-    min-height: var(--hood-standards-popup-height);
+    height: auto;
+    min-height: min(475px, calc(100% - 12px));
+    max-height: min(495px, calc(100vh - 145px));
     padding: 9px 12px;
+    flex: 1 1 auto;
+  }
+
+  .hood-standards-device {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) {
+    --hood-standards-mobile-copy-height: clamp(5rem, 24vw, 6.5rem);
+    --hood-standards-mobile-metrics-height: clamp(7rem, 28vw, 8.5rem);
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows:
+      var(--hood-standards-mobile-copy-height)
+      var(--hood-standards-mobile-metrics-height)
+      auto;
+    grid-template-areas:
+      'copy copy'
+      'metrics metrics'
+      'database database';
+    gap: 10px;
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+    overflow: visible;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__copy-column {
+    display: contents;
+    padding-left: 0;
+    padding-top: 0;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+    grid-area: copy;
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+    height: var(--hood-standards-mobile-copy-height);
+    min-height: var(--hood-standards-mobile-copy-height);
+    max-height: var(--hood-standards-mobile-copy-height);
+    flex: 0 0 var(--hood-standards-mobile-copy-height);
+    padding-top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__text {
+    min-height: calc(var(--hood-standards-mobile-copy-height) - 0.25rem);
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__metrics-column {
+    grid-area: metrics;
+    grid-column: 1 / -1;
+    width: 100%;
+    height: var(--hood-standards-mobile-metrics-height);
+    min-height: var(--hood-standards-mobile-metrics-height);
+    max-height: var(--hood-standards-mobile-metrics-height);
+    flex: 0 0 var(--hood-standards-mobile-metrics-height);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: clamp(8px, 2vw, 12px);
+    padding-top: 0;
+    --hood-standards-metric-width: auto;
+    overflow: hidden;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary)
+    .hood-standards-popup__metrics-column
+    .hood-standards-popup__protocol-block,
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__gauge-column {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-gauge {
+    height: 100%;
+    max-height: 100%;
+    aspect-ratio: unset;
+    flex: 1 1 auto;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-gauge__shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary)
+    .hood-standards-popup__metrics-column:not(:has(.hood-standards-popup__protocol-block)) {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary)
+    .hood-standards-popup__metrics-column:not(:has(.hood-standards-popup__protocol-block))
+    .hood-standards-popup__gauge-column {
+    max-width: min(100%, 7.5rem);
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__database-panel--copy {
+    grid-area: database;
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: clamp(56px, 12vh, 88px);
+    max-height: none;
+    margin-top: 0;
   }
 
   .hood-standards-device__side-btn {
@@ -4051,7 +4445,7 @@
   }
 
   .hood-standards-gauge {
-    max-width: 58px;
+    max-width: 100%;
     padding-top: 0;
   }
 
@@ -4064,15 +4458,29 @@
   }
 
   .hood-standards-popup__main {
-    gap: 8px;
+    gap: 12px;
   }
 
-  .hood-standards-popup__copy-column .hood-standards-popup__protocol-row {
-    min-height: clamp(32px, 6.5vh, 44px);
+  .hood-standards-popup__copy-column {
+    padding-left: 4px;
+  }
+
+  .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__copy-column {
+    padding-left: 0;
+  }
+
+  .hood-standards-popup__nav-icons--copy {
+    min-height: clamp(40px, 10vh, 72px);
+    gap: clamp(8px, 2.5vw, 14px);
+  }
+
+  .hood-standards-popup__nav-icon--copy {
+    max-height: clamp(40px, 10vh, 72px);
+    max-width: clamp(32px, 10vw, 48px);
   }
 
   .hood-standards-popup__text {
-    font-size: 23px;
+    font-size: 19px;
   }
 
   /* Let dipsticks use full size inside the arch (row may extend slightly past narrow viewports) */
@@ -4817,7 +5225,7 @@
 }
 
 .journey-nav-attendance-bar__route-slot .journey-nav-attendance-bar__route {
-  padding: clamp(10px, 1.4vh, 12px) clamp(4px, 0.8vw, 6px) 0 0;
+  padding: var(--attendance-route-pin-lane) clamp(4px, 0.8vw, 6px) 0 0;
 }
 
 .journey-nav-attendance-bar__headline {
@@ -4883,6 +5291,8 @@
   grid-column: auto;
   grid-row: auto;
   align-self: center;
+  justify-self: stretch;
+  text-align: center;
   font-size: clamp(22px, 3.8vw, 32px);
 }
 
@@ -4909,7 +5319,9 @@
 }
 
 .journey-nav-attendance-bar__main--compact .journey-nav-attendance-bar__route-slot .journey-nav-attendance-bar__route {
-  padding: clamp(6px, 0.9vh, 8px) clamp(4px, 0.8vw, 6px) 0 0;
+  --attendance-route-pin-lane: clamp(28px, 4vh, 36px);
+  --attendance-route-pin-size: clamp(28px, 4.4vw, 36px);
+  padding: var(--attendance-route-pin-lane) clamp(4px, 0.8vw, 6px) 0 0;
 }
 
 .journey-nav-attendance-bar__main--compact .journey-nav-attendance-bar__route-slot .journey-nav-attendance-bar__eyebrow {
@@ -5011,28 +5423,31 @@
 }
 
 .journey-nav-attendance-bar__route {
+  --attendance-route-pin-lane: clamp(28px, 4vh, 36px);
+  --attendance-route-pin-size: clamp(28px, 4.4vw, 36px);
   position: relative;
   width: 100%;
   min-width: 0;
-  padding: clamp(16px, 2.2vh, 20px) clamp(7px, 1.2vw, 9px) 0 0;
+  padding: var(--attendance-route-pin-lane) clamp(7px, 1.2vw, 9px) 0 0;
   overflow: visible;
 }
 
 .journey-nav-attendance-bar__route-pins {
   position: absolute;
   inset: 0 0 auto;
-  height: clamp(16px, 2.2vh, 20px);
+  height: var(--attendance-route-pin-lane);
   pointer-events: none;
 }
 
 .journey-nav-attendance-bar__route-pin {
   position: absolute;
-  top: 0;
+  top: auto;
+  bottom: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  width: clamp(14px, 2.2vw, 18px);
-  height: clamp(14px, 2.2vh, 18px);
+  width: var(--attendance-route-pin-size);
+  height: var(--attendance-route-pin-size);
   color: rgba(235, 240, 245, 0.42);
   transform: translateX(-50%);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
@@ -5106,18 +5521,202 @@
 
 @media (max-width: 640px) {
   .journey-nav-ui {
-    --attendance-nav-col-side: clamp(64px, 16vw, 80px);
-    --attendance-nav-col-value: clamp(72px, 14vw, 84px);
-    --attendance-nav-col-gap: clamp(8px, 1.2vh, 10px);
+    --attendance-nav-col-side: clamp(96px, 16vw, 128px);
+    --attendance-nav-col-value: clamp(84px, 12vw, 96px);
+    --attendance-nav-col-gap: clamp(10px, 1.8vw, 16px);
+    --attendance-route-inset-x: clamp(10px, 2.4vw, 16px);
+  }
+
+  /* Webinar / direction popup — full content width on mobile */
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(8px, 1.2vh, 12px);
+    padding: var(--gps-nav-direction-top) var(--attendance-route-inset-x)
+      clamp(8px, 1.2vh, 12px);
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned .journey-nav-popup-row__nav-spacer {
+    display: none;
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned > .journey-nav-popup-overlay {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: 0;
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned .journey-nav-popup-stack {
+    width: 100%;
+    max-width: 100%;
+    align-items: stretch;
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned .gps-popup-stack__item {
+    width: 100%;
+    max-width: 100%;
+    justify-content: stretch;
+  }
+
+  .journey-nav-ui:has(.gps-nav-direction) .journey-nav-popup-row--route-aligned .gps-event-popup--hours.gps-nav-direction {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Expanded attendance bar — stack: copy, metrics, CTA, back/next */
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact) {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    row-gap: clamp(8px, 1.2vh, 10px);
+    column-gap: clamp(4px, 1vw, 8px);
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__headline {
+    display: contents;
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__copy-slot {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 0;
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__value {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    justify-self: start;
+    width: auto;
+    min-width: 0;
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__route-slot {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    min-width: 0;
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__route-slot
+    .journey-nav-attendance-bar__route {
+    width: 100%;
+    padding-right: clamp(2px, 0.5vw, 4px);
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__cta {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__back {
+    grid-column: 1;
+    grid-row: 4;
+    align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact)
+    .journey-nav-attendance-bar__next {
+    grid-column: 2;
+    grid-row: 4;
+    align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Compact attendance bar — full-width metrics, back/next below */
+  .journey-nav-attendance-bar__main--compact {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      'value route'
+      'back next';
+    row-gap: clamp(8px, 1.2vh, 10px);
+    column-gap: clamp(4px, 1vw, 8px);
+  }
+
+  .journey-nav-attendance-bar__main--compact .journey-nav-attendance-bar__back {
+    grid-area: back;
+    align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .journey-nav-attendance-bar__main--compact .journey-nav-attendance-bar__next {
+    grid-area: next;
+    align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .journey-nav-attendance-bar__main--compact .journey-nav-attendance-bar__value {
+    grid-area: value;
+    justify-self: start;
+    width: auto;
+  }
+
+  .journey-nav-attendance-bar__main--compact .journey-nav-attendance-bar__route-slot {
+    grid-area: route;
+    width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+  }
+
+  .journey-nav-attendance-bar__main--compact
+    .journey-nav-attendance-bar__route-slot
+    .journey-nav-attendance-bar__route {
+    width: 100%;
+    padding-right: clamp(2px, 0.5vw, 4px);
   }
 
   .journey-nav-attendance-bar__main {
     row-gap: clamp(6px, 1vh, 8px);
   }
 
-  .journey-nav-attendance-bar__back,
-  .journey-nav-attendance-bar__next {
-    padding-inline: clamp(10px, 2vw, 14px);
+  .journey-nav-corner-nav__btn,
+  .journey-nav-attendance-bar__back.journey-nav-corner-nav__btn,
+  .journey-nav-attendance-bar__next.journey-nav-corner-nav__btn,
+  .journey-nav-attendance-bar__cta.journey-nav-corner-nav__btn {
+    min-height: clamp(34px, 5vh, 38px);
+    padding: clamp(6px, 0.9vh, 8px) clamp(12px, 2.4vw, 16px);
+    font-size: clamp(0.75rem, 2.8vw, 0.8125rem);
+    min-width: clamp(72px, 14vw, 96px);
+  }
+
+  .journey-nav-attendance-bar {
+    margin-top: clamp(8px, 1.5vh, 16px);
+    padding-block: clamp(8px, 1vh, 10px);
+  }
+
+  .journey-nav-attendance-bar--compact {
+    padding-block: clamp(6px, 0.9vh, 8px);
+  }
+
+  .journey-nav-attendance-bar__main:not(.journey-nav-attendance-bar__main--compact) {
+    row-gap: clamp(6px, 0.9vh, 8px);
+  }
+
+  .journey-nav-attendance-bar__main--compact {
+    row-gap: clamp(6px, 0.9vh, 8px);
   }
 
   .journey-nav-attendance-bar__value {
@@ -5125,7 +5724,9 @@
   }
 
   .journey-nav-attendance-bar__route-slot .journey-nav-attendance-bar__route {
-    padding-top: clamp(8px, 1vh, 10px);
+    --attendance-route-pin-lane: clamp(24px, 3.6vh, 32px);
+    --attendance-route-pin-size: clamp(24px, 4vw, 32px);
+    padding-top: var(--attendance-route-pin-lane);
   }
 
   .journey-nav-attendance-bar__support {
@@ -5619,9 +6220,10 @@
 .journey-nav-popup-row__nav-spacer.journey-nav-attendance-bar__value {
   margin: 0;
   align-self: center;
-  justify-self: start;
+  justify-self: stretch;
   width: 100%;
   padding: 0;
+  text-align: center;
   font-size: clamp(22px, 3.8vw, 32px);
 }
 
@@ -5863,7 +6465,7 @@
   }
 
   .intro-slide__text {
-    font-size: clamp(18px, 5.5vw, 20px);
+    font-size: 19px;
     text-align: center;
   }
 
@@ -7145,6 +7747,43 @@
   flex: 0 0 auto;
 }
 
+.journey-counter-panel__controls--with-next-label {
+  grid-template-columns:
+    var(--journey-counter-nav-size)
+    minmax(0, 1fr)
+    minmax(var(--journey-counter-nav-size), auto);
+}
+
+.journey-counter-panel__controls-next {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: clamp(6px, 1vw, 10px);
+  min-width: 0;
+}
+
+.journey-counter-panel__controls-next .infotainment-headunit__nav-btn--chevron {
+  flex: 0 0 var(--journey-counter-nav-size);
+  width: var(--journey-counter-nav-size);
+}
+
+.journey-counter-panel__next-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: clamp(2px, 0.6vw, 6px);
+  font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(12px, 2.1vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(236, 236, 236, 0.94);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.65);
+  white-space: nowrap;
+}
+
 .journey-counter-panel__controls .infotainment-headunit__nav-btn--chevron {
   width: 100%;
   min-height: var(--journey-counter-nav-size);
@@ -7358,11 +7997,44 @@
   .journey-counter-panel__body {
     flex-direction: column;
     align-items: stretch;
-    gap: clamp(0.75rem, 2.5vh, 1.25rem);
+    gap: clamp(0.35rem, 1vh, 0.55rem);
   }
 
   .journey-counter-panel__body {
     padding-left: 0;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__controls {
+    --journey-counter-nav-size: clamp(34px, 5.5vh, 40px);
+    gap: clamp(4px, 0.8vw, 6px);
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__controls .infotainment-headunit__nav-btn--chevron {
+    padding: 0.2rem;
+  }
+
+  .journey-layout--counter-mobile
+    .journey-counter-panel__controls
+    .infotainment-headunit__nav-btn--chevron
+    svg {
+    width: clamp(16px, 4vw, 20px);
+    height: clamp(16px, 4vw, 20px);
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__cta {
+    min-height: var(--journey-counter-nav-size);
+    font-size: clamp(14px, 3.6vw, 18px);
+    padding: 0.25rem 0.5rem;
+    line-height: 1.1;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__cta-placeholder {
+    min-height: var(--journey-counter-nav-size);
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__next-label {
+    font-size: clamp(10px, 2.4vw, 12px);
+    padding-inline: clamp(2px, 0.4vw, 4px);
   }
 
   .journey-counter-panel__stat-row {
@@ -7395,32 +8067,93 @@
     box-sizing: border-box;
   }
 
-  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-fuel-gauge,
-  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-speedometer-gauge,
-  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-battery-gauge,
-  .journey-layout--counter-mobile .journey-counter-panel__gauge > .community-logo-gauge {
-    width: 100%;
-    max-width: 100%;
-  }
-
   .journey-counter-panel__mobile-detail {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     width: 100%;
-    gap: clamp(0.35rem, 1vh, 0.65rem);
+    flex: 0 0 auto;
+    gap: clamp(0.15rem, 0.5vh, 0.3rem);
+    margin-bottom: clamp(0.1rem, 0.35vh, 0.25rem);
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__frame-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__screen-well {
+    padding: clamp(4px, 0.8vw, 6px);
   }
 
   .journey-counter-panel__mobile-detail .journey-counter-panel__screen {
-    min-height: clamp(6.5rem, 18vh, 9.5rem);
+    min-height: clamp(4.25rem, 11vh, 6rem);
+    padding:
+      clamp(0.65rem, 1.4vh, 0.9rem)
+      clamp(0.65rem, 1.5vw, 0.85rem);
   }
 
+  .journey-counter-panel__message,
   .journey-counter-panel__mobile-detail .journey-counter-panel__message {
-    font-size: clamp(13px, 3.6vw, 17px);
+    font-size: 19px;
   }
 
   .journey-layout--counter-mobile .journey-counter-panel__gauge {
-    gap: clamp(0.35rem, 1.2vh, 0.75rem);
+    gap: clamp(0.15rem, 0.45vh, 0.35rem);
+    flex: 0 1 auto;
+    overflow: visible;
+    --journey-counter-dial-gap: clamp(0.15rem, 0.4vh, 0.3rem);
+    --journey-counter-subtitle-min-h: 2.15rem;
+    --journey-counter-stat-min-h: 2.35rem;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide {
+    flex: 0 0 var(--journey-counter-dial-height);
+    width: min(var(--journey-counter-dial-width), 100%);
+    height: var(--journey-counter-dial-height);
+    min-height: var(--journey-counter-dial-height);
+    max-height: none;
+    margin-bottom: clamp(0.1rem, 0.35vh, 0.25rem);
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
+    padding-block: clamp(2px, 0.3vh, 4px);
+  }
+
+  .dashboard-body--journey-counter {
+    padding-bottom: clamp(4px, 0.8vh, 8px);
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__headunit,
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__frame,
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__frame-body,
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__screen-well,
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__screen,
+  .journey-layout--counter-mobile .journey-counter-panel__mobile-detail .journey-counter-panel__controls {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-fuel-gauge,
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-speedometer-gauge,
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .journey-battery-gauge,
+  .journey-layout--counter-mobile .journey-counter-panel__gauge > .community-logo-gauge {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .dashboard-panel--journey-scene .journey-layout--counter-mobile .journey-layout__main--counter {
+    overflow: visible;
+  }
+
+  .dashboard-panel--journey-scene .journey-layout--counter-mobile .journey-counter-panel,
+  .dashboard-panel--journey-scene .journey-layout--counter-mobile .journey-counter-panel__body {
+    overflow: visible;
   }
 
   .journey-counter-panel__gauge,
@@ -7431,10 +8164,7 @@
 
   .journey-counter-panel__gauge {
     gap: clamp(0.2em, 0.6vh, 0.45em);
-    --journey-counter-dial-height: min(
-      var(--journey-counter-message-width),
-      min(44vw, 26vh, 11.5rem)
-    );
+    --journey-counter-dial-height: clamp(6.5rem, 36vw, 9.5rem);
     --journey-counter-dial-width: min(
       100%,
       calc(var(--journey-counter-dial-height) * 2)
@@ -7972,7 +8702,7 @@
 }
 
 .gps-attendance-stat .journey-nav-attendance-bar__route {
-  padding: clamp(14px, 2vh, 18px) clamp(4px, 0.8vw, 6px) 0 0;
+  padding: var(--attendance-route-pin-lane) clamp(4px, 0.8vw, 6px) 0 0;
 }
 
 .gps-attendance-stat__bar-track {
@@ -8158,27 +8888,6 @@
   box-sizing: border-box;
 }
 
-.gps-nav-direction__lanes {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: stretch;
-  justify-content: space-evenly;
-  pointer-events: none;
-  opacity: 0.22;
-}
-
-.gps-nav-direction__lanes span {
-  width: 1px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.55) 42%,
-    rgba(255, 255, 255, 0.55) 58%,
-    rgba(255, 255, 255, 0) 100%
-  );
-}
-
 .gps-nav-direction__action-row {
   position: relative;
   z-index: 1;
@@ -8232,6 +8941,7 @@
   min-width: 0;
   max-width: 100%;
   border-left: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, #083219 0%, #062a14 100%);
   text-transform: lowercase;
   justify-content: center;
   flex-shrink: 0;
@@ -8243,6 +8953,10 @@
 
 .gps-nav-direction__cta:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.gps-nav-direction__cta--next:hover:not(:disabled) {
+  background: linear-gradient(180deg, #0a3d1f 0%, #072f18 100%);
 }
 
 .gps-nav-direction__cta:focus-visible {
@@ -8985,6 +9699,116 @@
   gap: 8px;
 }
 
+.hood-tire-hub__screen-glass--stats-slide {
+  justify-content: flex-start;
+}
+
+.hood-tire-hub__screen-glass--stats-slide .hood-tire-hub__pressure-gauge {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+
+.hood-tire-hub__screen-glass--stats-slide .hood-tire-hub__screen-content {
+  flex: 0 0 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  margin-top: auto;
+  padding-bottom: clamp(2px, 0.4vh, 4px);
+  justify-content: flex-end;
+}
+
+.hood-tire-hub__screen-glass--stats-slide.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__screen-content {
+  flex: 0 0 auto;
+  margin-top: auto;
+  margin-bottom: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.hood-tire-hub__screen-glass--stats-slide .hood-tire-hub__results {
+  justify-content: flex-end;
+  padding-top: 0;
+}
+
+.hood-tire-hub__line--secondary--reserved {
+  visibility: hidden;
+  pointer-events: none;
+  margin: 0;
+}
+
+.hood-tire-hub__screen-footer--reserved {
+  flex: 0 0 auto;
+}
+
+.hood-tire-hub__screen-nav--reserved {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hood-tire-hub__screen-glass--cta-slide .hood-tire-hub__pressure-gauge {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: var(--hood-readout-gauge-slot, 162px);
+  height: auto;
+  max-height: none;
+  padding: 4px 0;
+}
+
+.hood-tire-hub__screen-glass--cta-slide .hood-tire-hub__pressure-gauge--cta-slot,
+.hood-tire-hub__screen-glass--cta-slide .hood-tire-hub__pressure-gauge--product-list {
+  height: 100%;
+  min-height: 0;
+}
+
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__screen-content {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__results,
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__results--cta {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__screen-footer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(8px, 1.2vh, 10px);
+  width: 100%;
+}
+
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__screen-footer .hood-tire-hub__line--momentum {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__screen-footer .hood-tire-hub__btn--visit {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.hood-tire-hub__screen-glass--with-nav .hood-tire-hub__screen-nav {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
 .hood-tire-hub__screen-content {
   flex: 0 0 var(--hood-readout-content-height, 211px);
   width: 100%;
@@ -9014,34 +9838,53 @@
 }
 
 .hood-standards-popup__body--summary {
-  justify-content: space-between;
+  justify-content: stretch;
   align-items: stretch;
-  gap: clamp(8px, 1.2vh, 12px);
+  gap: 0;
   padding-block: clamp(10px, 1.6vh, 14px);
 }
 
 .hood-standards-popup__main--summary {
-  align-items: center;
+  align-items: stretch;
+  align-self: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  gap: clamp(10px, 1.6vw, 14px);
+}
+
+.hood-standards-summary .hood-standards-popup__metrics-column {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
 }
 
 .hood-standards-summary .hood-standards-popup__protocol-block {
-  flex: 1 1 auto;
-  width: auto;
+  flex: 0 0 auto;
+  width: var(--hood-standards-metric-width);
   min-width: 0;
-  justify-content: center;
+  min-height: 0;
+  height: 100%;
+  justify-content: flex-start;
   align-items: stretch;
 }
 
 .hood-standards-summary .hood-standards-popup__protocol-row {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  justify-content: flex-start;
-  align-items: center;
+  justify-content: stretch;
+  align-items: stretch;
 }
 
 .hood-standards-summary .hood-standards-popup__database-row {
   width: 100%;
   margin-top: 0;
+}
+
+.hood-standards-summary .hood-standards-popup__database-panel {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .hood-standards-summary.hood-standards-popup {
@@ -9095,6 +9938,128 @@
   padding: 6px 8px;
 }
 
+.hood-tire-hub__pressure-gauge--cta-slot,
+.hood-tire-hub__pressure-gauge--cta-art {
+  padding: 0;
+  width: 100%;
+  height: var(--hood-readout-gauge-slot, 162px);
+  min-height: 0;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.hood-tire-hub__pressure-gauge--product-list {
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.hood-tire-hub__product-list-viewport,
+.hood-tire-hub__course-list-viewport {
+  pointer-events: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hood-tire-hub__product-list-viewport:focus-visible,
+.hood-tire-hub__course-list-viewport:focus-visible {
+  outline: 2px solid rgba(243, 144, 29, 0.65);
+  outline-offset: -2px;
+}
+
+.hood-tire-hub__course-list-viewport {
+  padding: 0;
+}
+
+.hood-tire-hub__course-list {
+  margin: 0;
+  padding: 6px 8px 8px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.9vh, 7px);
+}
+
+.hood-tire-hub__course-list-item {
+  margin: 0;
+  padding: clamp(6px, 1vh, 8px) clamp(8px, 1.4vw, 10px);
+  border: 1px solid rgba(243, 144, 29, 0.82);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(10px, 1.55vw, 12px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #3a3a3c;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.hood-tire-hub__product-list-viewport {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 128, 0.72) rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+.hood-tire-hub__product-list-viewport::-webkit-scrollbar {
+  width: 8px;
+}
+
+.hood-tire-hub__product-list-viewport::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+}
+
+.hood-tire-hub__product-list-viewport::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 128, 0.72);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.hood-tire-hub__product-list {
+  margin: 0;
+  padding: 6px 8px 8px 10px;
+  list-style: none;
+}
+
+.hood-tire-hub__product-list-item {
+  margin: 0;
+  padding: 2px 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(10px, 1.55vw, 12px);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: #3a3a3c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hood-tire-hub__pressure-gauge-cta-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  user-select: none;
+  pointer-events: none;
+}
+
 .hood-tire-hub__pressure-gauge-tire {
   display: block;
   width: auto;
@@ -9139,7 +10104,7 @@
   gap: clamp(10px, 1.4vh, 14px);
   flex: 1 1 auto;
   min-height: 0;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .hood-tire-hub__line {
@@ -9917,20 +10882,27 @@
 
 .full-diagnostics__standards-tablet .hood-standards-popup__body--summary {
   flex: 1 1 auto;
-  justify-content: space-between;
-  gap: clamp(10px, 2vh, 16px);
+  justify-content: stretch;
+  gap: 0;
   padding-block: clamp(10px, 1.6vh, 14px);
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__main--summary {
   flex: 1 1 auto;
   min-height: 0;
-  align-items: center;
+  height: 100%;
+  align-items: stretch;
+  gap: clamp(14px, 2.2vw, 20px);
+}
+
+.full-diagnostics__standards-tablet .hood-standards-popup__metrics-column {
+  --hood-standards-metric-width: clamp(80px, 18vw, 112px);
+  height: 100%;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-gauge {
-  --hood-standards-gauge-aspect: 0.68;
-  max-width: clamp(72px, 16vw, 104px);
+  aspect-ratio: auto;
+  max-width: 100%;
   padding-top: 0;
 }
 
@@ -9943,38 +10915,38 @@
 }
 
 .full-diagnostics__standards-tablet .hood-standards-summary .hood-standards-popup__protocol-row {
-  min-height: clamp(48px, 9vh, 72px);
+  min-height: 0;
 }
 
-.full-diagnostics__standards-tablet .hood-standards-protocol-logo {
-  height: clamp(48px, 9vh, 72px);
+.full-diagnostics__standards-tablet .hood-standards-popup__metrics-column .hood-standards-protocol-logo {
+  height: auto;
 }
 
-.full-diagnostics__standards-tablet .hood-standards-protocol-logo__image {
-  max-width: clamp(112px, 22vw, 168px);
+.full-diagnostics__standards-tablet .hood-standards-popup__metrics-column .hood-standards-protocol-logo__image {
+  max-width: 100%;
+  max-height: none;
 }
 
-.full-diagnostics__standards-tablet .hood-standards-popup__database-row {
-  min-height: clamp(36px, 6.5vh, 48px);
-  max-height: clamp(36px, 6.5vh, 48px);
-  gap: clamp(8px, 1.2vw, 12px);
+.full-diagnostics__standards-tablet .hood-standards-popup__database-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 6px;
+  margin-left: clamp(6px, 1vw, 10px);
+  padding-bottom: clamp(12px, 2vh, 18px);
+  box-sizing: border-box;
 }
 
-.full-diagnostics__standards-tablet .hood-standards-popup__database-label {
+.full-diagnostics__standards-tablet .hood-standards-popup__database-panel .hood-standards-popup__database-label {
   font-size: clamp(9px, 1.4vw, 11px);
 }
 
-.full-diagnostics__standards-tablet .hood-standards-popup__nav-icons {
-  height: clamp(36px, 6.5vh, 48px);
-  gap: clamp(12px, 2vw, 18px);
-  justify-content: flex-start;
-  width: auto;
-  flex: 0 1 auto;
+.full-diagnostics__standards-tablet .hood-standards-popup__database-grid {
+  gap: clamp(8px, 1.4vh, 12px) clamp(10px, 1.6vw, 14px);
+  padding-bottom: clamp(4px, 0.8vh, 8px);
 }
 
-.full-diagnostics__standards-tablet .hood-standards-popup__nav-icon {
-  max-width: clamp(38px, 7vw, 56px);
-  flex: 0 0 auto;
+.full-diagnostics__standards-tablet .hood-standards-popup__database-grid-icon {
+  max-height: clamp(52px, 11vh, 80px);
 }
 
 .full-diagnostics__map {
@@ -10070,7 +11042,7 @@
 .full-diagnostics__map-attendance-wrap
   .journey-nav-attendance-bar__route-slot
   .journey-nav-attendance-bar__route {
-  padding: clamp(14px, 2vh, 18px) clamp(12px, 1.6vw, 14px) 0 0;
+  padding: var(--attendance-route-pin-lane) clamp(12px, 1.6vw, 14px) 0 0;
 }
 
 .full-diagnostics__map-webinar-wrap .gps-event-popup--hours.gps-nav-direction {
@@ -10325,8 +11297,12 @@
     padding: clamp(8px, 1.5vw, 14px);
   }
 
+  .full-diagnostics__standards-tablet .hood-standards-popup__metrics-column {
+    --hood-standards-metric-width: clamp(52px, 16vw, 68px);
+  }
+
   .full-diagnostics__standards-tablet .hood-standards-gauge {
-    max-width: clamp(52px, 16vw, 68px);
+    max-width: 100%;
   }
 
   .full-diagnostics__standards-tablet .hood-standards-gauge__well {
@@ -10371,12 +11347,63 @@
     max-width: 100%;
   }
 
+  /* Mobile: standards device on step 0; map hidden until tires carousel step */
+  .full-diagnostics__map {
+    display: none;
+    min-height: 0;
+  }
+
+  .full-diagnostics__split--step-0 .full-diagnostics__standards-column {
+    display: block;
+  }
+
+  .full-diagnostics__split--step-0 .full-diagnostics__map {
+    display: none;
+  }
+
   .full-diagnostics__standards-column {
     min-height: clamp(180px, 28vh, 260px);
   }
 
-  .full-diagnostics__map {
-    min-height: clamp(200px, 32vh, 280px);
+  .full-diagnostics__split--step-1 .full-diagnostics__standards-column,
+  .full-diagnostics__split--step-2 .full-diagnostics__standards-column {
+    display: none;
+  }
+
+  .full-diagnostics__split--step-1 .full-diagnostics__map,
+  .full-diagnostics__split--step-2 .full-diagnostics__map {
+    display: flex;
+    min-height: clamp(180px, 28vh, 260px);
+  }
+
+  .full-diagnostics__split--step-1 .full-diagnostics__map-shell,
+  .full-diagnostics__split--step-2 .full-diagnostics__map-shell {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: clamp(180px, 28vh, 260px);
+    padding: 0;
+  }
+
+  .full-diagnostics__split--step-1 .full-diagnostics__map-stage,
+  .full-diagnostics__split--step-2 .full-diagnostics__map-stage {
+    min-height: clamp(180px, 28vh, 260px);
+  }
+
+  .full-diagnostics--share-focus .full-diagnostics__map,
+  .full-diagnostics--dashboard-exiting .full-diagnostics__map {
+    display: flex;
+  }
+
+  .full-diagnostics--share-focus .full-diagnostics__map {
+    min-height: 0;
+  }
+
+  .full-diagnostics--share-focus .full-diagnostics__map-shell {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
   }
 
   .full-diagnostics__standards-tablet-wrap {
@@ -10496,21 +11523,49 @@
     flex: 0 0 auto;
     min-height: 0;
     max-height: none;
+    padding-inline: var(--attendance-route-inset-x, clamp(10px, 2.4vw, 16px));
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding-inline: var(--attendance-route-inset-x, clamp(10px, 2.4vw, 16px));
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned .journey-nav-popup-row__nav-spacer {
+    display: none;
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned > .journey-nav-popup-overlay {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .journey-nav-popup-row.journey-nav-popup-row--route-aligned .journey-nav-popup-stack {
+    width: 100%;
+    max-width: 100%;
   }
 
   .gps-popup-stack__item--attendance-stat {
-    width: min(250px, 100%);
+    width: 100%;
     max-width: 100%;
     margin-top: 0;
   }
 
   .journey-nav-popup-overlay .gps-attendance-stat {
-    width: min(250px, 100%);
+    width: 100%;
     max-width: 100%;
   }
 
   .journey-nav-popup-overlay .gps-event-popup--nav {
-    width: min(100%, clamp(220px, 72vw, 300px));
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .journey-nav-popup-overlay .gps-event-popup--hours.gps-nav-direction {
+    width: 100%;
+    max-width: 100%;
   }
 
   .journey-nav-popup-overlay .gps-event-popup--arrived {

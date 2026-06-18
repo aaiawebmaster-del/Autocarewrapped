@@ -432,7 +432,7 @@ export function FullDiagnosticsPanel({
         report={report}
       />
 
-      <div className="full-diagnostics__split">
+      <div className={`full-diagnostics__split full-diagnostics__split--step-${topStep}`}>
         <DiagnosticsStandardsColumn report={report} />
 
         <div

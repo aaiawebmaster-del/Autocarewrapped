@@ -281,11 +281,6 @@ function GpsNavDirectionCard({
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="gps-nav-direction__lanes" aria-hidden>
-            <span />
-            <span />
-            <span />
-          </div>
           <div className="gps-nav-direction__action-row">
             <a
               href={ctaLink.href}
