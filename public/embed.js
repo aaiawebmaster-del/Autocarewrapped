@@ -35,13 +35,13 @@
 
   if (!recordNumber) {
     mount.innerHTML =
-      '<p style="font-family:Segoe UI,sans-serif;color:#4a5568;padding:1rem;">Auto Care Wrapped: no record number found in URL.</p>';
+      '<p style="font-family:Segoe UI,sans-serif;color:#4a5568;padding:1rem;">Your Year In Review: no record number found in URL.</p>';
     return;
   }
 
   var iframe = document.createElement('iframe');
   iframe.src = appUrl + '/?record=' + encodeURIComponent(recordNumber) + '&embed=1';
-  iframe.title = 'Auto Care Wrapped 2026';
+  iframe.title = 'Your Year In Review';
   iframe.setAttribute('loading', 'lazy');
   iframe.setAttribute('allow', 'fullscreen');
   iframe.style.border = '0';

@@ -9,7 +9,6 @@ import {
   attendedCountFromPct,
 } from '@/lib/contentVariants';
 import { prefersReducedMotion } from '@/lib/browserCompat';
-import { useMobileViewport } from '@/lib/useMobileViewport';
 
 export const TURN_RIGHT_PATH =
   'M566.6 342.6C579.1 330.1 579.1 309.8 566.6 297.3L438.6 169.3C429.4 160.1 415.7 157.4 403.7 162.4C391.7 167.4 384 179.1 384 192L384 256L224 256C135.6 256 64 327.6 64 416L64 480C64 497.7 78.3 512 96 512L160 512C177.7 512 192 497.7 192 480L192 416C192 398.3 206.3 384 224 384L384 384L384 448C384 460.9 391.8 472.6 403.8 477.6C415.8 482.6 429.5 479.8 438.7 470.7L566.7 342.7z';
@@ -539,15 +538,56 @@ const ATTENDANCE_BAR_HEADLINE_TRANSITION = {
   ease: ATTENDANCE_BAR_COMPACT_EASE,
 };
 
-const ATTENDANCE_BAR_ROW_TRANSITION = {
-  layout: {
-    duration: 0.6,
-    delay: 0.06,
-    ease: ATTENDANCE_BAR_COMPACT_EASE,
-  },
+const ATTENDANCE_SCREEN_ENTER_TRANSITION = {
+  opacity: { duration: 0.35, ease: ATTENDANCE_BAR_COMPACT_EASE },
+  y: { duration: 0.58, ease: ATTENDANCE_BAR_COMPACT_EASE },
 };
 
 const ATTENDANCE_CALCULATING_COPY = 'Calculating In-Person Event Attendance';
+
+export function GpsMapControlTray({
+  eventsMetrics,
+  onBack,
+  onNext,
+  nextLabel = 'next',
+  nextDisabled = false,
+}: {
+  eventsMetrics: EventsMetrics;
+  onBack: () => void;
+  onNext: () => void;
+  nextLabel?: string;
+  nextDisabled?: boolean;
+}) {
+  const attendanceCopy = getAttendanceCopy(eventsMetrics);
+
+  return (
+    <div className="journey-nav-control-tray" aria-label="Map navigation">
+      <button
+        type="button"
+        className="infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--left journey-nav-control-tray__back"
+        onClick={onBack}
+      >
+        back
+      </button>
+      <a
+        href={attendanceCopy.cta.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="infotainment-headunit__softkey infotainment-headunit__nav-btn journey-nav-control-tray__cta"
+      >
+        {attendanceCopy.cta.label}
+      </a>
+      <button
+        type="button"
+        className="infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--right journey-nav-control-tray__next"
+        onClick={onNext}
+        disabled={nextDisabled}
+      >
+        {nextLabel}
+      </button>
+    </div>
+  );
+}
 
 export function GpsAttendanceBottomBar({
   evtPct,
@@ -557,10 +597,6 @@ export function GpsAttendanceBottomBar({
   compact = false,
   calculating = false,
   showScreen = true,
-  onBack,
-  onNext,
-  nextLabel = 'next',
-  nextDisabled = false,
 }: {
   evtPct: number;
   barW: number;
@@ -569,25 +605,17 @@ export function GpsAttendanceBottomBar({
   compact?: boolean;
   calculating?: boolean;
   showScreen?: boolean;
-  onBack: () => void;
-  onNext: () => void;
-  nextLabel?: string;
-  nextDisabled?: boolean;
 }) {
   const attendanceCopy = getAttendanceCopy(eventsMetrics);
-  const isMobile = useMobileViewport();
   const reduceMotion = prefersReducedMotion();
   const isLoading = calculating || !detailsReady;
-  const attendanceEnterY = reduceMotion ? 0 : isMobile ? '100%' : 24;
 
   return (
     <LayoutGroup id="journey-nav-attendance-bar">
       <motion.div
-        layout
         className={[
           'journey-nav-attendance-bar',
-          'journey-nav-attendance-bar--control-tray',
-          showScreen ? '' : 'journey-nav-attendance-bar--tray-only',
+          'journey-nav-attendance-bar--screen-panel',
           compact ? 'journey-nav-attendance-bar--compact' : '',
           calculating ? 'journey-nav-attendance-bar--calculating' : '',
         ]
@@ -599,40 +627,38 @@ export function GpsAttendanceBottomBar({
             : `${evtPct}% in-person event attendance`
         }
         aria-busy={calculating}
-        initial={{ opacity: reduceMotion ? 1 : 0, y: attendanceEnterY }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: reduceMotion ? 1 : 0 }}
+        animate={{ opacity: 1 }}
         transition={{
-          layout: ATTENDANCE_BAR_COMPACT_TRANSITION,
           opacity: {
-            duration: reduceMotion ? 0 : isMobile ? 0.5 : 0.45,
+            duration: reduceMotion ? 0 : 0.35,
             ease: ATTENDANCE_BAR_COMPACT_EASE,
-          },
-          y: {
-            duration: reduceMotion ? 0 : isMobile ? 0.58 : 0.45,
-            ease: isMobile ? [0.22, 1, 0.36, 1] : ATTENDANCE_BAR_COMPACT_EASE,
           },
         }}
       >
         {showScreen ? (
           <motion.div
-            layout
             className={[
               'journey-nav-attendance-bar__screen',
               compact ? 'journey-nav-attendance-bar__screen--compact' : '',
             ]
               .filter(Boolean)
               .join(' ')}
-            transition={ATTENDANCE_BAR_ROW_TRANSITION}
+            initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : ATTENDANCE_SCREEN_ENTER_TRANSITION
+            }
           >
-          <motion.div
-            layout
+          <div
             className={[
               'journey-nav-attendance-bar__main',
               compact ? 'journey-nav-attendance-bar__main--compact' : '',
             ]
               .filter(Boolean)
               .join(' ')}
-            transition={ATTENDANCE_BAR_ROW_TRANSITION}
           >
             <div
               className={[
@@ -665,7 +691,6 @@ export function GpsAttendanceBottomBar({
             </div>
 
             <motion.div
-              layout
               className="journey-nav-attendance-bar__headline"
               initial={false}
               animate={
@@ -676,7 +701,6 @@ export function GpsAttendanceBottomBar({
                       marginTop: 0,
                       paddingTop: 0,
                       paddingBottom: 0,
-                      y: 28,
                     }
                   : {
                       height: 'auto',
@@ -684,13 +708,11 @@ export function GpsAttendanceBottomBar({
                       marginTop: 0,
                       paddingTop: undefined,
                       paddingBottom: undefined,
-                      y: 0,
                     }
               }
               transition={{
                 ...ATTENDANCE_BAR_HEADLINE_TRANSITION,
                 opacity: { duration: 0.34, ease: 'easeOut' },
-                y: ATTENDANCE_BAR_HEADLINE_TRANSITION,
                 height: ATTENDANCE_BAR_HEADLINE_TRANSITION,
               }}
               style={{ overflow: 'hidden' }}
@@ -704,43 +726,9 @@ export function GpsAttendanceBottomBar({
                 )}
               </div>
             </motion.div>
-          </motion.div>
+          </div>
           </motion.div>
         ) : null}
-
-        <div className="journey-nav-attendance-bar__control-tray" aria-label="Map navigation">
-          <button
-            type="button"
-            className="infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--left journey-nav-attendance-bar__back"
-            onClick={onBack}
-          >
-            back
-          </button>
-          <a
-            href={attendanceCopy.cta.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="infotainment-headunit__softkey infotainment-headunit__nav-btn journey-nav-attendance-bar__cta"
-          >
-            {isMobile ? (
-              <>
-                explore upcoming
-                <br />
-                events
-              </>
-            ) : (
-              attendanceCopy.cta.label
-            )}
-          </a>
-          <button
-            type="button"
-            className="infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--right journey-nav-attendance-bar__next"
-            onClick={onNext}
-            disabled={nextDisabled}
-          >
-            {nextLabel}
-          </button>
-        </div>
       </motion.div>
     </LayoutGroup>
   );

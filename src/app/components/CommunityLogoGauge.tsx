@@ -129,13 +129,21 @@ export function CommunityLogoGauge({
       <p className="journey-speedometer-gauge__stat-below" aria-live="polite">
         <span
           className="journey-speedometer-gauge__stat-value"
-          style={{ fontSize: resolvedValueFontSize }}
+          style={
+            counterDialBox && valueFontSize == null
+              ? undefined
+              : { fontSize: resolvedValueFontSize }
+          }
         >
           {displayValue}
-        </span>{' '}
+        </span>
         <span
           className="journey-speedometer-gauge__stat-label"
-          style={labelFontSize ? { fontSize: resolvedLabelFontSize } : undefined}
+          style={
+            counterDialBox && labelFontSize == null
+              ? undefined
+              : { fontSize: labelFontSize ?? resolvedLabelFontSize }
+          }
         >
           {titleCaseLabel(label)}
         </span>

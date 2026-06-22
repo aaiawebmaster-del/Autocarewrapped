@@ -7,6 +7,7 @@ import { GpsUiControls } from './GpsUiControls';
 import {
   GpsPopupContent,
   GpsAttendanceBottomBar,
+  GpsMapControlTray,
   TURN_RIGHT_PATH,
 } from './GpsNavPopupContent';
 import {
@@ -57,8 +58,8 @@ const STARS = Array.from({ length: 45 }, (_, i) => ({
   opacity: 0.35 + (i % 6) * 0.1,
 }));
 
-const SUN_RISE_BOTTOM_Y = 48;
-const SUN_RISE_TOP_Y = -165;
+const SUN_RISE_BOTTOM_Y = 92;
+const SUN_RISE_TOP_Y = -108;
 const SKY_SUNRISE_DURATION_S = 20;
 
 const FOLLOW_UP_SLIDE_TEXTS = [
@@ -656,9 +657,9 @@ function JourneyNavArrivalOverlay({ step }: { step: ArrivalStep }) {
   return (
     <motion.div
       className="journey-nav-arrival"
-      initial={{ opacity: 0, scale: 0.94, y: 16 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96, y: -20 }}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.38, ease: [0.4, 0, 0.2, 1] }}
     >
       <div
@@ -960,15 +961,13 @@ function GpsNavSection({
   const showArrivalOverlay = phase === 4 && !leavingForHood;
   const showAttendanceScreen =
     phase >= 2 && phase < 4 && popupRevealed && !popupMinimized && !exitingToArrival;
+  const showNavControls = phase >= 1 && phase <= 4;
   const showMapControlTray =
-    !leavingForHood &&
-    !popupMinimized &&
-    (showArrivalOverlay || exitingToArrival || showAttendanceScreen);
+    showNavControls && !leavingForHood && !popupMinimized;
   const showPopupStack = visiblePopupPhase === 3 && !popupMinimized;
   const stackedPopupPhases = showPopupStack
     ? getJourneyNavStackPhases(visiblePopupPhase)
     : [];
-  const showNavControls = phase >= 1 && phase <= 4;
   const resolvePopupDetailsReady = (popupPhase: number) =>
     popupPhase === 2 ? attendanceDetailsReady : webinarDetailsReady;
   const uiMotion = uiSceneMotion ?? {
@@ -984,7 +983,14 @@ function GpsNavSection({
   }, [phase]);
 
   return (
-    <div className="journey-nav-stage-inner">
+    <div
+      className={[
+        'journey-nav-stage-inner',
+        showMapControlTray ? 'journey-nav-stage-inner--tray-visible' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="journey-nav-slide-bg" aria-hidden>
         <Suspense fallback={null}>
           <JourneyNavMapAnimation key={mapReplayKey} />
@@ -1101,7 +1107,7 @@ function GpsNavSection({
           )}
         </AnimatePresence>
         )}
-        {showMapControlTray && (
+        {showAttendanceScreen && (
           <GpsAttendanceBottomBar
             evtPct={evtPct}
             barW={barW}
@@ -1109,14 +1115,20 @@ function GpsNavSection({
             calculating={attendanceCalculating}
             eventsMetrics={eventsMetrics}
             compact={attendanceBarCompact}
-            showScreen={showAttendanceScreen}
-            onBack={showArrivalOverlay ? handleArrivalNavBack : handleNavBack}
-            onNext={showArrivalOverlay ? handleArrivalNavNext : handleAdvance}
-            nextLabel={showArrivalOverlay ? 'next' : advanceLabel}
-            nextDisabled={showArrivalOverlay ? false : !canAdvance}
+            showScreen
           />
         )}
       </motion.div>
+
+      {showMapControlTray && (
+        <GpsMapControlTray
+          eventsMetrics={eventsMetrics}
+          onBack={showArrivalOverlay ? handleArrivalNavBack : handleNavBack}
+          onNext={showArrivalOverlay ? handleArrivalNavNext : handleAdvance}
+          nextLabel={showArrivalOverlay ? 'next' : advanceLabel}
+          nextDisabled={showArrivalOverlay ? false : !canAdvance}
+        />
+      )}
     </div>
   );
 }
@@ -1524,12 +1536,18 @@ function DashboardPanel({
   const showPreJourney = isLanding || (!isJourney && currentSlide !== null);
   const preJourneyPhase = isLanding ? 'landing' : 'intro';
   const [journeySectionIdx, setJourneySectionIdx] = useState(journeyInitialSectionIdx ?? 0);
+  useEffect(() => {
+    if (!isJourney) return;
+    setJourneySectionIdx(journeyInitialSectionIdx ?? 0);
+  }, [isJourney, journeyInitialSectionIdx, journeyInitialGpsPhase]);
   const journeySection = isJourney ? journeySections[journeySectionIdx] : null;
   const isMapScene = journeySection?.type === 'nav';
   const isCounterScene = journeySection?.type === 'counter';
   const usesPanelArch = !isHood;
   const showDashboardChrome = !isHood;
-  const isDashboardExiting = hoodEntryPhase === 'sliding-dashboard' && !isHood;
+  const isDashboardExiting =
+    (hoodEntryPhase === 'sliding-dashboard' || hoodEntryPhase === 'fading-to-black') &&
+    !isHood;
   const isHoodPanelRising = isHood && hoodEntryPhase === 'hood-panel-rising';
   const isHoodPanelFalling = isHood && hoodEntryPhase === 'hood-panel-falling';
   const skipPanelEnterAnimation =
@@ -2012,6 +2030,11 @@ export function DrivingView({
   const activeNav = getActiveNavCheckpoint(currentScreen, hoodPhase);
   const currentIdx = activeNav ? screenOrder.indexOf(activeNav) : -1;
 
+  const resetJourneyToStartForNav = useCallback(() => {
+    setJourneyResumeSectionIdx(0);
+    setJourneyResumeGpsPhase(1);
+  }, []);
+
   const saveJourneyResumeForNav = useCallback(() => {
     setJourneyResumeSectionIdx(journeyNavSectionIndex);
     setJourneyResumeGpsPhase(JOURNEY_END_GPS_PHASE);
@@ -2030,7 +2053,7 @@ export function DrivingView({
   const dawnWarmOp = useTransform(skyProgress, [0.1, 0.45, 0.75], [0, 0.65, 0]);
   const daySkyOp = useTransform(skyProgress, [0, 1], [0, 1]);
   const daySkyBrightOp = useTransform(skyProgress, [0.78, 1], [0, 0.55]);
-  const sunOpacity = useTransform(skyProgress, [0, 0.08, 1], [0, 1, 1]);
+  const sunOpacity = useTransform(skyProgress, [0, 0.14, 1], [0, 1, 1]);
   const sunYPx = useTransform(skyProgress, [0, 1], [SUN_RISE_BOTTOM_Y, SUN_RISE_TOP_Y]);
   const horizonGlowOp = useTransform(skyProgress, [0.12, 0.55, 1], [0, 1, 0.35]);
 
@@ -2129,7 +2152,12 @@ export function DrivingView({
       hypothesisId: 'D',
     });
     // #endregion
-    if (checkpoint === activeNav) return;
+    if (checkpoint === activeNav) {
+      if (checkpoint === 'journey') {
+        resetJourneyToStartForNav();
+      }
+      return;
+    }
 
     const onHood = currentScreen === 'hood';
     const onStandards = onHood && hoodPhase === 'standards';
@@ -2199,7 +2227,7 @@ export function DrivingView({
         setHoodEntryPhase('hood-panel-falling');
         return;
       }
-      saveJourneyResumeForNav();
+      resetJourneyToStartForNav();
       setCurrentScreen('journey');
       return;
     }
@@ -2312,7 +2340,7 @@ export function DrivingView({
     pendingCheckpointRef.current = null;
     setHoodEntryPhase(null);
     if (pending === 'journey') {
-      saveJourneyResumeForNav();
+      resetJourneyToStartForNav();
       setCurrentScreen('journey');
       return;
     }
@@ -2320,7 +2348,7 @@ export function DrivingView({
       setDiagnosticsStage('full');
       setCurrentScreen('diagnostics');
     }
-  }, [saveJourneyResumeForNav]);
+  }, [resetJourneyToStartForNav]);
 
   const handleHoodNavTransitionMidpoint = useCallback(() => {
     // #region agent log
@@ -2392,10 +2420,11 @@ export function DrivingView({
   const showRoadLottie = showDrivingBackdrop && !prefersReducedMotion();
   const showFooterNav = isStarted && diagnosticsStage === 'full';
   const isMobileViewport = useMobileViewport();
-  const isPreJourneyScene = !isStarted || (currentSlide !== null && !currentScreen);
+  const useFixedDrivingBand = showSkyAndRoad;
+  const isDrivingBackdropExiting =
+    hoodEntryPhase === 'sliding-dashboard' || hoodEntryPhase === 'fading-to-black';
   const showDashboardPanel =
     !isDiagnosticsFlow &&
-    !isBackdropFadingToBlack &&
     (!isStarted || currentSlide !== null || currentScreen === 'journey' || currentScreen === 'hood');
 
   // #region agent log
@@ -2451,17 +2480,35 @@ export function DrivingView({
     <div
       className={[
         'driving-view-root relative w-full h-full overflow-hidden bg-black',
-        isPreJourneyScene ? 'driving-view-root--pre-journey' : '',
+        useFixedDrivingBand ? 'driving-view-root--driving-band' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
 
-      {/* ── Driving scene Lottie — band above dashboard ── */}
+      {/* ── Driving scene Lottie — fixed band; dashboard covers at constant scale ── */}
       {showSkyAndRoad && (
-        <div
-          className={`driving-view-backdrop${showDrivingBackdrop ? ' driving-view-backdrop--sequence' : ''}`}
+        <motion.div
+          className={[
+            'driving-view-backdrop',
+            showDrivingBackdrop ? 'driving-view-backdrop--sequence' : '',
+            isDrivingBackdropExiting ? 'driving-view-backdrop--exiting' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{ zIndex: 2, pointerEvents: 'none' }}
+          initial={false}
+          animate={isDrivingBackdropExiting ? { y: '-115%' } : { y: 0 }}
+          transition={
+            isDrivingBackdropExiting
+              ? {
+                  y: {
+                    duration: HOOD_ENTRY_DASHBOARD_EXIT_MS,
+                    ease: [0.45, 0, 0.75, 1] as const,
+                  },
+                }
+              : { duration: 0 }
+          }
           aria-hidden
         >
           <div className="driving-view-backdrop__scene">
@@ -2536,7 +2583,7 @@ export function DrivingView({
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {isBackdropFadingToBlack && (
@@ -2559,8 +2606,8 @@ export function DrivingView({
           onClick={handleRestart}
           className="driving-view-footer__restart"
         >
-          <svg className="driving-view-footer__restart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg className="driving-view-footer__restart-power" viewBox="0 0 640 640" fill="currentColor" aria-hidden>
+            <path d="M352 64C352 46.3 337.7 32 320 32C302.3 32 288 46.3 288 64L288 320C288 337.7 302.3 352 320 352C337.7 352 352 337.7 352 320L352 64zM210.3 162.4C224.8 152.3 228.3 132.3 218.2 117.8C208.1 103.3 188.1 99.8 173.6 109.9C107.4 156.1 64 233 64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 233 532.6 156.1 466.3 109.9C451.8 99.8 431.9 103.3 421.7 117.8C411.5 132.3 415.1 152.2 429.6 162.4C479.4 197.2 511.9 254.8 511.9 320C511.9 426 425.9 512 319.9 512C213.9 512 128 426 128 320C128 254.8 160.5 197.1 210.3 162.4z" />
           </svg>
           <span className="driving-view-footer__restart-label">Restart</span>
         </button>
@@ -2682,7 +2729,7 @@ export function DrivingView({
                 <div
                   className="landing-license-plate"
                   role="img"
-                  aria-label="DRIVEN-BY-YOU, your year in review"
+                  aria-label="DRIVEN-BY-YOU, Your Year In Review"
                 >
                   <div className="landing-license-plate__shadow" aria-hidden />
                   <div className="landing-license-plate__rim" aria-hidden />
@@ -2698,7 +2745,7 @@ export function DrivingView({
                     <div className="landing-license-plate__body">
                       <div className="landing-license-plate__copy">
                         <h1 className="landing-license-plate__title">DRIVEN-BY-YOU</h1>
-                        <p className="landing-license-plate__subtitle">your year in review</p>
+                        <p className="landing-license-plate__subtitle">Your Year In Review</p>
                       </div>
                     </div>
                   </div>
@@ -2717,7 +2764,9 @@ export function DrivingView({
               key={`dashboard-${dashboardEpoch}-${
                 currentScreen === 'hood'
                   ? `hood-${hoodSession}`
-                  : currentScreen ?? 'pre-journey'
+                  : currentScreen === 'diagnostics'
+                    ? 'diagnostics'
+                    : 'main'
               }`}
               report={report}
               journeySections={journeySections}

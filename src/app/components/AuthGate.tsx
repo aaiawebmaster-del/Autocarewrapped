@@ -13,9 +13,9 @@ function AuthGateInner() {
     return (
       <div className="auth-gate auth-gate--loading">
         <div className="auth-gate__panel">
-          <p className="auth-gate__eyebrow">Auto Care Wrapped</p>
+          <p className="auth-gate__eyebrow">Your Year In Review</p>
           <h1 className="auth-gate__title">Loading your report</h1>
-          <p className="auth-gate__body">Gathering your year in review…</p>
+          <p className="auth-gate__body">Gathering Your Year In Review…</p>
         </div>
       </div>
     );
@@ -25,10 +25,10 @@ function AuthGateInner() {
     return (
       <div className="auth-gate auth-gate--unauthorized">
         <div className="auth-gate__panel">
-          <p className="auth-gate__eyebrow">Auto Care Wrapped</p>
+          <p className="auth-gate__eyebrow">Your Year In Review</p>
           <h1 className="auth-gate__title">Sign in required</h1>
           <p className="auth-gate__body">
-            Sign in with your Auto Care membership to view your company&apos;s Wrapped report.
+            Sign in with your Auto Care membership to view your company&apos;s Year In Review.
           </p>
           <button type="button" className="auth-gate__btn" onClick={redirectToSsoLogin}>
             Continue to sign in
@@ -45,11 +45,11 @@ function AuthGateInner() {
     return (
       <div className="auth-gate auth-gate--not-found">
         <div className="auth-gate__panel">
-          <p className="auth-gate__eyebrow">Auto Care Wrapped</p>
+          <p className="auth-gate__eyebrow">Your Year In Review</p>
           <h1 className="auth-gate__title">Report not available</h1>
           <p className="auth-gate__body">
             {errorMessage ??
-              'We could not find a Wrapped report for your organization yet.'}
+              'We could not find Your Year In Review for your organization yet.'}
           </p>
         </div>
       </div>
@@ -60,7 +60,7 @@ function AuthGateInner() {
     return (
       <div className="auth-gate auth-gate--error">
         <div className="auth-gate__panel">
-          <p className="auth-gate__eyebrow">Auto Care Wrapped</p>
+          <p className="auth-gate__eyebrow">Your Year In Review</p>
           <h1 className="auth-gate__title">Something went wrong</h1>
           <p className="auth-gate__body">{errorMessage ?? 'Unable to load your report.'}</p>
           <button type="button" className="auth-gate__btn" onClick={retry}>

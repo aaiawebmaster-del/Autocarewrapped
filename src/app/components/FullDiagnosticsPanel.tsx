@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   HoodStandardsSummaryDevice,
   HoodTireCheckBadge,
@@ -20,6 +20,7 @@ import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
 import tireAcademyImage from '../../assets/tire-academy.svg?url';
+
 const TOP_STEP_MAX = 2;
 /** Map arch + dashboard band exit before share scene (matches CSS 0.85s). */
 const DASHBOARD_EXIT_MS = 900;
@@ -43,56 +44,35 @@ const TIRE_ROLL_IMAGES: Record<TirePhase, string> = {
 
 /** Rise into the same vertical band as the top stats / tires carousel */
 const DIAG_STANDARDS_RISE_OFFSET = 36;
-function DiagnosticsCarouselChevron({
-  direction,
-  onClick,
-  disabled,
-  label,
-}: {
-  direction: 'left' | 'right';
-  onClick: () => void;
-  disabled?: boolean;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      className={`full-diagnostics__chevron full-diagnostics__chevron--${direction}`}
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#F3901D"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="full-diagnostics__chevron-icon"
-        aria-hidden
-      >
-        <path d={direction === 'left' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
-      </svg>
-    </button>
-  );
-}
 
-function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
+function DiagnosticsJourneyStatsRow({
+  report,
+  counterOnly = false,
+}: {
+  report: WrappedReport;
+  counterOnly?: boolean;
+}) {
   const journeyCounterStats = buildDiagnosticsCounterStats(report);
 
   return (
-    <motion.div
-      className="full-diagnostics__stats-row"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.35 }}
+    <div
+      className={[
+        'full-diagnostics__stats-row',
+        counterOnly ? 'full-diagnostics__stats-row--counter-only' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       {journeyCounterStats.map((stat) => (
         <section
           key={stat.animationKey}
-          className="journey-counter-panel__gauge full-diagnostics__stat-gauge"
+          className={[
+            'journey-counter-panel__gauge',
+            'full-diagnostics__stat-gauge',
+            counterOnly ? 'full-diagnostics__stat-gauge--counter-only' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           aria-label={stat.label}
         >
           {stat.gaugeVariant === 'community-logo' ? (
@@ -121,19 +101,13 @@ function DiagnosticsJourneyStatsRow({ report }: { report: WrappedReport }) {
           )}
         </section>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
 function DiagnosticsTiresRoll({ report }: { report: WrappedReport }) {
   return (
-    <motion.div
-      className="full-diagnostics__tires-roll"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="full-diagnostics__tires-roll">
       {TIRE_PHASE_ORDER.map((phase, i) => (
         <motion.div
           key={phase}
@@ -159,7 +133,7 @@ function DiagnosticsTiresRoll({ report }: { report: WrappedReport }) {
           />
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
@@ -193,6 +167,7 @@ function DiagnosticsStandardsColumn({ report }: { report: WrappedReport }) {
     </div>
   );
 }
+
 function DiagnosticsShareSlide({
   onBackToStart,
   report,
@@ -229,6 +204,16 @@ function DiagnosticsShareSlide({
         </button>
       </div>
     </motion.div>
+  );
+}
+
+function DiagnosticsCompleteButton({ onComplete }: { onComplete: () => void }) {
+  return (
+    <div className="full-diagnostics__complete-wrap">
+      <button type="button" className="full-diagnostics__complete-btn" onClick={onComplete}>
+        Complete
+      </button>
+    </div>
   );
 }
 
@@ -329,59 +314,6 @@ function DiagnosticsMapEngagement({
   );
 }
 
-function DiagnosticsTopCarousel({
-  step,
-  onStepChange,
-  shareFocus,
-  onBackToStart,
-  report,
-}: {
-  step: number;
-  onStepChange: (next: number) => void;
-  shareFocus: boolean;
-  onBackToStart: () => void;
-  report: WrappedReport;
-}) {
-  const canGoBack = step > 0;
-  const canGoForward = step < TOP_STEP_MAX;
-
-  return (
-    <div
-      className={`full-diagnostics__top${shareFocus ? ' full-diagnostics__top--share-focus' : ''}`}
-    >
-      <div className="full-diagnostics__top-carousel">
-        <DiagnosticsCarouselChevron
-          direction="left"
-          onClick={() => onStepChange(step - 1)}
-          disabled={!canGoBack}
-          label="Previous diagnostics view"
-        />
-        <div className="full-diagnostics__top-carousel-stage">
-          <AnimatePresence mode="wait">
-            {step === 0 && <DiagnosticsJourneyStatsRow key="stats" report={report} />}
-            {step === 1 && <DiagnosticsTiresRoll key="tires" report={report} />}
-            {shareFocus && step === TOP_STEP_MAX && (
-              <DiagnosticsShareSlide key="share" onBackToStart={onBackToStart} report={report} />
-            )}
-          </AnimatePresence>
-        </div>
-        <DiagnosticsCarouselChevron
-          direction="right"
-          onClick={() => onStepChange(step + 1)}
-          disabled={!canGoForward}
-          label={
-            step === 0
-              ? 'Show Kick the Tires wheels'
-              : step === 1
-                ? 'Show year in review and share'
-                : 'Continue'
-          }
-        />
-      </div>
-    </div>
-  );
-}
-
 export function FullDiagnosticsPanel({
   onBackToStart,
   report,
@@ -421,6 +353,7 @@ export function FullDiagnosticsPanel({
   const shareFocus = shareReveal;
   const archHidden = topStep === TOP_STEP_MAX;
   const showMapPopups = topStep < TOP_STEP_MAX;
+  const showDashboard = topStep < TOP_STEP_MAX || dashboardExiting;
 
   const panelClassName = [
     'full-diagnostics',
@@ -430,6 +363,8 @@ export function FullDiagnosticsPanel({
     .filter(Boolean)
     .join(' ');
 
+  const handleComplete = () => setTopStep(TOP_STEP_MAX);
+
   return (
     <div className={panelClassName}>
       <header className="full-diagnostics__header">
@@ -437,25 +372,42 @@ export function FullDiagnosticsPanel({
         <p className="full-diagnostics__subtitle">Your Complete Auto Care Profile</p>
       </header>
 
-      <DiagnosticsTopCarousel
-        step={topStep}
-        onStepChange={setTopStep}
-        shareFocus={shareFocus}
-        onBackToStart={onBackToStart}
-        report={report}
-      />
+      {showDashboard ? (
+        <div className="full-diagnostics__body">
+          <div className="full-diagnostics__upper-band">
+            <div className="full-diagnostics__upper-left">
+              <DiagnosticsJourneyStatsRow report={report} counterOnly />
+            </div>
+            <div className="full-diagnostics__upper-right">
+              <DiagnosticsTiresRoll report={report} />
+            </div>
+          </div>
 
-      <div className={`full-diagnostics__split full-diagnostics__split--step-${topStep}`}>
-        <DiagnosticsStandardsColumn report={report} />
+          <div className="full-diagnostics__split">
+            <DiagnosticsStandardsColumn report={report} />
+            <div className="full-diagnostics__map">
+              <DiagnosticsMapEngagement
+                archHidden={archHidden}
+                showPopups={showMapPopups}
+                eventsMetrics={report.events}
+              />
+            </div>
+          </div>
 
-        <div
-          className={`full-diagnostics__map${shareFocus ? ' full-diagnostics__map--share-focus' : ''}`}
-        >
-          <DiagnosticsMapEngagement
-            archHidden={archHidden}
-            showPopups={showMapPopups}
-            eventsMetrics={report.events}
-          />
+          <DiagnosticsCompleteButton onComplete={handleComplete} />
+        </div>
+      ) : null}
+
+      <div
+        className={`full-diagnostics__top${shareFocus ? ' full-diagnostics__top--share-focus' : ''}`}
+        aria-hidden={!shareFocus}
+      >
+        <div className="full-diagnostics__top-carousel full-diagnostics__top-carousel--share-only">
+          <div className="full-diagnostics__top-carousel-stage">
+            {shareFocus ? (
+              <DiagnosticsShareSlide onBackToStart={onBackToStart} report={report} />
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

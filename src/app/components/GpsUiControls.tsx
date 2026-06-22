@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import iconPlus from '../../assets/map-controls/plus-solid-full.png';
 import iconMinus from '../../assets/map-controls/minus-solid-full.png';
-import iconVolume from '../../assets/map-controls/volume-low-solid-full.png';
 
 type GpsUiControlButtonProps = {
   label: string;
@@ -40,21 +39,6 @@ function GpsUiSearchIcon() {
   );
 }
 
-function GpsUiLocationIcon() {
-  return (
-    <svg className="gps-ui-controls__btn-svg" viewBox="0 0 24 24" aria-hidden>
-      <path
-        d="M12 21 C12 21 18 14.5 18 10.5 C18 7.08 15.42 4.5 12 4.5 C8.58 4.5 6 7.08 6 10.5 C6 14.5 12 21 12 21 Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="10.5" r="2.25" fill="currentColor" />
-    </svg>
-  );
-}
-
 type GpsUiControlsProps = {
   className?: string;
 };
@@ -78,18 +62,6 @@ export function GpsUiControls({ className }: GpsUiControlsProps) {
         </GpsUiControlButton>
         <GpsUiControlButton label="Zoom out" className="gps-ui-controls__btn--zoom-out">
           <GpsUiControlIcon src={iconMinus} />
-        </GpsUiControlButton>
-      </div>
-
-      <div className="gps-ui-controls__cluster gps-ui-controls__cluster--bottom-left">
-        <GpsUiControlButton label="Toggle map sound" className="gps-ui-controls__btn--volume">
-          <GpsUiControlIcon src={iconVolume} />
-        </GpsUiControlButton>
-      </div>
-
-      <div className="gps-ui-controls__cluster gps-ui-controls__cluster--bottom-right">
-        <GpsUiControlButton label="Recenter map" className="gps-ui-controls__btn--recenter">
-          <GpsUiLocationIcon />
         </GpsUiControlButton>
       </div>
     </div>

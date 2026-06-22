@@ -57,6 +57,6 @@ export function companyReportPageUrl(recordNumber?: string | number | null): str
 
 export function buildShareMailtoUrl(reportPageUrl: string): string {
   const subject = 'Our Year with the Auto Care Association';
-  const body = `View our company's Auto Care Wrapped report:\n\n${reportPageUrl}`;
+  const body = `View Your Year In Review for our company:\n\n${reportPageUrl}`;
   return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
