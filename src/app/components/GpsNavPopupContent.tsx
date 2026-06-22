@@ -8,6 +8,8 @@ import {
   getWebinarCopy,
   attendedCountFromPct,
 } from '@/lib/contentVariants';
+import { prefersReducedMotion } from '@/lib/browserCompat';
+import { useMobileViewport } from '@/lib/useMobileViewport';
 
 export const TURN_RIGHT_PATH =
   'M566.6 342.6C579.1 330.1 579.1 309.8 566.6 297.3L438.6 169.3C429.4 160.1 415.7 157.4 403.7 162.4C391.7 167.4 384 179.1 384 192L384 256L224 256C135.6 256 64 327.6 64 416L64 480C64 497.7 78.3 512 96 512L160 512C177.7 512 192 497.7 192 480L192 416C192 398.3 206.3 384 224 384L384 384L384 448C384 460.9 391.8 472.6 403.8 477.6C415.8 482.6 429.5 479.8 438.7 470.7L566.7 342.7z';
@@ -111,9 +113,13 @@ function GpsRouteVehicleChevronIcon() {
 export function GpsEventRouteTrack({
   barW,
   eventsMetrics,
+  showCount = true,
+  loading = false,
 }: {
   barW: number;
   eventsMetrics: EventsMetrics;
+  showCount?: boolean;
+  loading?: boolean;
 }) {
   const { inPersonTotal, attendancePct } = eventsMetrics;
   const attendedCount = attendedCountFromPct(barW, inPersonTotal);
@@ -123,20 +129,38 @@ export function GpsEventRouteTrack({
   return (
     <div
       className="journey-nav-attendance-bar__route"
-      aria-label={`${attendedCount} of ${inPersonTotal} in-person events attended`}
+      aria-label={
+        loading
+          ? 'Calculating in-person event attendance'
+          : `${attendedCount} of ${inPersonTotal} in-person events attended`
+      }
     >
-      <div className="journey-nav-attendance-bar__route-pins">
-        <span
-          className={[
-            'journey-nav-attendance-bar__route-pin',
-            destinationReached ? 'journey-nav-attendance-bar__route-pin--attended' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          style={{ left: '100%' }}
-        >
-          <GpsLocationPinIcon />
-        </span>
+      <div className="journey-nav-attendance-bar__route-upper">
+        {showCount && inPersonTotal > 0 ? (
+          <p
+            className={[
+              'journey-nav-attendance-bar__route-count',
+              loading ? 'journey-nav-attendance-bar__route-count--calculating' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {loading ? 'Calculating' : `${attendedCount} of ${inPersonTotal}`}
+          </p>
+        ) : null}
+        <div className="journey-nav-attendance-bar__route-pins">
+          <span
+            className={[
+              'journey-nav-attendance-bar__route-pin',
+              destinationReached ? 'journey-nav-attendance-bar__route-pin--attended' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            style={{ left: '100%' }}
+          >
+            <GpsLocationPinIcon />
+          </span>
+        </div>
       </div>
       <div className="journey-nav-attendance-bar__route-track">
         <div
@@ -161,6 +185,40 @@ export function GpsEventRouteTrack({
   );
 }
 
+function GpsAttendanceRouteSlot({
+  eyebrow,
+  eyebrowClassName = '',
+  barW,
+  eventsMetrics,
+  showCount = true,
+  loading = false,
+}: {
+  eyebrow: string;
+  eyebrowClassName?: string;
+  barW: number;
+  eventsMetrics: EventsMetrics;
+  showCount?: boolean;
+  loading?: boolean;
+}) {
+  return (
+    <>
+      <p
+        className={['journey-nav-attendance-bar__eyebrow', eyebrowClassName]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {eyebrow}
+      </p>
+      <GpsEventRouteTrack
+        barW={barW}
+        eventsMetrics={eventsMetrics}
+        showCount={showCount}
+        loading={loading}
+      />
+    </>
+  );
+}
+
 export function GpsNavTurnIcon({
   variant,
   size = 32,
@@ -178,6 +236,15 @@ export function GpsNavTurnIcon({
     >
       <path d={TURN_RIGHT_PATH} fill="currentColor" />
     </svg>
+  );
+}
+
+function GpsWebinarHoursBadge({ hours }: { hours: number }) {
+  return (
+    <>
+      <span className="gps-nav-direction__hours-value">{hours}</span>
+      <span className="gps-nav-direction__hours-label">HOURS</span>
+    </>
   );
 }
 
@@ -218,19 +285,21 @@ function GpsNavDirectionCard({
   icon,
   stackedClass = '',
   showActionBand = false,
+  showPrimaryStat = true,
   ctaLink,
   onNext,
   nextDisabled = false,
   nextLabel = 'next',
   ariaLabel,
 }: {
-  primaryText: string;
+  primaryText?: string;
   secondaryText: string;
   message?: string;
   showMessage?: boolean;
   icon?: ReactNode;
   stackedClass?: string;
   showActionBand?: boolean;
+  showPrimaryStat?: boolean;
   ctaLink?: { label: string; href: string };
   onNext?: () => void;
   nextDisabled?: boolean;
@@ -238,70 +307,98 @@ function GpsNavDirectionCard({
   ariaLabel: string;
 }) {
   const resolvedIcon = icon ?? <GpsWebinarRouteIcon title="" aria-hidden />;
+  const hasCtaTab = showActionBand && Boolean(ctaLink);
 
   return (
     <div
       className={[
-        'gps-event-popup',
-        'gps-event-popup--nav',
-        'gps-event-popup--hours',
-        'gps-nav-direction',
-        'gps-nav-direction--webinar',
-        stackedClass,
-        showActionBand ? 'gps-event-popup--nav-expanded gps-nav-direction--expanded' : '',
+        'gps-nav-direction-stack',
+        hasCtaTab ? 'gps-nav-direction-stack--cta-tab' : '',
       ]
         .filter(Boolean)
         .join(' ')}
-      aria-label={ariaLabel}
     >
-      <div className="gps-nav-direction__instruction">
-        <div className="gps-nav-direction__icon" aria-hidden>
-          {resolvedIcon}
+      <div
+        className={[
+          'gps-event-popup',
+          'gps-event-popup--nav',
+          'gps-event-popup--hours',
+          'gps-nav-direction',
+          'gps-nav-direction--webinar',
+          stackedClass,
+          showActionBand ? 'gps-event-popup--nav-expanded gps-nav-direction--expanded' : '',
+          hasCtaTab ? 'gps-nav-direction--card' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        aria-label={ariaLabel}
+      >
+        <div className="gps-nav-direction__instruction">
+          <div className="gps-nav-direction__icon" aria-hidden>
+            {resolvedIcon}
+          </div>
+          <div className="gps-nav-direction__copy">
+            {showPrimaryStat && primaryText ? (
+              <p className="gps-nav-direction__stat">{primaryText}</p>
+            ) : null}
+            <p className="gps-nav-direction__label">{secondaryText}</p>
+            {showMessage && message && (
+              <motion.p
+                className="gps-nav-direction__message"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {message}
+              </motion.p>
+            )}
+          </div>
         </div>
-        <div className="gps-nav-direction__copy">
-          <p className="gps-nav-direction__stat">{primaryText}</p>
-          <p className="gps-nav-direction__label">{secondaryText}</p>
-          {showMessage && message && (
-            <motion.p
-              className="gps-nav-direction__message"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {message}
-            </motion.p>
-          )}
-        </div>
+
+        {showActionBand && ctaLink && onNext && !hasCtaTab && (
+          <motion.div
+            className="gps-nav-direction__action-band"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="gps-nav-direction__action-row">
+              <a
+                href={ctaLink.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gps-nav-direction__cta gps-nav-direction__cta--link"
+              >
+                <GpsIntroTurnArrowIcon direction="up" />
+                <span className="gps-nav-direction__cta-label">{ctaLink.label}</span>
+              </a>
+              <button
+                type="button"
+                className="gps-nav-direction__cta gps-nav-direction__cta--next"
+                onClick={onNext}
+                disabled={nextDisabled}
+              >
+                <GpsIntroTurnArrowIcon direction="right" />
+                <span className="gps-nav-direction__cta-text">{nextLabel}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
 
-      {showActionBand && ctaLink && onNext && (
-        <motion.div
-          className="gps-nav-direction__action-band"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+      {hasCtaTab && ctaLink && (
+        <motion.a
+          href={ctaLink.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="gps-nav-direction__cta gps-nav-direction__cta--link gps-nav-direction__cta-tag"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="gps-nav-direction__action-row">
-            <a
-              href={ctaLink.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="gps-nav-direction__cta gps-nav-direction__cta--link"
-            >
-              <GpsIntroTurnArrowIcon direction="up" />
-              <span className="gps-nav-direction__cta-label">{ctaLink.label}</span>
-            </a>
-            <button
-              type="button"
-              className="gps-nav-direction__cta gps-nav-direction__cta--next"
-              onClick={onNext}
-              disabled={nextDisabled}
-            >
-              <GpsIntroTurnArrowIcon direction="right" />
-              <span className="gps-nav-direction__cta-text">{nextLabel}</span>
-            </button>
-          </div>
-        </motion.div>
+          <span className="gps-nav-direction__cta-label">{ctaLink.label}</span>
+          <GpsIntroTurnArrowIcon direction="right" />
+        </motion.a>
       )}
     </div>
   );
@@ -328,18 +425,18 @@ function GpsWebinarDirectionCard({
 }) {
   return (
     <GpsNavDirectionCard
-      primaryText={`${hours} Hours`}
       secondaryText={copy.subtitle}
       message={copy.body}
       showMessage={showDetails}
-      icon={icon}
+      icon={icon ?? <GpsWebinarHoursBadge hours={hours} />}
       stackedClass={stackedClass}
       showActionBand={showDetails}
+      showPrimaryStat={false}
       ctaLink={copy.cta}
       onNext={onNext}
       nextDisabled={nextDisabled}
       nextLabel={nextLabel}
-      ariaLabel={`${hours} hours, webinar per year`}
+      ariaLabel={`${hours} hours, webinar attendance`}
     />
   );
 }
@@ -371,10 +468,12 @@ function GpsAttendanceStatCard({
       </div>
 
       <div className="gps-attendance-stat__route-block">
-        <p className="journey-nav-attendance-bar__eyebrow gps-attendance-stat__route-eyebrow">
-          {attendanceCopy.eyebrow}
-        </p>
-        <GpsEventRouteTrack barW={barW} eventsMetrics={eventsMetrics} />
+        <GpsAttendanceRouteSlot
+          eyebrow={attendanceCopy.eyebrow}
+          eyebrowClassName="gps-attendance-stat__route-eyebrow"
+          barW={barW}
+          eventsMetrics={eventsMetrics}
+        />
       </div>
 
       <p className="gps-attendance-stat__events-total">{attendanceCopy.eventsTotalLabel}</p>
@@ -412,11 +511,16 @@ export function GpsAttendanceRoutePanel({
         .join(' ')}
       aria-label={`${evtPct}% in-person event attendance`}
     >
-      <div className="journey-nav-attendance-bar__main journey-nav-attendance-bar__main--compact journey-nav-attendance-bar__main--readout">
-        <p className="journey-nav-attendance-bar__value">{evtPct}%</p>
-        <div className="journey-nav-attendance-bar__route-slot">
-          <p className="journey-nav-attendance-bar__eyebrow">{attendanceCopy.eyebrow}</p>
-          <GpsEventRouteTrack barW={barW} eventsMetrics={eventsMetrics} />
+      <div className="journey-nav-attendance-bar__screen journey-nav-attendance-bar__screen--compact">
+        <div className="journey-nav-attendance-bar__main journey-nav-attendance-bar__main--compact journey-nav-attendance-bar__main--readout">
+          <p className="journey-nav-attendance-bar__value">{evtPct}%</p>
+          <div className="journey-nav-attendance-bar__route-slot">
+            <GpsAttendanceRouteSlot
+              eyebrow={attendanceCopy.eyebrow}
+              barW={barW}
+              eventsMetrics={eventsMetrics}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -452,6 +556,7 @@ export function GpsAttendanceBottomBar({
   eventsMetrics,
   compact = false,
   calculating = false,
+  showScreen = true,
   onBack,
   onNext,
   nextLabel = 'next',
@@ -463,12 +568,17 @@ export function GpsAttendanceBottomBar({
   eventsMetrics: EventsMetrics;
   compact?: boolean;
   calculating?: boolean;
+  showScreen?: boolean;
   onBack: () => void;
   onNext: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
 }) {
   const attendanceCopy = getAttendanceCopy(eventsMetrics);
+  const isMobile = useMobileViewport();
+  const reduceMotion = prefersReducedMotion();
+  const isLoading = calculating || !detailsReady;
+  const attendanceEnterY = reduceMotion ? 0 : isMobile ? '100%' : 24;
 
   return (
     <LayoutGroup id="journey-nav-attendance-bar">
@@ -476,6 +586,8 @@ export function GpsAttendanceBottomBar({
         layout
         className={[
           'journey-nav-attendance-bar',
+          'journey-nav-attendance-bar--control-tray',
+          showScreen ? '' : 'journey-nav-attendance-bar--tray-only',
           compact ? 'journey-nav-attendance-bar--compact' : '',
           calculating ? 'journey-nav-attendance-bar--calculating' : '',
         ]
@@ -487,125 +599,148 @@ export function GpsAttendanceBottomBar({
             : `${evtPct}% in-person event attendance`
         }
         aria-busy={calculating}
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: reduceMotion ? 1 : 0, y: attendanceEnterY }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
           layout: ATTENDANCE_BAR_COMPACT_TRANSITION,
-          opacity: { duration: 0.45, ease: ATTENDANCE_BAR_COMPACT_EASE },
-          y: { duration: 0.45, ease: ATTENDANCE_BAR_COMPACT_EASE },
+          opacity: {
+            duration: reduceMotion ? 0 : isMobile ? 0.5 : 0.45,
+            ease: ATTENDANCE_BAR_COMPACT_EASE,
+          },
+          y: {
+            duration: reduceMotion ? 0 : isMobile ? 0.58 : 0.45,
+            ease: isMobile ? [0.22, 1, 0.36, 1] : ATTENDANCE_BAR_COMPACT_EASE,
+          },
         }}
       >
-        <motion.div
-          layout
-          className={[
-            'journey-nav-attendance-bar__main',
-            compact ? 'journey-nav-attendance-bar__main--compact' : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          transition={ATTENDANCE_BAR_ROW_TRANSITION}
-        >
-          <motion.button
-            type="button"
-            className="journey-nav-corner-nav__btn journey-nav-corner-nav__btn--back journey-nav-attendance-bar__back"
-            onClick={onBack}
-          >
-            back
-          </motion.button>
-
-          <div
+        {showScreen ? (
+          <motion.div
+            layout
             className={[
-              'journey-nav-attendance-bar__value',
-              calculating ? 'journey-nav-attendance-bar__value--calculating' : '',
+              'journey-nav-attendance-bar__screen',
+              compact ? 'journey-nav-attendance-bar__screen--compact' : '',
             ]
               .filter(Boolean)
               .join(' ')}
+            transition={ATTENDANCE_BAR_ROW_TRANSITION}
           >
-            {calculating ? (
-              <img
-                src={hourglassIcon}
-                alt=""
-                className="journey-nav-attendance-bar__hourglass gps-icon-turn gps-icon-hourglass--loading"
-                width={40}
-                height={40}
+          <motion.div
+            layout
+            className={[
+              'journey-nav-attendance-bar__main',
+              compact ? 'journey-nav-attendance-bar__main--compact' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            transition={ATTENDANCE_BAR_ROW_TRANSITION}
+          >
+            <div
+              className={[
+                'journey-nav-attendance-bar__value',
+                isLoading ? 'journey-nav-attendance-bar__value--calculating' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              {isLoading ? (
+                <img
+                  src={hourglassIcon}
+                  alt=""
+                  className="journey-nav-attendance-bar__hourglass gps-icon-turn gps-icon-hourglass--loading"
+                  width={40}
+                  height={40}
+                />
+              ) : (
+                `${evtPct}%`
+              )}
+            </div>
+
+            <div className="journey-nav-attendance-bar__route-slot">
+              <GpsAttendanceRouteSlot
+                eyebrow={attendanceCopy.eyebrow}
+                barW={barW}
+                eventsMetrics={eventsMetrics}
+                loading={isLoading}
               />
-            ) : (
-              `${evtPct}%`
-            )}
-          </div>
+            </div>
 
-          <div className="journey-nav-attendance-bar__route-slot">
-            <p className="journey-nav-attendance-bar__eyebrow">{attendanceCopy.eyebrow}</p>
-            <GpsEventRouteTrack barW={barW} eventsMetrics={eventsMetrics} />
-          </div>
+            <motion.div
+              layout
+              className="journey-nav-attendance-bar__headline"
+              initial={false}
+              animate={
+                compact
+                  ? {
+                      height: 0,
+                      opacity: 0,
+                      marginTop: 0,
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                      y: 28,
+                    }
+                  : {
+                      height: 'auto',
+                      opacity: 1,
+                      marginTop: 0,
+                      paddingTop: undefined,
+                      paddingBottom: undefined,
+                      y: 0,
+                    }
+              }
+              transition={{
+                ...ATTENDANCE_BAR_HEADLINE_TRANSITION,
+                opacity: { duration: 0.34, ease: 'easeOut' },
+                y: ATTENDANCE_BAR_HEADLINE_TRANSITION,
+                height: ATTENDANCE_BAR_HEADLINE_TRANSITION,
+              }}
+              style={{ overflow: 'hidden' }}
+              aria-hidden={compact}
+            >
+              <div className="journey-nav-attendance-bar__copy-slot">
+                {calculating ? (
+                  <p className="journey-nav-attendance-bar__calculating">{ATTENDANCE_CALCULATING_COPY}</p>
+                ) : (
+                  <p className="journey-nav-attendance-bar__support">{attendanceCopy.asideMessage}</p>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+          </motion.div>
+        ) : null}
 
-          <motion.button
+        <div className="journey-nav-attendance-bar__control-tray" aria-label="Map navigation">
+          <button
             type="button"
-            className="journey-nav-corner-nav__btn journey-nav-corner-nav__btn--next journey-nav-attendance-bar__next"
+            className="infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--left journey-nav-attendance-bar__back"
+            onClick={onBack}
+          >
+            back
+          </button>
+          <a
+            href={attendanceCopy.cta.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="infotainment-headunit__softkey infotainment-headunit__nav-btn journey-nav-attendance-bar__cta"
+          >
+            {isMobile ? (
+              <>
+                explore upcoming
+                <br />
+                events
+              </>
+            ) : (
+              attendanceCopy.cta.label
+            )}
+          </a>
+          <button
+            type="button"
+            className="infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--right journey-nav-attendance-bar__next"
             onClick={onNext}
             disabled={nextDisabled}
           >
             {nextLabel}
-          </motion.button>
-
-          <motion.div
-            layout
-            className="journey-nav-attendance-bar__headline"
-            initial={false}
-            animate={
-              compact
-                ? {
-                    height: 0,
-                    opacity: 0,
-                    marginTop: 0,
-                    paddingTop: 0,
-                    paddingBottom: 0,
-                    y: 28,
-                  }
-                : {
-                    height: 'auto',
-                    opacity: 1,
-                    marginTop: 0,
-                    paddingTop: undefined,
-                    paddingBottom: undefined,
-                    y: 0,
-                  }
-            }
-            transition={{
-              ...ATTENDANCE_BAR_HEADLINE_TRANSITION,
-              opacity: { duration: 0.34, ease: 'easeOut' },
-              y: ATTENDANCE_BAR_HEADLINE_TRANSITION,
-              height: ATTENDANCE_BAR_HEADLINE_TRANSITION,
-            }}
-            style={{ overflow: 'hidden' }}
-            aria-hidden={compact}
-          >
-            <div className="journey-nav-attendance-bar__copy-slot">
-              {calculating ? (
-                <p className="journey-nav-attendance-bar__calculating">{ATTENDANCE_CALCULATING_COPY}</p>
-              ) : (
-                <p className="journey-nav-attendance-bar__support">{attendanceCopy.asideMessage}</p>
-              )}
-            </div>
-            <a
-              href={attendanceCopy.cta.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={[
-                'journey-nav-corner-nav__btn',
-                'journey-nav-corner-nav__btn--cta',
-                'journey-nav-attendance-bar__cta',
-                calculating ? 'journey-nav-attendance-bar__cta--reserved' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              tabIndex={compact || calculating ? -1 : undefined}
-              aria-hidden={calculating || compact}
-            >
-              {attendanceCopy.cta.label}
-            </a>
-          </motion.div>
-        </motion.div>
+          </button>
+        </div>
       </motion.div>
     </LayoutGroup>
   );

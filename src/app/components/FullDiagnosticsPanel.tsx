@@ -15,6 +15,7 @@ import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
 import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
+import { debugSessionLog } from '@/lib/debugSessionLog';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
@@ -390,6 +391,18 @@ export function FullDiagnosticsPanel({
 }) {
   const [topStep, setTopStep] = useState(0);
   const [shareReveal, setShareReveal] = useState(false);
+
+  // #region agent log
+  useEffect(() => {
+    debugSessionLog({
+      location: 'FullDiagnosticsPanel.tsx:mount',
+      message: 'FullDiagnosticsPanel mounted',
+      data: { companyId: report.company.id, topStep: 0 },
+      hypothesisId: 'A',
+      runId: 'post-fix',
+    });
+  }, [report.company.id]);
+  // #endregion
 
   useEffect(() => {
     if (topStep !== TOP_STEP_MAX) {

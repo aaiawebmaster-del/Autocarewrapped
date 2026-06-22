@@ -122,17 +122,17 @@ export function getWebinarCopy(
 ): WebinarCopy {
   const copy: Record<WebinarVariant, WebinarCopy> = {
     none: {
-      subtitle: 'WEBINAR/YEAR',
+      subtitle: 'Webinar Attendance',
       body: 'Explore on-demand webinars to keep your team learning between events.',
       cta: WEBINAR_CTA,
     },
     some: {
-      subtitle: 'WEBINAR/YEAR',
+      subtitle: 'Webinar Attendance',
       body: 'See what you missed and view our webinars on-demand.',
       cta: WEBINAR_CTA,
     },
     many: {
-      subtitle: 'WEBINAR/YEAR',
+      subtitle: 'Webinar Attendance',
       body: 'Your team is deeply invested in learning — share the webinar library with colleagues who could benefit too.',
       cta: WEBINAR_CTA,
     },
@@ -147,6 +147,7 @@ export function getWebinarCopy(
 export function getHoodStandardsMessages(report: WrappedReport): {
   checking: string;
   subscribed: string;
+  subscribedDatabase: string;
   missing: string;
   vip: string;
   subscribedPct: number;
@@ -160,14 +161,16 @@ export function getHoodStandardsMessages(report: WrappedReport): {
     report.standards?.subscribedCount ?? subscribed.length;
   const subscribedLabel =
     subscribed.length > 0 ? subscribed.join(', ') : 'no standards subscriptions yet';
+  const databaseAccessIcons = getStandardsDatabaseAccessIcons(subscribedProducts);
 
   return {
     checking: 'checking standards levels',
     subscribed: `you are subscribed to ${subscribedPct}% of our data standards`,
+    subscribedDatabase: 'Make sure your databases are up-to-date with the latest releases',
     missing: `you are subscribed to ${subscribedCount} standards: ${subscribedLabel}`,
     vip: 'Make sure your databases are up-to-date with the latest releases',
     subscribedPct,
-    databaseAccessIcons: getStandardsDatabaseAccessIcons(subscribedProducts),
+    databaseAccessIcons,
     protocolLogos: getStandardsProtocolLogos(subscribedProducts),
   };
 }

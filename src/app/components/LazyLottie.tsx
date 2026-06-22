@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react';
 import { preferCanvasLottieRenderer, prefersReducedMotion } from '@/lib/browserCompat';
 import type { LottieAnimationData } from '@/lib/lazyLottieData';
@@ -27,6 +27,7 @@ export function LazyLottie({
 }: LazyLottieProps) {
   const [animationData, setAnimationData] = useState<LottieAnimationData | null>(null);
   const lottieRef = useRef<LottieRefCurrentProps>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const shouldAnimate = active && !prefersReducedMotion();
 
   useEffect(() => {
@@ -54,18 +55,49 @@ export function LazyLottie({
     instance.pause();
   }, [animationData, shouldAnimate, autoplay, active]);
 
+  useLayoutEffect(() => {
+    if (!active || !animationData) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const lastSizeRef = { w: 0, h: 0 };
+
+    const syncCanvasSize = () => {
+      const anim = lottieRef.current?.animationItem;
+      if (!anim || typeof anim.resize !== 'function') return;
+
+      const rect = container.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      if (width < 8 || height < 8) return;
+      if (width === lastSizeRef.w && height === lastSizeRef.h) return;
+
+      lastSizeRef.w = width;
+      lastSizeRef.h = height;
+      anim.resize(width, height);
+    };
+
+    syncCanvasSize();
+    const observer = new ResizeObserver(syncCanvasSize);
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+    };
+  }, [active, animationData]);
+
   if (!active || !animationData) return null;
 
   return (
-    <Lottie
-      lottieRef={lottieRef}
-      animationData={animationData}
-      loop={loop}
-      autoplay={false}
-      className={className}
-      style={style}
-      renderer={preferCanvasLottieRenderer() ? 'canvas' : 'svg'}
-      rendererSettings={rendererSettings}
-    />
+    <div ref={containerRef} className={className} style={style}>
+      <Lottie
+        lottieRef={lottieRef}
+        animationData={animationData}
+        loop={loop}
+        autoplay={false}
+        style={{ width: '100%', height: '100%' }}
+        renderer={preferCanvasLottieRenderer() ? 'canvas' : 'svg'}
+        rendererSettings={rendererSettings}
+      />
+    </div>
   );
 }

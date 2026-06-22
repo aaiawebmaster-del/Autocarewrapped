@@ -10,6 +10,7 @@
     "dev:api": "node server/reference-api.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "docs:architecture-pdf": "node scripts/generate-architecture-pdf.mjs",
     "docs:architecture-pdf": "node scripts/generate-architecture-pdf.mjs"
   },
   "dependencies": {

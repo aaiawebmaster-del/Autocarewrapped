@@ -15,6 +15,7 @@ import {
   isTirePhase,
   type HoodNavTransition,
   type HoodPhase,
+  type TirePhase,
 } from './MapSimulation';
 import carStartSound from '../../assets/car-start-drive-off.mp3';
 import { loadDrivingAnimation } from '@/lib/lazyLottieData';
@@ -375,63 +376,61 @@ function InfotainmentHeadUnit({
       exit={{ opacity: 0, y: 6 }}
       transition={{ ...INTRO_LAYOUT_TRANSITION, delay: 0.06 }}
     >
-      <InfotainmentHeadunitFrame contentClassName="infotainment-headunit__layout">
-        <div className="infotainment-headunit__side infotainment-headunit__side--left">
+      <InfotainmentHeadunitFrame contentClassName="infotainment-headunit__layout infotainment-headunit__layout--intro">
+        <div className="infotainment-headunit__main">
+          <div className="infotainment-headunit__screen-well">
+            <div className="infotainment-console__screen infotainment-console__screen--glossy">
+              <div className="pre-journey-stage__intro-panel">
+                <div className="infotainment-console__screen-glass" aria-hidden />
+                <div className="pre-journey-stage__intro-text">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentSlide}
+                      className="intro-slide__copy"
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.55, ease: INTRO_LAYOUT_TRANSITION.ease }}
+                    >
+                      {currentSlide === 0 ? (
+                        <div className="intro-slide__welcome">
+                          <p className="intro-slide__text">{INTRO_WELCOME_GREETING}</p>
+                          <p className="intro-slide__text intro-slide__text--company">
+                            {memberDisplayName ? `${memberDisplayName}, ${companyName}` : companyName}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="intro-slide__text">
+                          {FOLLOW_UP_SLIDE_TEXTS[currentSlide - 1]}
+                        </p>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="infotainment-headunit__control-tray" aria-label="Slide navigation">
+          <div className="infotainment-headunit__control-group infotainment-headunit__control-group--left">
+            <HeadunitDialButton
+              direction="back"
+              onClick={onBack}
+              label="Previous slide"
+            />
             <HeadunitNavButton
               label="Back"
               onClick={onBack}
               disabled={backDisabled}
               side="left"
             />
-            <HeadunitDialButton
-              direction="back"
-              onClick={onBack}
-              label="Previous slide"
-            />
           </div>
-
-          <div className="infotainment-headunit__main">
-            <div className="infotainment-headunit__screen-well">
-              <div className="infotainment-console__screen infotainment-console__screen--glossy">
-                <span className="infotainment-headunit__clock" aria-hidden>
-                  20:26 YR
-                </span>
-                <div className="pre-journey-stage__intro-panel">
-                  <div className="infotainment-console__screen-glass" aria-hidden />
-                  <div className="pre-journey-stage__intro-text">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={currentSlide}
-                        className="intro-slide__copy"
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.55, ease: INTRO_LAYOUT_TRANSITION.ease }}
-                      >
-                        {currentSlide === 0 ? (
-                          <div className="intro-slide__welcome">
-                            <p className="intro-slide__text">{INTRO_WELCOME_GREETING}</p>
-                            <p className="intro-slide__text intro-slide__text--company">
-                              {memberDisplayName ? `${memberDisplayName}, ${companyName}` : companyName}
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="intro-slide__text">
-                            {FOLLOW_UP_SLIDE_TEXTS[currentSlide - 1]}
-                          </p>
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="infotainment-headunit__side infotainment-headunit__side--right">
+          <div className="infotainment-headunit__control-group infotainment-headunit__control-group--right">
             <HeadunitNavButton label="Next" onClick={onNext} side="right" />
             <HeadunitDialButton direction="next" onClick={onNext} label="Next slide" />
           </div>
+        </div>
       </InfotainmentHeadunitFrame>
     </motion.div>
   );
@@ -608,7 +607,7 @@ const JOURNEY_END_GPS_PHASE = 4;
 
 const JOURNEY_MAP_PANEL_MAX_HEIGHT = 520;
 const DRIVING_FOOTER_HEIGHT_PX = 96;
-const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 391;
+const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 300;
 const DRIVING_DEFAULT_BACKDROP_BOTTOM_PX =
   DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX + DRIVING_FOOTER_HEIGHT_PX;
 
@@ -807,6 +806,21 @@ function GpsNavSection({
   }, [phase, initialPhase]);
 
   useEffect(() => {
+    if (phase !== 2) return;
+    if (initialPhase >= 2 && mapReplayKey === 0) {
+      setAttendanceBarCompact(false);
+      return;
+    }
+    setAttendanceBarCompact(true);
+  }, [phase, initialPhase, mapReplayKey]);
+
+  useEffect(() => {
+    if (phase !== 2 || attendanceCalculating || barW < attendanceTarget) return;
+    if (initialPhase >= 2 && mapReplayKey === 0) return;
+    setAttendanceBarCompact(false);
+  }, [phase, attendanceCalculating, barW, attendanceTarget, initialPhase, mapReplayKey]);
+
+  useEffect(() => {
     if (phase !== 2) {
       setAttendanceCalculating(false);
       return;
@@ -870,7 +884,7 @@ function GpsNavSection({
   const handleRestartSequence = useCallback(() => {
     setArrivalStep('arrived');
     setPopupMinimized(false);
-    setAttendanceBarCompact(initialPhase >= 3);
+    setAttendanceBarCompact(true);
     setExitingToArrival(false);
     setLeavingForHood(false);
     setHoursCount(0);
@@ -944,8 +958,12 @@ function GpsNavSection({
   const popupRevealed = phase >= 2 && !exitingToArrival;
   const evtPct = Math.round(barW);
   const showArrivalOverlay = phase === 4 && !leavingForHood;
-  const showAttendanceBar =
+  const showAttendanceScreen =
     phase >= 2 && phase < 4 && popupRevealed && !popupMinimized && !exitingToArrival;
+  const showMapControlTray =
+    !leavingForHood &&
+    !popupMinimized &&
+    (showArrivalOverlay || exitingToArrival || showAttendanceScreen);
   const showPopupStack = visiblePopupPhase === 3 && !popupMinimized;
   const stackedPopupPhases = showPopupStack
     ? getJourneyNavStackPhases(visiblePopupPhase)
@@ -953,13 +971,6 @@ function GpsNavSection({
   const showNavControls = phase >= 1 && phase <= 4;
   const resolvePopupDetailsReady = (popupPhase: number) =>
     popupPhase === 2 ? attendanceDetailsReady : webinarDetailsReady;
-  const showCornerNav =
-    phase === 3 &&
-    visiblePopupPhase !== null &&
-    !exitingToArrival &&
-    phase < 4 &&
-    !attendanceBarCompact;
-  const showArrivalNav = showArrivalOverlay;
   const uiMotion = uiSceneMotion ?? {
     initial: { opacity: 1 },
     animate: { opacity: 1 },
@@ -1013,12 +1024,6 @@ function GpsNavSection({
               >
                 back
               </button>
-              <p
-                className="journey-nav-attendance-bar__value journey-nav-popup-row__nav-spacer"
-                aria-hidden
-              >
-                {evtPct}%
-              </p>
               <div className="journey-nav-popup-overlay">
                 <LayoutGroup>
                   <div className="journey-nav-popup-stack">
@@ -1096,7 +1101,7 @@ function GpsNavSection({
           )}
         </AnimatePresence>
         )}
-        {showAttendanceBar && (
+        {showMapControlTray && (
           <GpsAttendanceBottomBar
             evtPct={evtPct}
             barW={barW}
@@ -1104,24 +1109,11 @@ function GpsNavSection({
             calculating={attendanceCalculating}
             eventsMetrics={eventsMetrics}
             compact={attendanceBarCompact}
-            onBack={handleNavBack}
-            onNext={handleAdvance}
-            nextLabel={advanceLabel}
-            nextDisabled={!canAdvance}
-          />
-        )}
-        {showCornerNav && (
-          <JourneyNavCornerNav
-            onBack={handleNavBack}
-            onNext={handleAdvance}
-            nextLabel={advanceLabel}
-            nextDisabled={!canAdvance}
-          />
-        )}
-        {showArrivalNav && (
-          <JourneyNavCornerNav
-            onBack={handleArrivalNavBack}
-            onNext={handleArrivalNavNext}
+            showScreen={showAttendanceScreen}
+            onBack={showArrivalOverlay ? handleArrivalNavBack : handleNavBack}
+            onNext={showArrivalOverlay ? handleArrivalNavNext : handleAdvance}
+            nextLabel={showArrivalOverlay ? 'next' : advanceLabel}
+            nextDisabled={showArrivalOverlay ? false : !canAdvance}
           />
         )}
       </motion.div>
@@ -1565,7 +1557,17 @@ function DashboardPanel({
   const measureMapPanelHeight = useCallback(() => {
     const container = panelRef.current?.parentElement;
     if (!container) return JOURNEY_MAP_PANEL_MAX_HEIGHT;
-    return Math.min(JOURNEY_MAP_PANEL_MAX_HEIGHT, container.clientHeight - 10);
+    const available = container.clientHeight - 10;
+    const root = panelRef.current?.closest('.driving-view-root');
+    const landingHeight = root
+      ? Number.parseFloat(getComputedStyle(root).getPropertyValue('--landing-dashboard-height'))
+      : Number.NaN;
+    const isMobileLayout = window.matchMedia('(max-width: 640px)').matches;
+    const maxHeight =
+      isMobileLayout && Number.isFinite(landingHeight)
+        ? landingHeight + 120
+        : JOURNEY_MAP_PANEL_MAX_HEIGHT;
+    return Math.min(maxHeight, available);
   }, []);
 
   const beginJourneySceneSlide = useCallback(() => {
@@ -1723,6 +1725,7 @@ function DashboardPanel({
       className={[
         'dashboard-panel',
         isLanding ? 'dashboard-panel--landing' : '',
+        showPreJourney ? 'dashboard-panel--pre-journey' : '',
         usesPanelArch ? 'dashboard-panel--arch' : '',
         isHood ? 'dashboard-panel--hood' : '',
         journeyPanelActive ? 'dashboard-panel--journey-scene' : '',
@@ -1995,6 +1998,7 @@ export function DrivingView({
   const [skyRunId, setSkyRunId] = useState(0);
   const [dashboardEpoch, setDashboardEpoch] = useState(0);
   const pendingCheckpointRef = useRef<NavCheckpoint | null>(null);
+  const lastTirePhaseRef = useRef<TirePhase>('trendlens');
   const drivingRootRef = useRef<HTMLDivElement>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
   const [dashboardPanelMounted, setDashboardPanelMounted] = useState(false);
@@ -2007,6 +2011,17 @@ export function DrivingView({
   const screenOrder = NAV_ITEMS.map((n) => n.id);
   const activeNav = getActiveNavCheckpoint(currentScreen, hoodPhase);
   const currentIdx = activeNav ? screenOrder.indexOf(activeNav) : -1;
+
+  const saveJourneyResumeForNav = useCallback(() => {
+    setJourneyResumeSectionIdx(journeyNavSectionIndex);
+    setJourneyResumeGpsPhase(JOURNEY_END_GPS_PHASE);
+  }, [journeyNavSectionIndex]);
+
+  useEffect(() => {
+    if (isTirePhase(hoodPhase)) {
+      lastTirePhaseRef.current = hoodPhase;
+    }
+  }, [hoodPhase]);
 
   const skyProgress = useMotionValue(0);
 
@@ -2067,6 +2082,9 @@ export function DrivingView({
     setHoodEntryPhase(null);
     setHoodNavTransition(null);
     setHoodPhase('standards');
+    lastTirePhaseRef.current = 'trendlens';
+    pendingCheckpointRef.current = null;
+    setHoodSession((n) => n + 1);
     setDashboardEpoch((epoch) => epoch + 1);
     skyProgress.set(0);
   };
@@ -2137,6 +2155,7 @@ export function DrivingView({
       if (!isStarted) setIsStarted(true);
       setCurrentSlide(null);
       setHoodNavTransition(null);
+      setHoodPhase('standards');
       pendingCheckpointRef.current = checkpoint;
       setHoodEntryPhase('hood-panel-falling');
       return;
@@ -2158,6 +2177,9 @@ export function DrivingView({
     setCurrentSlide(null);
 
     if (onTires && checkpoint === 'hood') {
+      // #region agent log
+      fetch('http://127.0.0.1:7309/ingest/e37df176-7b34-48f2-acb9-bbc0f91681a3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dacadc'},body:JSON.stringify({sessionId:'dacadc',location:'DrivingView.tsx:goToCheckpoint.tiresToHood',message:'Footer nav tires to hood',data:{hoodPhase,hoodNavTransition,hoodEntryPhase},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       setHoodNavTransition('tire-to-standards');
       return;
     }
@@ -2172,8 +2194,12 @@ export function DrivingView({
     }
 
     if (checkpoint === 'journey') {
-      setJourneyResumeSectionIdx(undefined);
-      setJourneyResumeGpsPhase(undefined);
+      if (onHood) {
+        pendingCheckpointRef.current = 'journey';
+        setHoodEntryPhase('hood-panel-falling');
+        return;
+      }
+      saveJourneyResumeForNav();
       setCurrentScreen('journey');
       return;
     }
@@ -2196,7 +2222,7 @@ export function DrivingView({
         setHoodEntryPhase('sliding-dashboard');
         return;
       }
-      setHoodPhase('trendlens');
+      setHoodPhase(lastTirePhaseRef.current);
       setHoodSession((n) => n + 1);
       setCurrentScreen('hood');
       if (!onHood) {
@@ -2260,7 +2286,7 @@ export function DrivingView({
       setCurrentSlide(null);
       setJourneyResumeSectionIdx(undefined);
       setJourneyResumeGpsPhase(undefined);
-      setHoodPhase('trendlens');
+      setHoodPhase(lastTirePhaseRef.current);
       setHoodSession((n) => n + 1);
       setCurrentScreen('hood');
     } else {
@@ -2286,8 +2312,7 @@ export function DrivingView({
     pendingCheckpointRef.current = null;
     setHoodEntryPhase(null);
     if (pending === 'journey') {
-      setJourneyResumeSectionIdx(undefined);
-      setJourneyResumeGpsPhase(undefined);
+      saveJourneyResumeForNav();
       setCurrentScreen('journey');
       return;
     }
@@ -2295,7 +2320,7 @@ export function DrivingView({
       setDiagnosticsStage('full');
       setCurrentScreen('diagnostics');
     }
-  }, []);
+  }, [saveJourneyResumeForNav]);
 
   const handleHoodNavTransitionMidpoint = useCallback(() => {
     // #region agent log
@@ -2311,7 +2336,7 @@ export function DrivingView({
       return;
     }
     if (hoodNavTransition === 'standards-to-tire') {
-      setHoodPhase('trendlens');
+      setHoodPhase(lastTirePhaseRef.current);
     }
   }, [hoodNavTransition]);
 
@@ -2342,10 +2367,9 @@ export function DrivingView({
   }, []);
 
   const handleBackToJourneyEnd = useCallback(() => {
-    setJourneyResumeSectionIdx(journeyNavSectionIndex);
-    setJourneyResumeGpsPhase(JOURNEY_END_GPS_PHASE);
+    saveJourneyResumeForNav();
     setCurrentScreen('journey');
-  }, []);
+  }, [saveJourneyResumeForNav]);
 
   const handleStart = useCallback(() => {
     setIsStarted(true);
@@ -2366,8 +2390,9 @@ export function DrivingView({
     showLandingBackdrop || showDrivingBackdrop || isBackdropFadingToBlack;
 
   const showRoadLottie = showDrivingBackdrop && !prefersReducedMotion();
-  const showFooterNav = currentScreen && diagnosticsStage === 'full';
+  const showFooterNav = isStarted && diagnosticsStage === 'full';
   const isMobileViewport = useMobileViewport();
+  const isPreJourneyScene = !isStarted || (currentSlide !== null && !currentScreen);
   const showDashboardPanel =
     !isDiagnosticsFlow &&
     !isBackdropFadingToBlack &&
@@ -2422,33 +2447,21 @@ export function DrivingView({
   }, [currentScreen, currentSlide, hoodPhase, hoodEntryPhase, hoodNavTransition, diagnosticsStage, showDashboardPanel, showFooterNav, isBackdropFadingToBlack, isDiagnosticsFlow, activeNav]);
   // #endregion
 
-  const backdropBottomPx = useDashboardPinnedBackdropBottom(
-    drivingRootRef,
-    dashboardPanelRef,
-    showSkyAndRoad,
-    dashboardPanelMounted,
-  );
-
   return (
     <div
-      ref={drivingRootRef}
-      className="relative w-full h-full overflow-hidden bg-black"
-      style={
-        {
-          '--driving-backdrop-bottom': `${backdropBottomPx}px`,
-        } as React.CSSProperties
-      }
+      className={[
+        'driving-view-root relative w-full h-full overflow-hidden bg-black',
+        isPreJourneyScene ? 'driving-view-root--pre-journey' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
 
       {/* ── Driving scene Lottie — band above dashboard ── */}
       {showSkyAndRoad && (
         <div
           className={`driving-view-backdrop${showDrivingBackdrop ? ' driving-view-backdrop--sequence' : ''}`}
-          style={{
-            bottom: backdropBottomPx,
-            zIndex: 2,
-            pointerEvents: 'none',
-          }}
+          style={{ zIndex: 2, pointerEvents: 'none' }}
           aria-hidden
         >
           <div className="driving-view-backdrop__scene">
@@ -2559,7 +2572,7 @@ export function DrivingView({
                 <button
                   type="button"
                   onClick={goToPrev}
-                  disabled={currentIdx === 0}
+                  disabled={currentIdx <= 0}
                   className="driving-view-footer__nav-arrow"
                   aria-label="Previous section"
                 >
@@ -2585,7 +2598,7 @@ export function DrivingView({
                 <button
                   type="button"
                   onClick={goToNext}
-                  disabled={currentIdx === screenOrder.length - 1}
+                  disabled={currentIdx < 0 || currentIdx === screenOrder.length - 1}
                   className="driving-view-footer__nav-arrow"
                   aria-label="Next section"
                 >
@@ -2650,7 +2663,10 @@ export function DrivingView({
       )}
 
       {/* ── Main content area — dashboard panels and screens only ── */}
-      <div className="absolute top-0 bottom-24 left-0 right-0" style={{ zIndex: 10 }}>
+      <div
+        className="absolute top-0 left-0 right-0"
+        style={{ zIndex: 10, bottom: 'var(--driving-footer-height, 6rem)' }}
+      >
         <div className="absolute inset-0 driving-view-stage">
           <AnimatePresence>
             {!isStarted && (

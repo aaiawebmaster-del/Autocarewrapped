@@ -77,6 +77,10 @@
   opacity: 0.6;
 }
 
+.reduce-motion .dashboard-prndl__highlight {
+  transition: none !important;
+}
+
 .reduce-motion .infotainment-console__dial--tilt-left,
 .reduce-motion .infotainment-console__dial--tilt-right,
 .reduce-motion .infotainment-console__dial--tilt-left .infotainment-console__dial-tick,

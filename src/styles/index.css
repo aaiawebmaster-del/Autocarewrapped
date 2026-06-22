@@ -3,6 +3,7 @@
 @import './theme.css';
 @import './map-responsive.css';
 @import './browser-compat.css';
+@import './browser-compat.css';
 
 /* Hide scrollbars app-wide; scrolling still works via touch/wheel/trackpad */
 html,
