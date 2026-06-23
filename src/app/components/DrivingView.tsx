@@ -25,6 +25,7 @@ import { DashboardPrndl } from './DashboardPrndl';
 import { DashboardWideDecor } from './DashboardWideDecor';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import { buildJourneySections, type JourneySection } from '@/lib/buildJourneySections';
+import { getAapex2026DetailMessage, getInitialTirePhase } from '@/lib/contentVariants';
 import {
   JOURNEY_CALCULATING_HOLD_MS,
   JOURNEY_NAV_MAP_ENTER_EVENT,
@@ -607,6 +608,8 @@ function useIsCounterMobile() {
 const JOURNEY_END_GPS_PHASE = 4;
 
 const JOURNEY_MAP_PANEL_MAX_HEIGHT = 520;
+const JOURNEY_COUNTER_PANEL_DESKTOP_HEIGHT = 360;
+const JOURNEY_COUNTER_FOOTER_CLEARANCE_PX = 15;
 const DRIVING_FOOTER_HEIGHT_PX = 96;
 const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 300;
 const DRIVING_DEFAULT_BACKDROP_BOTTOM_PX =
@@ -651,7 +654,13 @@ function getJourneyNavStackPhases(visiblePopupPhase: number | null): number[] {
 
 type ArrivalStep = 'arrived' | 'rerouting';
 
-function JourneyNavArrivalOverlay({ step }: { step: ArrivalStep }) {
+function JourneyNavArrivalOverlay({
+  step,
+  aapexExhibitor = false,
+}: {
+  step: ArrivalStep;
+  aapexExhibitor?: boolean;
+}) {
   const isRerouting = step === 'rerouting';
 
   return (
@@ -702,7 +711,7 @@ function JourneyNavArrivalOverlay({ step }: { step: ArrivalStep }) {
               className={`journey-nav-arrival__detail${isRerouting ? ' journey-nav-arrival__detail--lead' : ''}`}
             >
               {isRerouting
-                ? 'Being at AAPEX is the #1 way to not only stay connected and forge new business.'
+                ? getAapex2026DetailMessage(aapexExhibitor)
                 : 'Thank you for Attending AAPEX 2025'}
             </p>
             {isRerouting ? (
@@ -780,7 +789,12 @@ function GpsNavSection({
     initialPhase >= 3 ? 3 : 2,
   );
   const [exitingToArrival, setExitingToArrival] = useState(false);
-  const [attendanceBarCompact, setAttendanceBarCompact] = useState(initialPhase >= 3);
+  const [attendanceRevealExpanded, setAttendanceRevealExpanded] = useState(false);
+  const attendanceDetailsReady = barW >= attendanceTarget;
+  const attendanceBarCompact =
+    phase >= 3 ||
+    attendanceCalculating ||
+    (phase === 2 && !attendanceRevealExpanded);
 
   useEffect(() => {
     if (exitingToArrival) return;
@@ -809,17 +823,23 @@ function GpsNavSection({
   useEffect(() => {
     if (phase !== 2) return;
     if (initialPhase >= 2 && mapReplayKey === 0) {
-      setAttendanceBarCompact(false);
+      setAttendanceRevealExpanded(true);
       return;
     }
-    setAttendanceBarCompact(true);
+    setAttendanceRevealExpanded(false);
   }, [phase, initialPhase, mapReplayKey]);
 
   useEffect(() => {
-    if (phase !== 2 || attendanceCalculating || barW < attendanceTarget) return;
+    if (phase !== 2 || attendanceCalculating || !attendanceDetailsReady) return;
     if (initialPhase >= 2 && mapReplayKey === 0) return;
-    setAttendanceBarCompact(false);
-  }, [phase, attendanceCalculating, barW, attendanceTarget, initialPhase, mapReplayKey]);
+    setAttendanceRevealExpanded(true);
+  }, [
+    phase,
+    attendanceCalculating,
+    attendanceDetailsReady,
+    initialPhase,
+    mapReplayKey,
+  ]);
 
   useEffect(() => {
     if (phase !== 2) {
@@ -885,7 +905,7 @@ function GpsNavSection({
   const handleRestartSequence = useCallback(() => {
     setArrivalStep('arrived');
     setPopupMinimized(false);
-    setAttendanceBarCompact(true);
+    setAttendanceRevealExpanded(false);
     setExitingToArrival(false);
     setLeavingForHood(false);
     setHoursCount(0);
@@ -902,7 +922,7 @@ function GpsNavSection({
 
   const handleNavBack = () => {
     if (phase === 3) {
-      setAttendanceBarCompact(false);
+      setAttendanceRevealExpanded(true);
       setPhase(2);
       return;
     }
@@ -919,7 +939,7 @@ function GpsNavSection({
 
   const handleAdvance = () => {
     if (phase === 2) {
-      setAttendanceBarCompact(true);
+      setAttendanceRevealExpanded(false);
       setPhase(3);
       return;
     }
@@ -950,7 +970,6 @@ function GpsNavSection({
     handleGoToHoodWithTransition();
   };
 
-  const attendanceDetailsReady = barW >= attendanceTarget;
   const webinarDetailsReady = hoursCount >= webinarTarget;
   const canAdvance =
     (phase === 2 && attendanceDetailsReady && !attendanceCalculating) ||
@@ -1001,7 +1020,11 @@ function GpsNavSection({
 
       <AnimatePresence>
         {showArrivalOverlay && (
-          <JourneyNavArrivalOverlay key="journey-nav-arrival" step={arrivalStep} />
+          <JourneyNavArrivalOverlay
+            key="journey-nav-arrival"
+            step={arrivalStep}
+            aapexExhibitor={eventsMetrics.aapexExhibitor}
+          />
         )}
       </AnimatePresence>
 
@@ -1573,20 +1596,56 @@ function DashboardPanel({
   const journeyPanelHeight = journeyPanelActive ? mapPanelHeight : undefined;
 
   const measureMapPanelHeight = useCallback(() => {
-    const container = panelRef.current?.parentElement;
+    const panel = panelRef.current;
+    const container = panel?.parentElement;
     if (!container) return JOURNEY_MAP_PANEL_MAX_HEIGHT;
     const available = container.clientHeight - 10;
-    const root = panelRef.current?.closest('.driving-view-root');
+    const root = panel?.closest('.driving-view-root');
     const landingHeight = root
       ? Number.parseFloat(getComputedStyle(root).getPropertyValue('--landing-dashboard-height'))
       : Number.NaN;
     const isMobileLayout = window.matchMedia('(max-width: 640px)').matches;
-    const maxHeight =
-      isMobileLayout && Number.isFinite(landingHeight)
+
+    if (isMobileLayout) {
+      const mobileMax = Number.isFinite(landingHeight)
         ? landingHeight + 120
         : JOURNEY_MAP_PANEL_MAX_HEIGHT;
-    return Math.min(maxHeight, available);
-  }, []);
+      return Math.min(mobileMax, available);
+    }
+
+    if (isMapScene) {
+      return Math.min(JOURNEY_MAP_PANEL_MAX_HEIGHT, available);
+    }
+
+    const counterBody = panel?.querySelector('.journey-counter-panel__body');
+    const body = panel?.querySelector('.dashboard-body--journey-scene');
+    if (counterBody instanceof HTMLElement && body instanceof HTMLElement && panel) {
+      const panelTop = panel.getBoundingClientRect().top;
+      let contentBottom = 0;
+      for (const el of counterBody.children) {
+        if (el instanceof HTMLElement) {
+          contentBottom = Math.max(contentBottom, el.getBoundingClientRect().bottom - panelTop);
+        }
+      }
+      const controls = panel.querySelector('.journey-counter-panel__controls');
+      if (controls instanceof HTMLElement) {
+        contentBottom = Math.max(contentBottom, controls.getBoundingClientRect().bottom - panelTop);
+      }
+      if (contentBottom <= body.offsetTop) {
+        contentBottom = body.offsetTop + counterBody.scrollHeight;
+      }
+      const fitted = Math.ceil(contentBottom + JOURNEY_COUNTER_FOOTER_CLEARANCE_PX);
+      const desktopMax = Number.isFinite(landingHeight)
+        ? Math.max(landingHeight, JOURNEY_COUNTER_PANEL_DESKTOP_HEIGHT + JOURNEY_COUNTER_FOOTER_CLEARANCE_PX)
+        : JOURNEY_COUNTER_PANEL_DESKTOP_HEIGHT + JOURNEY_COUNTER_FOOTER_CLEARANCE_PX;
+      return Math.min(Math.max(fitted, landingHeight || 0), desktopMax, available);
+    }
+
+    const desktopMax = Number.isFinite(landingHeight)
+      ? Math.max(landingHeight, JOURNEY_COUNTER_PANEL_DESKTOP_HEIGHT + JOURNEY_COUNTER_FOOTER_CLEARANCE_PX)
+      : JOURNEY_COUNTER_PANEL_DESKTOP_HEIGHT + JOURNEY_COUNTER_FOOTER_CLEARANCE_PX;
+    return Math.min(desktopMax, available);
+  }, [isMapScene]);
 
   const beginJourneySceneSlide = useCallback(() => {
     setMapPanelHeight(measureMapPanelHeight());
@@ -1716,8 +1775,16 @@ function DashboardPanel({
     updateMapHeight();
     const observer = new ResizeObserver(updateMapHeight);
     observer.observe(container);
+    const counterBody = panel.querySelector('.journey-counter-panel__body');
+    if (counterBody instanceof HTMLElement) {
+      observer.observe(counterBody);
+    }
+    const controls = panel.querySelector('.journey-counter-panel__controls');
+    if (controls instanceof HTMLElement) {
+      observer.observe(controls);
+    }
     return () => observer.disconnect();
-  }, [isJourney, measureMapPanelHeight]);
+  }, [isJourney, isMapScene, isCounterScene, measureMapPanelHeight]);
 
   useEffect(() => {
     const resetJourneySlide = () => {
@@ -1733,7 +1800,7 @@ function DashboardPanel({
 
     window.addEventListener('resize', resetJourneySlide);
     return () => window.removeEventListener('resize', resetJourneySlide);
-  }, [isJourney, measureMapPanelHeight]);
+  }, [isJourney, isMapScene, isCounterScene, measureMapPanelHeight]);
 
   return (
     <motion.div
@@ -1747,6 +1814,7 @@ function DashboardPanel({
         usesPanelArch ? 'dashboard-panel--arch' : '',
         isHood ? 'dashboard-panel--hood' : '',
         journeyPanelActive ? 'dashboard-panel--journey-scene' : '',
+        isCounterScene && journeyPanelActive ? 'dashboard-panel--journey-counter' : '',
         isJourneySceneSliding ? 'dashboard-panel--journey-scene-transition' : '',
         isDashboardExiting ? 'dashboard-panel--exiting' : '',
         isHoodPanelRising ? 'dashboard-panel--hood-rising' : '',
@@ -2016,7 +2084,7 @@ export function DrivingView({
   const [skyRunId, setSkyRunId] = useState(0);
   const [dashboardEpoch, setDashboardEpoch] = useState(0);
   const pendingCheckpointRef = useRef<NavCheckpoint | null>(null);
-  const lastTirePhaseRef = useRef<TirePhase>('trendlens');
+  const lastTirePhaseRef = useRef<TirePhase>(getInitialTirePhase(report));
   const drivingRootRef = useRef<HTMLDivElement>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
   const [dashboardPanelMounted, setDashboardPanelMounted] = useState(false);
@@ -2034,6 +2102,16 @@ export function DrivingView({
     setJourneyResumeSectionIdx(0);
     setJourneyResumeGpsPhase(1);
   }, []);
+
+  const resetTiresToStartForNav = useCallback(() => {
+    const initialTirePhase = getInitialTirePhase(report);
+    lastTirePhaseRef.current = initialTirePhase;
+    setHoodPhase(initialTirePhase);
+    setHoodSession((n) => n + 1);
+    setHoodNavTransition(null);
+    setHoodEntryPhase(null);
+    setCurrentScreen('hood');
+  }, [report]);
 
   const saveJourneyResumeForNav = useCallback(() => {
     setJourneyResumeSectionIdx(journeyNavSectionIndex);
@@ -2105,7 +2183,7 @@ export function DrivingView({
     setHoodEntryPhase(null);
     setHoodNavTransition(null);
     setHoodPhase('standards');
-    lastTirePhaseRef.current = 'trendlens';
+    lastTirePhaseRef.current = getInitialTirePhase(report);
     pendingCheckpointRef.current = null;
     setHoodSession((n) => n + 1);
     setDashboardEpoch((epoch) => epoch + 1);
@@ -2155,6 +2233,9 @@ export function DrivingView({
     if (checkpoint === activeNav) {
       if (checkpoint === 'journey') {
         resetJourneyToStartForNav();
+      }
+      if (checkpoint === 'tires') {
+        resetTiresToStartForNav();
       }
       return;
     }
@@ -2212,6 +2293,7 @@ export function DrivingView({
       return;
     }
     if (onStandards && checkpoint === 'tires') {
+      lastTirePhaseRef.current = getInitialTirePhase(report);
       setHoodNavTransition('standards-to-tire');
       return;
     }
@@ -2245,12 +2327,14 @@ export function DrivingView({
     if (checkpoint === 'tires') {
       setJourneyResumeSectionIdx(undefined);
       setJourneyResumeGpsPhase(undefined);
+      const initialTirePhase = getInitialTirePhase(report);
+      lastTirePhaseRef.current = initialTirePhase;
       if (currentScreen === 'journey') {
         pendingCheckpointRef.current = 'tires';
         setHoodEntryPhase('sliding-dashboard');
         return;
       }
-      setHoodPhase(lastTirePhaseRef.current);
+      setHoodPhase(initialTirePhase);
       setHoodSession((n) => n + 1);
       setCurrentScreen('hood');
       if (!onHood) {
@@ -2314,7 +2398,9 @@ export function DrivingView({
       setCurrentSlide(null);
       setJourneyResumeSectionIdx(undefined);
       setJourneyResumeGpsPhase(undefined);
-      setHoodPhase(lastTirePhaseRef.current);
+      const initialTirePhase = getInitialTirePhase(report);
+      lastTirePhaseRef.current = initialTirePhase;
+      setHoodPhase(initialTirePhase);
       setHoodSession((n) => n + 1);
       setCurrentScreen('hood');
     } else {
@@ -2364,9 +2450,11 @@ export function DrivingView({
       return;
     }
     if (hoodNavTransition === 'standards-to-tire') {
-      setHoodPhase(lastTirePhaseRef.current);
+      const initialTirePhase = getInitialTirePhase(report);
+      lastTirePhaseRef.current = initialTirePhase;
+      setHoodPhase(initialTirePhase);
     }
-  }, [hoodNavTransition]);
+  }, [hoodNavTransition, report]);
 
   const handleHoodNavTransitionComplete = useCallback(() => {
     // #region agent log
@@ -2382,8 +2470,9 @@ export function DrivingView({
 
   const beginStandardsToTireTransition = useCallback(() => {
     if (hoodEntryPhase || hoodNavTransition) return;
+    lastTirePhaseRef.current = getInitialTirePhase(report);
     setHoodNavTransition('standards-to-tire');
-  }, [hoodEntryPhase, hoodNavTransition]);
+  }, [hoodEntryPhase, hoodNavTransition, report]);
 
   const beginTireToStandardsTransition = useCallback(() => {
     if (hoodEntryPhase || hoodNavTransition) return;
@@ -2481,6 +2570,8 @@ export function DrivingView({
       className={[
         'driving-view-root relative w-full h-full overflow-hidden bg-black',
         useFixedDrivingBand ? 'driving-view-root--driving-band' : '',
+        currentScreen === 'journey' ? 'driving-view-root--journey' : '',
+        embedded ? 'driving-view-root--embedded' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -2735,7 +2826,7 @@ export function DrivingView({
                   <div className="landing-license-plate__rim" aria-hidden />
                   <div className="landing-license-plate__surface">
                     <div className="landing-license-plate__header">
-                      <span className="landing-license-plate__jurisdiction">AUTO CARE</span>
+                      <span className="landing-license-plate__jurisdiction">Auto Care Association</span>
                       <div className="landing-license-plate__sticker" aria-hidden>
                         <span className="landing-license-plate__sticker-shine" />
                         <span className="landing-license-plate__sticker-month">June</span>

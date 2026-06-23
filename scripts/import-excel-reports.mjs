@@ -14,7 +14,10 @@ const OUT_DIR = join(ROOT, 'public/data/reports');
 const REPORT_YEAR = 2026;
 const IN_PERSON_EVENTS_TOTAL = 8;
 const IN_PERSON_CATEGORIES = new Set(['CONF', 'Networking']);
-const DEMAND_INDEX_EXCLUDED = new Set(['Annual Unit Volumes']);
+const DEMAND_INDEX_EXCLUDED = new Set([
+  'Annual Unit Volumes',
+  'Product Plus (includes 4 products)',
+]);
 
 /** Manual Kick the Tires / Factbook values until TrendLens & Factbook APIs are wired. */
 const REPORT_PRODUCT_OVERRIDES = {
@@ -31,6 +34,20 @@ const REPORT_PRODUCT_OVERRIDES = {
   '1257307': {
     products: {
       trendLensUsers: 1,
+    },
+  },
+  '1255413': {
+    journey: {
+      membershipTenureYears: 19,
+      communityMembers: 13,
+    },
+    events: {
+      inPersonAttended: 7,
+      inPersonTotal: 8,
+      attendancePct: 88,
+    },
+    products: {
+      demandIndexGroups: 183,
     },
   },
 };
@@ -115,7 +132,9 @@ function buildReports(workbook) {
 
     const orgDemand = demandRows.filter((row) => row.RecordNumber === org.RECORDNUMBER);
     const demandProducts = unique(
-      orgDemand.map((row) => String(row.SubscriptionProductName ?? '').trim()),
+      orgDemand
+        .map((row) => String(row.SubscriptionProductName ?? '').trim())
+        .filter((name) => !DEMAND_INDEX_EXCLUDED.has(name)),
     );
 
     const orgInPerson = eventRows.filter(
@@ -196,6 +215,12 @@ function buildReports(workbook) {
     }
     if (override?.factbook) {
       Object.assign(report.factbook, override.factbook);
+    }
+    if (override?.journey) {
+      Object.assign(report.journey, override.journey);
+    }
+    if (override?.events) {
+      Object.assign(report.events, override.events);
     }
 
     report.products.trendLensContactPct = contactPct(

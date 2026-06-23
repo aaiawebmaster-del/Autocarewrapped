@@ -80,8 +80,16 @@ export function LazyLottie({
     syncCanvasSize();
     const observer = new ResizeObserver(syncCanvasSize);
     observer.observe(container);
+
+    const slot = container.closest('.hood-standards-scene__animation-slot');
+    if (slot && slot !== container) {
+      observer.observe(slot);
+    }
+
+    window.addEventListener('resize', syncCanvasSize);
     return () => {
       observer.disconnect();
+      window.removeEventListener('resize', syncCanvasSize);
     };
   }, [active, animationData]);
 

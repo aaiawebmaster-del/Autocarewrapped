@@ -1,4 +1,31 @@
 /** DemandIndex catalog product groups shown on the KPI CTA scroll list. */
+export const DEMAND_INDEX_EXCLUDED_PRODUCT_GROUP_NAMES = [
+  'Annual Unit Volumes',
+  'Product Plus (includes 4 products)',
+] as const;
+
+const DEMAND_INDEX_EXCLUDED_PRODUCT_GROUP_SET = new Set<string>(
+  DEMAND_INDEX_EXCLUDED_PRODUCT_GROUP_NAMES,
+);
+
+/** True when a subscription product name should count toward demandIndexGroups. */
+export function isDemandIndexCountableProductGroup(name: string): boolean {
+  const trimmed = name.trim();
+  return trimmed.length > 0 && !DEMAND_INDEX_EXCLUDED_PRODUCT_GROUP_SET.has(trimmed);
+}
+
+/** Unique countable DemandIndex product groups from raw subscription names. */
+export function countDemandIndexProductGroups(names: Iterable<string>): number {
+  const counted = new Set<string>();
+  for (const name of names) {
+    const trimmed = name.trim();
+    if (isDemandIndexCountableProductGroup(trimmed)) {
+      counted.add(trimmed);
+    }
+  }
+  return counted.size;
+}
+
 export const DEMAND_INDEX_PRODUCT_GROUPS = [
   'Batteries',
   'Batteries, Automotive',

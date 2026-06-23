@@ -7,7 +7,22 @@
       <meta name="color-scheme" content="dark" />
       <meta name="theme-color" content="#000000" />
       <title>Your Year In Review</title>
-      <style>html, body { height: 100%; margin: 0; background: #000; } #root { height: 100%; }</style>
+      <style>
+        html, body, #root {
+          height: 100%;
+          min-height: 100vh;
+          min-height: 100dvh;
+          margin: 0;
+          background: #000;
+        }
+        html.is-embedded,
+        html.is-embedded body,
+        html.is-embedded #root {
+          max-height: 100vh;
+          max-height: 100dvh;
+          overflow: hidden;
+        }
+      </style>
     </head>
 
     <body>

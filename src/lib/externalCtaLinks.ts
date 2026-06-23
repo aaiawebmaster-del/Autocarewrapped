@@ -7,6 +7,7 @@ export const EXTERNAL_CTA_LINKS = {
   aapex2026: 'https://www.aapexshow.com/',
   exploreAutoCareVip: 'https://autocarevip.com/',
   seeLatestReleases: 'https://autocarevip.com/dataStandardsReleaseNotes',
+  catalogAssessmentTool: 'https://autocarevip.com/catalogAssessment',
   visitTrendLens: 'https://trendlens.autocare.org/',
   demandIndexLearnMore: 'https://www.autocare.org/demand-index',
   factbook2027: 'https://digital.autocare.org/2027factbook/',

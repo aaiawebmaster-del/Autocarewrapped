@@ -20,6 +20,7 @@ const daycoReport: WrappedReport = {
     inPersonTotal: 8,
     attendancePct: 63,
     webinarCount: 18,
+    aapexExhibitor: true,
   },
   products: {
     trendLensUsers: 4,

@@ -1,5 +1,6 @@
 import type { WrappedReport } from '@/types/wrappedReport';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
+import { getAttendanceAsideMessage, getWebinarMessageBody } from '@/lib/contentVariants';
 
 export type JourneySection =
   | {
@@ -94,23 +95,29 @@ function getTenureFooterMessage(years: number): string {
 }
 
 function getActiveContactsFooterMessage(contacts: number): string {
-  if (contacts >= 50) {
+  if (contacts > 50) {
     return "Your organization is killing it! Don't forget you've got unlimited seats available in your membership";
   }
-  if (contacts > 0) {
+  if (contacts >= 25) {
+    return "Excellent work! Don't forget you've got unlimited seats available in your membership";
+  }
+  if (contacts >= 5) {
     return "Great job! Don't forget you've got unlimited seats available in your membership";
   }
-  return 'Invite more team members to unlock the full value of your membership benefits.';
+  return 'Many more of your employees are able to take advantage of their membership benefits - they just need to create a free account.';
 }
 
 function getCommunityFooterMessage(members: number): string {
-  if (members >= 50) {
+  if (members > 25) {
     return "WOW! You're one of our most active participants in Auto Care communities, driving our industry forward.";
   }
-  if (members > 0) {
-    return 'Your team is engaging in Auto Care communities — keep the conversation going.';
+  if (members >= 4) {
+    return 'Thank you volunteering your time to be active in our communities!';
   }
-  return 'Explore Auto Care communities and connect with peers across the industry.';
+  if (members >= 1) {
+    return "You're on your way! More communities mean more connections and opportunities: Explore more communities to get involved with segment-specific challenges while driving industry leadership";
+  }
+  return "You're missing out! Join a community or committee to find your tribe and start influencing the future of our industry";
 }
 
 function getCommitteeFooterMessage(members: number): string {
@@ -121,17 +128,11 @@ function getCommitteeFooterMessage(members: number): string {
 }
 
 function getNavSectionMessage(report: WrappedReport): string {
-  if (report.events.inPersonAttended === 0) {
-    return "We'd love to see you at an in-person event — the easiest way to get fresh education and make new connections.";
-  }
-  return "We'd love to see more of you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.";
+  return getAttendanceAsideMessage(report.events.attendancePct);
 }
 
 function getWebinarSectionMessage(hours: number): string {
-  if (hours === 0) {
-    return 'Explore our robust library of on-demand content to keep your team learning year-round.';
-  }
-  return 'Are there other employees who could benefit from our robust library of on-demand content?';
+  return getWebinarMessageBody(hours);
 }
 
 export function buildDiagnosticsCounterStats(report: WrappedReport) {

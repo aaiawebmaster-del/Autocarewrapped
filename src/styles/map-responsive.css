@@ -13,6 +13,11 @@
   );
 }
 
+/* Journey — sky/road ends at the footer; dashboard panel is the bottom barrier */
+.driving-view-root--driving-band.driving-view-root--journey {
+  --driving-backdrop-bottom: var(--driving-footer-height);
+}
+
 @media (max-width: 640px) {
   .driving-view-root {
     --landing-dashboard-height: 373px;
@@ -416,25 +421,43 @@
   border-color: rgba(243, 144, 29, 0.5);
 }
 
-@media (max-width: 768px) {
-  @container driving-footer-nav (max-width: 34rem) {
-    .driving-view-footer__nav--labels {
-      display: none;
-    }
-
-    .driving-view-footer__nav--dots {
-      display: flex;
-    }
-  }
+.driving-view-root--embedded {
+  height: 100dvh;
+  max-height: 100dvh;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .driving-view-root {
+    --driving-footer-height: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .driving-view-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid #1f2937;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.45);
+  }
+
   .driving-view-footer__nav--labels {
     display: none;
   }
 
   .driving-view-footer__nav--dots {
     display: flex;
+  }
+
+  .driving-view-footer__progress-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .driving-view-footer__progress-dot.is-active {
+    width: 0.875rem;
+    height: 0.875rem;
   }
 }
 
@@ -478,7 +501,7 @@
   --plate-aspect: 2 / 1;
   --plate-max-width: clamp(280px, 58cqw, 560px);
   --plate-radius: clamp(7px, 2.2cqw, 11px);
-  --plate-brand-orange: #f3901d;
+  --plate-brand-orange: #e37f0d;
   --plate-font: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   container-type: size;
   container-name: license-plate;
@@ -630,10 +653,10 @@
   margin: 0;
   text-align: center;
   font-family: var(--plate-font);
-  font-size: clamp(10px, 3.2cqw, 15px);
+  font-size: clamp(8px, 2.5cqw, 13px);
   font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-transform: none;
   color: #0f2844;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.85),
@@ -833,7 +856,7 @@
   letter-spacing: 0.18em;
   text-transform: lowercase;
   text-align: center;
-  color: #0f4a37;
+  color: var(--plate-brand-orange, #e37f0d);
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95),
     0 -1px 0 rgba(0, 0, 0, 0.14),
@@ -2783,6 +2806,7 @@
 /* Journey counter + nav — single fixed scene shell (map height) for horizontal slides only */
 .dashboard-panel--journey-scene {
   --dashboard-journey-body-top: calc(20px + clamp(28px, 3.5vw, 36px) + 20px);
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2794,6 +2818,32 @@
   transition: height 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.dashboard-panel--journey-counter {
+  --journey-counter-footer-clearance: 15px;
+  height: min(
+    var(--journey-counter-dashboard-height, 375px),
+    calc(100% - 10px)
+  );
+  --dashboard-journey-body-top: calc(20px + clamp(28px, 3.5vw, 36px) + 8px);
+}
+
+.dashboard-panel--journey-counter .journey-layout--counter {
+  justify-content: flex-end;
+}
+
+.dashboard-panel--journey-counter .journey-counter-panel__gauge {
+  gap: 0;
+  --journey-counter-subtitle-min-h: auto;
+  --journey-counter-dial-gap: 0;
+  --community-logo-dial-inset: clamp(0.65rem, 1.8vh, 1.125rem);
+}
+
+.dashboard-panel--journey-counter .journey-counter-panel__gauge .journey-layout__subtitle {
+  flex: 0 0 auto;
+  min-height: 0;
+  margin: 0;
+}
+
 .dashboard-panel--journey-scene-transition {
   overflow: clip;
 }
@@ -2803,7 +2853,7 @@
   top: var(--dashboard-journey-body-top);
   left: 0;
   right: 0;
-  bottom: clamp(10px, 1.5vh, 18px);
+  bottom: 0;
   width: auto;
   height: auto;
   max-height: none;
@@ -3156,6 +3206,7 @@
   flex-direction: column;
   --hood-standards-battery-max: 480px;
   --hood-standards-battery-scale: 1;
+  --hood-standards-desktop-footer-lift: 0px;
   z-index: 1;
 }
 
@@ -3179,7 +3230,7 @@
   flex: 1 1 auto;
   width: 100%;
   min-height: 0;
-  overflow: hidden;
+  overflow: clip;
   pointer-events: none;
   container-type: size;
   container-name: hood-standards-slot;
@@ -3197,13 +3248,20 @@
     calc(var(--hood-standards-battery-max) * var(--hood-standards-battery-scale)),
     56%
   );
-  height: auto;
+  height: min(
+    56cqw,
+    100cqh,
+    calc(var(--hood-standards-battery-max) * var(--hood-standards-battery-scale)),
+    56%
+  );
   max-width: 100%;
   max-height: 100cqh;
   aspect-ratio: 1 / 1;
   pointer-events: none;
   transform: translateX(-50%);
   transform-origin: center bottom;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .hood-standards-scene__battery-player {
@@ -3914,6 +3972,22 @@
   overflow-y: auto;
 }
 
+/* No database icons: let typewriter copy use the full copy column height. */
+.hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__copy-column {
+  justify-content: stretch;
+}
+
+.hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+}
+
+.hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text {
+  min-height: 0;
+}
+
 @media (min-width: 769px) {
   .hood-standards-popup:not(.hood-standards-summary) {
     --hood-standards-desktop-copy-height: min(68%, 320px);
@@ -3928,6 +4002,17 @@
 
   .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__text {
     min-height: calc(var(--hood-standards-desktop-copy-height) - clamp(2px, 0.4vh, 6px));
+  }
+
+  .hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text {
+    min-height: 0;
   }
 
   .hood-standards-popup__database-panel--copy {
@@ -4162,7 +4247,53 @@
   user-select: none;
 }
 
+.hood-standards-gauge__label--low-battery {
+  color: #fecaca;
+  font-size: clamp(11px, 1.8vw, 14px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 8px rgba(239, 68, 68, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.hood-standards-gauge__label--low-battery-stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12em;
+  line-height: 1.05;
+}
+
+.hood-standards-gauge__label--low-battery-inline {
+  white-space: nowrap;
+}
+
+.hood-standards-gauge--low-battery .hood-standards-gauge__fill {
+  background: linear-gradient(180deg, #f87171 0%, #dc2626 52%, #991b1b 100%);
+  min-height: 18%;
+}
+
+.hood-standards-gauge--low-battery .hood-standards-gauge__label--low-battery {
+  animation: hood-standards-low-battery-flash 0.75s ease-in-out infinite;
+}
+
+@keyframes hood-standards-low-battery-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
 .hood-standards-gauge--horizontal {
+  --hood-standards-shell-rotate: 90deg;
+  --hood-standards-horizontal-shell-span: 78%;
+  --hood-standards-horizontal-shell-thickness: 0.69;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4175,17 +4306,27 @@
 
 .hood-standards-gauge--horizontal .hood-standards-gauge__shell {
   flex: 0 0 auto;
-  width: calc(78% * var(--hood-standards-gauge-aspect, 0.69));
-  height: 78%;
+  width: calc(
+    var(--hood-standards-horizontal-shell-span) *
+      var(--hood-standards-horizontal-shell-thickness) *
+      var(--hood-standards-gauge-aspect, 0.69)
+  );
+  height: var(--hood-standards-horizontal-shell-span);
   max-width: calc(100% - 14px);
   max-height: 100%;
-  transform: rotate(90deg);
+  transform: rotate(var(--hood-standards-shell-rotate));
   transform-origin: center center;
 }
 
-.hood-standards-gauge--horizontal .hood-standards-gauge__label {
-  transform: rotate(-90deg);
+.hood-standards-gauge--horizontal .hood-standards-gauge__caps {
+  overflow: visible;
+}
+
+.hood-standards-gauge--horizontal .hood-standards-gauge__label,
+.hood-standards-gauge--horizontal .hood-standards-gauge__label--low-battery {
+  transform: rotate(calc(-1 * var(--hood-standards-shell-rotate)));
   transform-origin: center center;
+  white-space: nowrap;
 }
 
 .hood-standards-gauge--dormant .hood-standards-gauge__shell {
@@ -4452,6 +4593,16 @@
     brightness(101%) contrast(92%);
 }
 
+@media (min-width: 769px) {
+  .hood-standards-scene {
+    --hood-standards-desktop-footer-lift: 75px;
+  }
+
+  .hood-standards-scene__content {
+    transform: translateY(calc(-1 * var(--hood-standards-desktop-footer-lift)));
+  }
+}
+
 @media (min-width: 1200px) {
   .hood-standards-scene__battery-bg {
     width: min(
@@ -4558,6 +4709,22 @@
     min-height: 0;
     align-items: stretch;
     overflow: visible;
+  }
+
+  .hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__main {
+    grid-template-rows:
+      minmax(0, 1fr)
+      var(--hood-standards-mobile-metrics-height);
+    grid-template-areas:
+      'copy copy'
+      'metrics metrics';
+  }
+
+  .hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
   }
 
   .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__copy-column {
@@ -4820,7 +4987,7 @@
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
-    .hood-standards-gauge {
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal) {
     --hood-standards-gauge-aspect: 0.69;
     aspect-ratio: var(--hood-standards-gauge-aspect);
     width: auto;
@@ -4833,6 +5000,20 @@
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge--horizontal {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: visible;
+    padding-inline: 6px;
+    box-sizing: border-box;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal)
     .hood-standards-gauge__shell {
     flex: 1 1 auto;
     min-height: 0;
@@ -4845,6 +5026,49 @@
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge--horizontal
+    .hood-standards-gauge__shell {
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: 100%;
+    height: var(--hood-standards-horizontal-shell-span, 78%);
+    width: calc(
+      var(--hood-standards-horizontal-shell-span, 78%) *
+        var(--hood-standards-horizontal-shell-thickness, 0.69) *
+        var(--hood-standards-gauge-aspect, 0.69)
+    );
+    max-width: calc(100% - 8px);
+    box-sizing: border-box;
+    transform: rotate(var(--hood-standards-shell-rotate, 90deg));
+    transform-origin: center center;
+  }
+
+  /* Mid-width tablets — wider vertical battery beside protocol logos */
+  @media (min-width: 481px) {
+    .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+      .hood-standards-popup__metrics-column {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    }
+
+    .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+      .hood-standards-popup__gauge-column {
+      flex: 0 0 min(40%, 7.5rem);
+      max-width: min(40%, 7.5rem);
+    }
+
+    .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+      .hood-standards-gauge:not(.hood-standards-gauge--horizontal) {
+      max-width: min(100%, 7rem);
+      width: 100%;
+    }
+
+    .hood-standards-gauge--horizontal {
+      --hood-standards-horizontal-shell-span: 92%;
+      --hood-standards-horizontal-shell-thickness: 0.54;
+    }
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
     .hood-standards-gauge__well {
     flex: 1 1 auto;
     min-height: 0;
@@ -4853,8 +5077,19 @@
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal)
     .hood-standards-gauge__label {
     transform: none;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge--horizontal
+    .hood-standards-gauge__label,
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge--horizontal
+    .hood-standards-gauge__label--low-battery {
+    transform: rotate(calc(-1 * var(--hood-standards-shell-rotate, 90deg)));
+    transform-origin: center center;
   }
 
   /* Subscribed popup slide 2: copy + database logos under text */
@@ -5597,9 +5832,7 @@
 .journey-nav-ui {
   --gps-controls-edge: clamp(8px, 1.5vw, 16px);
   --gps-controls-btn-size: clamp(34px, 6.8vw, 44px);
-  --gps-nav-direction-top: calc(
-    var(--gps-controls-edge) + var(--gps-controls-btn-size) + clamp(8px, 1.2vh, 14px)
-  );
+  --gps-nav-direction-top: var(--gps-controls-edge);
   --attendance-route-inset-x: var(--gps-controls-edge);
   --attendance-nav-col-gap: clamp(10px, 1.8vw, 16px);
   --attendance-nav-col-value: clamp(84px, 12vw, 96px);
@@ -6053,19 +6286,6 @@
   min-height: var(--attendance-copy-min-h);
 }
 
-.journey-nav-attendance-bar__calculating {
-  margin: 0;
-  width: 100%;
-  min-width: 0;
-  font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: var(--attendance-copy-font-size);
-  font-weight: 400;
-  line-height: var(--attendance-copy-line-height);
-  letter-spacing: 0.01em;
-  color: rgba(235, 240, 245, 0.82);
-  text-transform: none;
-}
-
 /* Compact: value | route chart — controls live in tray below */
 .journey-nav-attendance-bar__main--compact {
   grid-template-columns:
@@ -6213,11 +6433,6 @@
   letter-spacing: 0.04em;
   text-transform: lowercase;
   color: #00a8e8;
-}
-
-.journey-nav-attendance-bar__route-count--calculating {
-  font-size: clamp(10px, 1.6vw, 13px);
-  letter-spacing: 0.02em;
 }
 
 .journey-nav-attendance-bar__label {
@@ -6603,6 +6818,8 @@
   max-height: 100%;
   padding: clamp(20px, 2.8vh, 28px) clamp(22px, 3vw, 32px) clamp(18px, 2.4vh, 24px);
   text-align: center;
+  box-sizing: border-box;
+  overflow: hidden;
   background:
     linear-gradient(180deg, rgba(38, 42, 48, 0.97) 0%, rgba(16, 18, 22, 0.99) 100%);
   backdrop-filter: blur(16px);
@@ -6679,6 +6896,9 @@
   justify-content: center;
   gap: clamp(10px, 1.6vw, 14px);
   margin-top: clamp(16px, 2vh, 22px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .journey-nav-arrival__btn {
@@ -6716,6 +6936,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .journey-nav-arrival__detail--lead {
@@ -6739,6 +6962,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   text-decoration: none;
   text-transform: uppercase;
   color: #0a0c0f;
@@ -7307,6 +7533,11 @@
   overflow: visible;
 }
 
+.dashboard-panel--journey-scene:not(.dashboard-panel--journey-scene-transition)
+  .journey-scene-layer.journey-layout--counter {
+  overflow: visible;
+}
+
 /* Nav + counter scenes share the same body framing */
 .dashboard-body--journey-nav,
 .dashboard-body--journey-counter {
@@ -7675,6 +7906,7 @@
   --journey-counter-dial-width: min(100%, clamp(18rem, 64vw, 25rem));
   --journey-counter-dial-size: var(--journey-counter-dial-height);
   --journey-counter-dial-gap: clamp(0.5rem, 1.4vh, 0.875rem);
+  --community-logo-dial-inset: var(--journey-counter-dial-gap);
   --journey-counter-subtitle-min-h: 2.75rem;
   --journey-counter-stat-min-h: calc(clamp(28px, 5vw, 44px) * 1.25 + 0.5rem);
   flex: 1 1 50%;
@@ -7730,24 +7962,34 @@
 .journey-counter-panel__gauge > .community-logo-gauge {
   flex: 0 0 auto;
   width: 100%;
-  max-width: var(--journey-counter-dial-height);
+  max-width: 100%;
   height: auto;
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: visible;
+  --dual-logo-gap: clamp(4px, 0.75vw, 8px);
+  --community-logo-mark-width: min(
+    calc(var(--journey-counter-dial-size, var(--journey-counter-dial-height, 12rem)) * 0.84),
+    calc((100% - var(--dual-logo-gap)) / 2)
+  );
+  --community-logo-mark-height: min(
+    calc(var(--community-logo-mark-width) * 126 / 300),
+    calc(var(--journey-counter-dial-size, var(--journey-counter-dial-height, 12rem)) * 0.48)
+  );
 }
 
 .journey-counter-panel__gauge > .community-logo-gauge:not(.community-logo-gauge--dual) {
-  max-width: min(100%, calc(var(--journey-counter-dial-height) * 300 / 126));
+  max-width: 100%;
 }
 
 .journey-counter-panel__gauge > .community-logo-gauge.community-logo-gauge--dual {
   width: 100%;
-  max-width: min(var(--journey-counter-dial-width), 100%);
+  max-width: 100%;
   height: auto;
   flex: 0 0 auto;
+  min-width: 0;
 }
 
 /* Neutral wrapper elsewhere (e.g. Full Diagnostics); counter rules below. */
@@ -7775,27 +8017,51 @@
   overflow: visible;
 }
 
-.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--community-logo {
-  width: min(100%, calc(var(--journey-counter-dial-height) * 300 / 126));
-  max-width: 100%;
-  height: var(--journey-counter-dial-height);
-  flex: 0 0 auto;
-  aspect-ratio: 300 / 126;
-  align-items: stretch;
-}
-
-.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--dual-logos {
-  width: min(var(--journey-counter-dial-width), 100%);
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--community-logo:not(
+    .journey-counter-gauge__dial-slot--dual-logos
+  ) {
+  width: 100%;
   max-width: 100%;
   height: var(--journey-counter-dial-height);
   flex: 0 0 var(--journey-counter-dial-height);
-  align-self: stretch;
+  aspect-ratio: auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--community-logo {
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--community-logo-dial-inset);
+  margin-bottom: var(--community-logo-dial-inset);
+  box-sizing: border-box;
+}
+
+.journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--dual-logos {
+  width: 100%;
+  max-width: 100%;
+  height: var(--journey-counter-dial-height);
+  flex: 0 0 var(--journey-counter-dial-height);
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .journey-counter-panel__gauge .community-logo-gauge--dual .journey-counter-gauge__dial-slot {
   width: 100%;
-  height: 100%;
+  max-width: 100%;
+  height: var(--journey-counter-dial-height);
+  flex: 0 0 var(--journey-counter-dial-height);
   min-height: 0;
+  min-width: 0;
+  max-height: var(--journey-counter-dial-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide {
@@ -7890,6 +8156,60 @@
     0 0 56px rgba(0, 191, 255, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.38),
     inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.community-logo-gauge__button--empty {
+  pointer-events: none;
+  cursor: default;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.community-logo-gauge__button--empty:hover,
+.community-logo-gauge__button--empty:focus-visible {
+  transform: none;
+  filter: none;
+}
+
+.community-logo-gauge__face--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--community-logo-mark-height, calc(var(--journey-counter-dial-size, 12rem) * 0.48));
+  aspect-ratio: var(--community-logo-aspect, 300 / 126);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    #1a1d22 0%,
+    #12151a 38%,
+    #0a0c0f 100%
+  );
+  border: 1px dashed rgba(239, 68, 68, 0.45);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.community-logo-gauge__empty-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  animation: journey-gauge-warning-flash 0.7s ease-in-out infinite;
+}
+
+.community-logo-gauge__empty-mark-icon {
+  display: block;
+  width: clamp(2.25rem, 42%, 3.75rem);
+  height: clamp(2.25rem, 42%, 3.75rem);
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.85));
 }
 
 .community-logo-gauge__button:hover .community-logo-gauge__logo svg,
@@ -8027,6 +8347,17 @@
 
 .community-logo-gauge--dual {
   --dual-logo-gap: clamp(4px, 0.75vw, 8px);
+  --community-logo-mark-width: min(
+    calc(var(--journey-counter-dial-size, 12rem) * 0.84),
+    calc((100% - var(--dual-logo-gap)) / 2)
+  );
+  --community-logo-mark-height: min(
+    calc(var(--community-logo-mark-width) * 126 / 300),
+    calc(var(--journey-counter-dial-size, 12rem) * 0.48)
+  );
+  --community-logo-dual-track-width: calc(
+    var(--community-logo-mark-width) * 2 + var(--dual-logo-gap)
+  );
 }
 
 .community-logo-gauge--dual .community-logo-gauge__stack {
@@ -8039,22 +8370,22 @@
   max-height: 100%;
   gap: var(--dual-logo-gap);
   margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .community-logo-gauge--dual .community-logo-gauge__button {
-  flex: 0 1 auto;
+  flex: 1 1 0;
   display: block;
-  width: min(
-    calc((100% - var(--dual-logo-gap)) / 2),
-    calc(100% * 300 / 126)
-  );
+  width: auto;
   height: auto;
+  max-width: calc(50% - var(--dual-logo-gap) / 2);
   max-height: 100%;
-  aspect-ratio: var(--community-logo-aspect, 300 / 126);
   min-width: 0;
   min-height: 0;
   margin: 0;
-  padding: 0;
+  padding: clamp(4px, 0.7vw, 7px);
   border-radius: clamp(6px, 1vw, 10px);
   box-sizing: border-box;
   overflow: hidden;
@@ -8068,15 +8399,16 @@
 .community-logo-gauge--dual .community-logo-gauge__face {
   display: block;
   width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--community-logo-mark-height);
   aspect-ratio: var(--community-logo-aspect, 300 / 126);
   border-radius: inherit;
   overflow: hidden;
   line-height: 0;
   background: transparent;
   box-shadow: none;
+  margin-inline: auto;
 }
 
 .community-logo-gauge--dual .community-logo-gauge__face::before {
@@ -8125,24 +8457,24 @@
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge--dual .community-logo-gauge__stack {
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: var(--dual-logo-gap);
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  flex: 0 0 auto;
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge--dual .community-logo-gauge__button {
   flex: 0 0 auto;
-  width: min(
-    100%,
-    calc((var(--journey-counter-dial-size) - var(--dual-logo-gap)) * 300 / 252)
-  );
+  width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: calc((var(--journey-counter-dial-size) - var(--dual-logo-gap)) / 2);
-  aspect-ratio: var(--community-logo-aspect, 300 / 126);
+  max-width: none;
+  max-height: none;
+  padding: clamp(3px, 0.55vw, 5px);
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge__button {
@@ -8249,6 +8581,17 @@
 .journey-battery-gauge,
 .journey-speedometer-gauge,
 .community-logo-gauge {
+  --community-logo-mark-width: min(
+    calc(var(--journey-counter-dial-size, 12rem) * 0.84),
+    100%
+  );
+  --community-logo-mark-height: min(
+    calc(var(--community-logo-mark-width) * 126 / 300),
+    calc(var(--journey-counter-dial-size, 12rem) * 0.48)
+  );
+  --community-logo-dual-track-width: calc(
+    var(--community-logo-mark-width) * 2 + var(--dual-logo-gap, 8px)
+  );
   position: relative;
   display: flex;
   flex-direction: column;
@@ -8259,58 +8602,145 @@
   min-width: 0;
 }
 
-.journey-counter-panel__gauge .community-logo-gauge__button {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  box-sizing: border-box;
-}
-
 .journey-counter-panel__gauge
   .community-logo-gauge:not(.community-logo-gauge--dual)
   .community-logo-gauge__button {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: stretch;
+  display: block;
+  width: var(--community-logo-mark-width);
+  height: auto;
+  max-width: var(--community-logo-mark-width);
+  margin-inline: auto;
+  flex: 0 0 auto;
+  box-sizing: border-box;
   padding: clamp(4px, 0.7vw, 7px);
+  border-radius: clamp(6px, 1vw, 10px);
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge .community-logo-gauge--empty .community-logo-gauge__button--empty {
+  width: var(--community-logo-mark-width);
+  max-width: var(--community-logo-mark-width);
 }
 
 .journey-counter-panel__gauge .community-logo-gauge--dual .community-logo-gauge__button {
-  width: min(
-    calc((100% - var(--dual-logo-gap, 8px)) / 2),
-    calc(100% * 300 / 126)
-  );
+  flex: 1 1 0;
+  width: auto;
   height: auto;
+  max-width: calc(50% - var(--dual-logo-gap) / 2);
   max-height: 100%;
-  flex: 0 1 auto;
-  max-width: none;
-  padding: 0;
+  min-width: 0;
+  padding: clamp(4px, 0.7vw, 7px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Counter community logos — keep blue glow on the face/screen, not the outer bezel or dial track */
+.journey-counter-panel__gauge .community-logo-gauge__button {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 0 0 2px rgba(255, 255, 255, 0.12),
+    0 8px 22px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.journey-counter-panel__gauge .community-logo-gauge__chrome {
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 240, 255, 0.75),
+    inset 0 0 0 2px rgba(0, 191, 255, 0.42),
+    inset 0 0 14px rgba(3, 86, 146, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.journey-counter-panel__gauge .community-logo-gauge--dual .community-logo-gauge__face,
+.journey-counter-panel__gauge
+  .community-logo-gauge:not(.community-logo-gauge--dual)
+  .community-logo-gauge__face {
+  overflow: hidden;
+  background: linear-gradient(180deg, #fafbfc 0%, #eef2f6 48%, #e4eaf0 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 2px rgba(3, 86, 146, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.92),
+    inset 0 0 18px rgba(255, 255, 255, 0.55),
+    0 0 0 1px rgba(3, 86, 146, 0.4),
+    0 0 12px rgba(3, 86, 146, 0.5),
+    0 0 24px rgba(3, 86, 146, 0.32);
+}
+
+.journey-counter-panel__gauge .community-logo-gauge--dual .community-logo-gauge__logo,
+.journey-counter-panel__gauge
+  .community-logo-gauge:not(.community-logo-gauge--dual)
+  .community-logo-gauge__logo {
+  overflow: visible;
+  border-radius: inherit;
+}
+
+.journey-counter-panel__gauge .community-logo-gauge__button:hover,
+.journey-counter-panel__gauge .community-logo-gauge__button:focus-visible {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 0 0 2px rgba(255, 255, 255, 0.2),
+    0 12px 28px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.journey-counter-panel__gauge .community-logo-gauge__button:hover .community-logo-gauge__face,
+.journey-counter-panel__gauge .community-logo-gauge__button:focus-visible .community-logo-gauge__face {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 2px rgba(3, 86, 146, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.92),
+    inset 0 0 18px rgba(255, 255, 255, 0.55),
+    0 0 0 1px rgba(3, 86, 146, 0.55),
+    0 0 16px rgba(3, 86, 146, 0.65),
+    0 0 32px rgba(3, 86, 146, 0.42);
 }
 
 .journey-counter-panel__gauge .community-logo-gauge--dual .community-logo-gauge__face {
   width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--community-logo-mark-height);
   aspect-ratio: var(--community-logo-aspect, 300 / 126);
-  background: transparent;
-  box-shadow: none;
+  margin-inline: auto;
 }
 
 .journey-counter-panel__gauge .community-logo-gauge__face {
   width: 100%;
-  height: 100%;
+  height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: var(--community-logo-mark-height);
+  aspect-ratio: var(--community-logo-aspect, 300 / 126);
 }
 
 .journey-counter-panel__gauge
   .community-logo-gauge:not(.community-logo-gauge--dual)
   .community-logo-gauge__face {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: none;
+  margin-inline: auto;
+}
+
+.journey-counter-panel__gauge
+  .community-logo-gauge:not(.community-logo-gauge--dual)
+  .community-logo-gauge__face::before {
+  display: none;
+}
+
+.journey-counter-panel__gauge
+  .journey-counter-gauge__dial-slot--community-logo
+  .community-logo-gauge__stack {
+  height: auto;
+  max-height: 100%;
+  flex: 0 0 auto;
+}
+
+.journey-counter-panel__gauge
+  .community-logo-gauge:not(.community-logo-gauge--dual)
+  .journey-counter-gauge__dial-slot--community-logo
+  > .community-logo-gauge__button {
+  margin-block: auto;
 }
 
 .journey-battery-gauge__dial {
@@ -8705,17 +9135,49 @@
 }
 
 @media (min-width: 641px) {
+  .dashboard-panel--journey-counter .dashboard-panel__body.dashboard-body--journey-scene {
+    bottom: var(--journey-counter-footer-clearance, 15px);
+    overflow: visible;
+  }
+
+  /* Counter desktop — panel shell is the only clip boundary; inner scene stacks stay visible */
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .dashboard-body--journey-scene
+    > .dashboard-panel__stage--journey,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-scene-stage,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-layout--counter,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-layout--counter
+    .journey-layout__main,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-counter-panel,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-counter-panel__body,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-counter-panel__gauge,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-counter-panel__aside,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-counter-panel__headunit,
+  .dashboard-panel--journey-counter:not(.dashboard-panel--journey-scene-transition)
+    .journey-counter-panel__frame {
+    overflow: visible;
+  }
+
   .journey-counter-panel__body {
     width: 100%;
     padding-left: 0;
     box-sizing: border-box;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: 1fr;
+    grid-template-rows: minmax(0, auto);
     align-items: stretch;
     align-content: stretch;
     gap: clamp(1rem, 2vw, 1.75rem);
-    height: 100%;
+    height: auto;
+    max-height: none;
   }
 
   .journey-layout--counter {
@@ -8725,51 +9187,151 @@
   .journey-layout--counter .journey-layout__main--counter {
     gap: 0;
     width: 100%;
-    height: 300px;
-    min-height: 300px;
-    max-height: 300px;
+    height: auto;
+    min-height: 0;
+    max-height: none;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    justify-content: flex-start;
+    justify-content: flex-end;
     overflow: visible;
   }
 
   .journey-layout--counter .journey-layout__main--counter .journey-counter-panel {
     width: 100%;
     max-width: 100%;
-    height: 100%;
+    height: auto;
     margin-inline: 0;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .dashboard-panel--journey-scene .journey-layout--counter .journey-counter-panel__body {
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+    align-items: stretch;
+  }
+
+  .dashboard-panel--journey-scene .journey-layout--counter .journey-counter-panel__gauge {
+    min-height: 0;
+    overflow: visible;
   }
 
   .journey-counter-panel__body > .journey-counter-panel__gauge {
     --journey-counter-dial-height: min(100%, clamp(8rem, 28vw, 11rem));
     --journey-counter-dial-width: min(100%, clamp(16rem, 56vw, 22rem));
     --journey-counter-dial-size: var(--journey-counter-dial-height);
-    --journey-counter-subtitle-min-h: 2.65rem;
+    --journey-counter-subtitle-min-h: auto;
     --journey-counter-stat-min-h: 2.75rem;
+    --journey-counter-dial-gap: 0;
+    gap: 0;
     grid-column: 1;
     grid-row: 1;
     flex: none;
     width: 100%;
     max-width: none;
-    align-self: stretch;
+    align-self: start;
     justify-self: center;
-    height: 100%;
+    height: auto;
     min-height: 0;
+  }
+
+  .journey-counter-panel__body > .journey-counter-panel__gauge:has(.community-logo-gauge) {
+    align-self: stretch;
+    height: 100%;
+  }
+
+  .dashboard-panel--journey-counter
+    .journey-counter-panel__body
+    > .journey-counter-panel__gauge:has(.community-logo-gauge)
+    > .community-logo-gauge {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .dashboard-panel--journey-counter
+    .journey-counter-panel__gauge
+    > .community-logo-gauge
+    .journey-counter-gauge__dial-slot--community-logo {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    margin-bottom: 0;
+  }
+
+  .dashboard-panel--journey-counter
+    .journey-counter-panel__gauge
+    > .community-logo-gauge
+    .journey-counter-gauge__dial-slot--dual-logos,
+  .dashboard-panel--journey-counter
+    .journey-counter-panel__gauge
+    .community-logo-gauge--dual
+    .journey-counter-gauge__dial-slot {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .dashboard-panel--journey-counter
+    .journey-counter-panel__gauge
+    > .community-logo-gauge
+    .journey-speedometer-gauge__stat-below {
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+
+  .journey-counter-panel__body > .journey-counter-panel__gauge .journey-layout__subtitle {
+    flex: 0 0 auto;
+    min-height: 0;
+    margin: 0;
   }
 
   .journey-counter-panel__body > .journey-counter-panel__gauge > .journey-speedometer-gauge,
   .journey-counter-panel__body > .journey-counter-panel__gauge > .journey-fuel-gauge,
   .journey-counter-panel__body > .journey-counter-panel__gauge > .journey-battery-gauge,
   .journey-counter-panel__body > .journey-counter-panel__gauge > .community-logo-gauge {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-height: 0;
     height: auto;
     max-width: none;
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  .journey-counter-panel__body > .journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide {
+    margin-bottom: 0;
+  }
+
+  .journey-counter-panel__body > .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
+    flex: 0 0 auto;
+    margin-top: 0;
+    padding-block: clamp(2px, 0.35vh, 6px);
+  }
+
+  .journey-counter-panel__body > .journey-counter-panel__gauge > .community-logo-gauge,
+  .journey-counter-panel__body > .journey-counter-panel__gauge > .community-logo-gauge.community-logo-gauge--dual {
+    --community-logo-mark-width: min(
+      calc(var(--journey-counter-dial-size) * 0.84),
+      calc((100% - var(--dual-logo-gap)) / 2)
+    );
+    --community-logo-mark-height: min(
+      calc(var(--community-logo-mark-width) * 126 / 300),
+      calc(var(--journey-counter-dial-size) * 0.48)
+    );
+  }
+
+  .journey-counter-panel__body > .journey-counter-panel__gauge > .community-logo-gauge.community-logo-gauge--dual {
+    justify-content: flex-start;
   }
 
   .journey-counter-panel__body > .journey-counter-panel__aside {
@@ -8785,6 +9347,47 @@
     height: 100%;
     min-height: 0;
     gap: 0;
+    overflow: visible;
+  }
+
+  .dashboard-panel--journey-counter .journey-counter-panel__headunit {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .dashboard-panel--journey-counter .journey-counter-panel__frame,
+  .dashboard-panel--journey-counter .journey-counter-panel__frame-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .dashboard-panel--journey-counter .journey-counter-panel__screen-well {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+  }
+
+  .dashboard-panel--journey-counter .journey-counter-panel__screen {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: clamp(8.5rem, 18vh, 12rem);
+  }
+
+  .dashboard-panel--journey-counter .journey-counter-panel__controls {
+    flex: 0 0 auto;
   }
 
   .journey-counter-panel__headunit,
@@ -8804,12 +9407,6 @@
   .journey-counter-panel__screen {
     flex: 1 1 auto;
     min-height: 0;
-  }
-
-  .journey-counter-panel__body > .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
-    flex: 0 0 auto;
-    margin-top: auto;
-    padding-block: clamp(4px, 0.5vh, 8px);
   }
 }
 
@@ -8924,12 +9521,18 @@
   }
 
   .journey-layout--counter-mobile .journey-counter-panel__gauge {
-    gap: clamp(0.15rem, 0.45vh, 0.35rem);
+    gap: 0;
     flex: 0 1 auto;
     overflow: visible;
-    --journey-counter-dial-gap: clamp(0.15rem, 0.4vh, 0.3rem);
-    --journey-counter-subtitle-min-h: 2.15rem;
+    --journey-counter-dial-gap: 0;
+    --journey-counter-subtitle-min-h: auto;
     --journey-counter-stat-min-h: 2.35rem;
+  }
+
+  .journey-layout--counter-mobile .journey-counter-panel__gauge .journey-layout__subtitle {
+    flex: 0 0 auto;
+    min-height: 0;
+    margin: 0;
   }
 
   .journey-layout--counter-mobile .journey-counter-panel__gauge .journey-counter-gauge__dial-slot--wide {
@@ -8938,7 +9541,7 @@
     height: var(--journey-counter-dial-height);
     min-height: var(--journey-counter-dial-height);
     max-height: none;
-    margin-bottom: clamp(0.1rem, 0.35vh, 0.25rem);
+    margin-bottom: 0;
   }
 
   .journey-layout--counter-mobile .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
@@ -8993,15 +9596,23 @@
   }
 
   .journey-counter-panel__gauge {
-    gap: clamp(0.2em, 0.6vh, 0.45em);
+    gap: 0;
     --journey-counter-dial-height: clamp(6.5rem, 36vw, 9.5rem);
     --journey-counter-dial-width: min(
       100%,
       calc(var(--journey-counter-dial-height) * 2)
     );
     --journey-counter-dial-size: var(--journey-counter-dial-height);
-    --journey-counter-subtitle-min-h: 2.5rem;
+    --journey-counter-subtitle-min-h: auto;
     --journey-counter-stat-min-h: 2.65rem;
+    --journey-counter-dial-gap: 0;
+    --community-logo-dial-inset: clamp(0.35rem, 1.1vh, 0.75rem);
+  }
+
+  .journey-counter-panel__gauge .journey-layout__subtitle {
+    flex: 0 0 auto;
+    min-height: 0;
+    margin: 0;
   }
 
   .journey-counter-panel__gauge > .journey-fuel-gauge,
@@ -9012,10 +9623,11 @@
   }
 
   .journey-counter-panel__gauge > .community-logo-gauge:not(.community-logo-gauge--dual) {
-    max-width: min(
-      var(--journey-counter-message-width),
-      calc(var(--journey-counter-dial-height) * 300 / 126)
-    );
+    max-width: min(var(--journey-counter-message-width), 100%);
+  }
+
+  .journey-counter-panel__gauge > .community-logo-gauge.community-logo-gauge--dual {
+    max-width: min(var(--journey-counter-message-width), 100%);
   }
 
   .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below {
@@ -9662,16 +10274,18 @@
 
 .gps-nav-direction--webinar .gps-nav-direction__icon {
   flex-direction: column;
-  gap: clamp(1px, 0.2vh, 2px);
+  gap: 0;
   width: clamp(44px, 7vw, 52px);
   height: auto;
-  min-height: clamp(44px, 7vw, 52px);
-  padding: clamp(4px, 0.6vh, 6px) clamp(4px, 0.8vw, 6px);
+  aspect-ratio: 1;
+  min-height: 0;
+  padding: clamp(6px, 0.85vh, 8px) clamp(5px, 0.9vw, 7px);
+  box-sizing: border-box;
 }
 
 .gps-nav-direction__hours-value {
   font-family: var(--font-display, 'Inter', sans-serif);
-  font-size: clamp(18px, 4vw, 24px);
+  font-size: clamp(20px, 4.4vw, 28px);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -9680,10 +10294,10 @@
 
 .gps-nav-direction__hours-label {
   font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: clamp(8px, 1.6vw, 10px);
+  font-size: clamp(7px, 1.4vw, 9px);
   font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: 0.08em;
+  line-height: 1;
+  letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.78);
   text-transform: uppercase;
 }
@@ -9732,7 +10346,7 @@
 }
 
 .gps-nav-direction--webinar .gps-nav-direction__label {
-  font-size: clamp(14px, 3vw, 18px);
+  font-size: clamp(19px, calc(3vw + 5px), 23px);
   font-weight: 700;
   line-height: 1.15;
   color: #ffffff;
@@ -9944,11 +10558,14 @@
   }
 
   .gps-nav-direction--webinar .gps-nav-direction__icon {
-    min-height: clamp(40px, 11vw, 48px);
+    width: clamp(40px, 11vw, 48px);
+    aspect-ratio: 1;
+    min-height: 0;
+    padding: clamp(5px, 0.75vh, 7px) clamp(4px, 0.85vw, 6px);
   }
 
   .gps-nav-direction__hours-value {
-    font-size: clamp(16px, 4.8vw, 22px);
+    font-size: clamp(18px, 5vw, 24px);
   }
 }
 
@@ -10488,7 +11105,7 @@
 .hood-tire-hub__readout-row {
   position: absolute;
   left: var(--hood-wheel-park-x, 50%);
-  top: 54%;
+  top: 50%;
   transform: translate(calc(-100% - var(--hood-readout-gap, 20px)), -50%);
   z-index: 24;
   isolation: isolate;
@@ -10639,7 +11256,24 @@
 }
 
 .hood-tire-hub__screen-glass--stats-slide {
+  position: relative;
   justify-content: flex-start;
+}
+
+.hood-tire-hub__screen-check {
+  position: absolute;
+  top: clamp(8px, 1.2vh, 12px);
+  left: clamp(8px, 1.2vh, 12px);
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.hood-tire-hub__screen-check .hood-tire-check-badge {
+  width: clamp(40px, 12vw, 56px);
+  height: clamp(40px, 12vw, 56px);
 }
 
 .hood-tire-hub__screen-glass--stats-slide .hood-tire-hub__pressure-gauge {
@@ -10855,21 +11489,6 @@
   padding: 4px 0;
 }
 
-.hood-tire-hub__gauge-check {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.hood-tire-hub__gauge-check .hood-tire-check-badge {
-  width: clamp(56px, 38%, 84px);
-  height: clamp(56px, 38%, 84px);
-}
-
 .hood-tire-hub__pressure-gauge-lottie {
   width: auto !important;
   height: 100% !important;
@@ -10922,21 +11541,6 @@
 
 .hood-tire-hub__mobile-tire-roll-wrap--outgoing {
   z-index: 0;
-}
-
-.hood-tire-hub__mobile-tire-check {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.hood-tire-hub__mobile-tire-check .hood-tire-check-badge {
-  width: clamp(40px, 32%, 72px);
-  height: clamp(40px, 32%, 72px);
 }
 
 @media (max-width: 768px) {
@@ -10993,7 +11597,7 @@
     flex: 0 0 auto;
     width: 100%;
     height: auto;
-    min-height: var(--hood-mobile-tablet-tire-size, 152px);
+    min-height: var(--hood-mobile-tablet-tire-size, 243px);
     max-height: none;
     margin-top: 0;
     margin-bottom: auto;
@@ -11007,7 +11611,7 @@
   .hood-tire-hub--mobile-stack .hood-tire-hub__pressure-gauge--tire-art {
     width: 100%;
     min-width: 0;
-    min-height: var(--hood-mobile-tablet-tire-size, 152px);
+    min-height: var(--hood-mobile-tablet-tire-size, 243px);
     padding-inline: 0;
     padding-block: 0;
     align-items: center;
@@ -11024,9 +11628,9 @@
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    height: var(--hood-mobile-tablet-tire-size, 152px);
-    min-height: var(--hood-mobile-tablet-tire-size, 152px);
-    max-height: var(--hood-mobile-tablet-tire-size, 152px);
+    height: var(--hood-mobile-tablet-tire-size, 243px);
+    min-height: var(--hood-mobile-tablet-tire-size, 243px);
+    max-height: var(--hood-mobile-tablet-tire-size, 243px);
     overflow: hidden;
     flex: 0 0 auto;
     position: relative;
@@ -11040,12 +11644,12 @@
     position: relative;
     inset: auto;
     margin: 0;
-    width: var(--hood-mobile-tablet-tire-size, 152px);
-    height: var(--hood-mobile-tablet-tire-size, 152px);
-    min-width: var(--hood-mobile-tablet-tire-size, 152px);
-    min-height: var(--hood-mobile-tablet-tire-size, 152px);
-    max-width: var(--hood-mobile-tablet-tire-size, 152px);
-    max-height: var(--hood-mobile-tablet-tire-size, 152px);
+    width: var(--hood-mobile-tablet-tire-size, 243px);
+    height: var(--hood-mobile-tablet-tire-size, 243px);
+    min-width: var(--hood-mobile-tablet-tire-size, 243px);
+    min-height: var(--hood-mobile-tablet-tire-size, 243px);
+    max-width: var(--hood-mobile-tablet-tire-size, 243px);
+    max-height: var(--hood-mobile-tablet-tire-size, 243px);
     flex: 0 0 auto;
     display: grid;
     place-items: center;
@@ -11060,15 +11664,6 @@
     object-fit: contain;
     object-position: center center;
     filter: none;
-  }
-
-  .hood-tire-hub--mobile-stack .hood-tire-hub__mobile-tire-check .hood-tire-check-badge {
-    width: 34%;
-    height: 34%;
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 56px;
-    max-height: 56px;
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__screen-glass--stats-slide .hood-tire-hub__screen-content {
@@ -11478,7 +12073,8 @@
     --hood-mobile-tablet-vertical-pad: 24px;
     --hood-mobile-tire-tablet-gap: 16px;
     --hood-mobile-tire-lane-h: min(42vw, 190px);
-    --hood-mobile-tablet-tire-size: 152px;
+    --hood-mobile-tablet-tire-size: 243px;
+    height: 100%;
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__arch-wrap {
@@ -11499,12 +12095,16 @@
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
     padding-inline: var(--driving-content-gutter);
+    padding-block: var(--hood-mobile-tablet-vertical-pad, 24px);
     box-sizing: border-box;
+    min-height: 0;
+    overflow: visible;
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__readout-row {
@@ -11524,9 +12124,10 @@
     );
     justify-content: center;
     align-items: center;
-    margin: 0 auto;
+    justify-self: center;
+    align-self: center;
+    margin: 0;
     z-index: 22;
-    flex: 0 0 auto;
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__readout,
@@ -11551,11 +12152,12 @@
 
   .hood-tire-hub:not(.hood-tire-hub--mobile-stack) .hood-tire-hub__lane {
     height: min(75vw, 255px);
-    top: 56%;
+    top: 50%;
   }
 
   .hood-tire-hub:not(.hood-tire-hub--mobile-stack) .hood-tire-hub__readout-row {
-    top: 56%;
+    top: 50%;
+    max-height: calc(100% - 60px - var(--driving-footer-height, 6rem));
   }
 
   .hood-tire-hub__line--measuring {
@@ -11899,9 +12501,9 @@
 }
 
 .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge {
-  --journey-counter-stat-min-h: clamp(3.25rem, 9vw, 4.5rem);
-  --full-diagnostics-counter-value-size: clamp(11px, 2vw, 15px);
-  --full-diagnostics-counter-label-size: clamp(7.5px, 1.25vw, 9px);
+  --journey-counter-stat-min-h: clamp(3.75rem, 10vw, 5.25rem);
+  --full-diagnostics-counter-value-size: clamp(15px, 2.8vw, 20px);
+  --full-diagnostics-counter-label-size: clamp(11px, 1.8vw, 13px);
   display: flex;
   flex-direction: column;
   justify-content: stretch;
@@ -11935,9 +12537,11 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  gap: 0.2em;
-  padding-inline: clamp(4px, 1vw, 8px);
-  overflow: visible;
+  gap: 0.35em;
+  padding-inline: clamp(6px, 1.2vw, 10px);
+  padding-block: clamp(4px, 0.6vh, 8px);
+  overflow: hidden;
+  box-sizing: border-box;
   text-align: center;
 }
 
@@ -11949,8 +12553,7 @@
   .journey-speedometer-gauge__stat-label {
   position: relative;
   z-index: 2;
-  display: inline-flex;
-  flex-direction: column;
+  display: block;
   vertical-align: middle;
 }
 
@@ -11958,12 +12561,13 @@
   .journey-speedometer-gauge__stat-below
   .journey-speedometer-gauge__stat-value {
   flex: 0 0 auto;
-  max-width: 34%;
+  max-width: 38%;
   font-size: var(--full-diagnostics-counter-value-size);
-  line-height: 1;
+  line-height: 1.1;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: #ffffff;
+  white-space: nowrap;
   text-shadow:
     0 0 10px rgba(243, 144, 29, 0.4),
     0 0 20px rgba(243, 144, 29, 0.15),
@@ -11975,18 +12579,19 @@
   .journey-speedometer-gauge__stat-label {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 66%;
+  max-width: 62%;
   font-size: var(--full-diagnostics-counter-label-size);
-  padding-left: 0.15em;
-  line-height: 1.08;
+  padding-left: 0.2em;
+  line-height: 1.15;
   color: rgba(232, 237, 242, 0.92);
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.95),
     0 0 12px rgba(0, 0, 0, 0.65);
   white-space: normal;
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
+  text-wrap: pretty;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge:not(
@@ -11995,6 +12600,7 @@
   --journey-counter-dial-height: clamp(5.25rem, 14vw, 8rem);
   --journey-counter-dial-width: 100%;
   --journey-counter-dial-gap: 0;
+  --community-logo-dial-inset: clamp(0.35rem, 0.9vh, 0.65rem);
   --journey-counter-stat-min-h: calc(var(--journey-counter-dial-height) * 0.34375);
   grid-column: auto;
   grid-row: auto;
@@ -12074,6 +12680,9 @@
   flex: 0 0 var(--journey-counter-dial-height);
   aspect-ratio: unset;
   align-items: stretch;
+  padding-block: var(--community-logo-dial-inset, clamp(0.35rem, 0.9vh, 0.65rem));
+  margin-bottom: var(--community-logo-dial-inset, clamp(0.35rem, 0.9vh, 0.65rem));
+  box-sizing: border-box;
 }
 
 .full-diagnostics__stat-gauge .journey-fuel-gauge__dial,
@@ -12095,16 +12704,16 @@
   padding: clamp(3px, 0.55vw, 5px);
 }
 
-.full-diagnostics__stat-gauge .community-logo-gauge--dual .community-logo-gauge__button {
-  width: min(
-    calc((100% - var(--dual-logo-gap, 8px)) / 2),
-    calc(100% * 300 / 126)
-  );
-  height: auto;
+.full-diagnostics__stat-gauge .community-logo-gauge--empty .community-logo-gauge__button--empty {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
   max-height: 100%;
-  flex: 0 1 auto;
-  max-width: none;
-  padding: 0;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge--dual .community-logo-gauge__button {
+  flex: 0 0 auto;
+  padding: clamp(3px, 0.55vw, 5px);
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge__face {
@@ -12324,6 +12933,7 @@
   max-height: 100%;
   --hood-standards-popup-height: 100%;
   --hood-standards-logo-slot: clamp(34px, 7.5vh, 48px);
+  --hood-standards-database-icon-slot: clamp(24px, 5.2vh, 34px);
   overflow: hidden;
 }
 
@@ -12362,14 +12972,16 @@
   min-height: 0;
   max-height: 100%;
   height: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: stretch;
-  gap: clamp(10px, 1.6vw, 14px);
+  gap: clamp(6px, 1vw, 10px);
   overflow: hidden;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__metrics-column {
   --hood-standards-metric-width: clamp(80px, 18vw, 112px);
-  --hood-standards-logo-slot: clamp(34px, 7.5vh, 48px);
+  --hood-standards-logo-slot: clamp(28px, 5.5vh, 40px);
   height: 100%;
   min-height: 0;
   max-height: 100%;
@@ -12377,9 +12989,9 @@
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__metrics-column--stacked {
-  flex: 0 0 50%;
-  width: 50%;
-  max-width: 50%;
+  flex: unset;
+  width: 100%;
+  max-width: 100%;
   flex-direction: column;
   align-items: stretch;
   justify-content: stretch;
@@ -12419,14 +13031,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: min(100%, 5.75rem);
+  width: min(100%, 5rem);
   min-width: 0;
   min-height: 0;
   max-height: 100%;
   height: auto;
   align-self: center;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
+  padding-top: 6px;
   padding-bottom: 2px;
 }
 
@@ -12478,17 +13091,17 @@
 }
 
 .full-diagnostics__standards-tablet .hood-standards-gauge {
-  --hood-standards-gauge-aspect: 0.69;
+  --hood-standards-gauge-aspect: 0.62;
   aspect-ratio: var(--hood-standards-gauge-aspect);
   width: auto;
   max-width: 100%;
   height: 100%;
-  max-height: 100%;
+  max-height: calc(100% - 4px);
   min-height: 0;
   padding-top: 0;
   flex: 0 1 auto;
   align-self: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-gauge__shell {
@@ -12544,6 +13157,110 @@
   height: auto;
 }
 
+/* Full Diagnostics — no standards: logos stacked left, battery equal column right. */
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__main--summary {
+  justify-content: center;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'subscriptions subscriptions'
+    'logos gauge';
+  gap: clamp(6px, 1vh, 10px);
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-popup__subscription-stack {
+  display: contents;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-popup__protocol-label--summary-head {
+  grid-area: subscriptions;
+  text-align: center;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-popup__protocol-block {
+  grid-area: logos;
+  align-self: center;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: 0;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-popup__protocol-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1vh, 10px);
+  width: 100%;
+  min-height: 0;
+  padding-block: 0;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-protocol-logo {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: min(100%, 4.5rem);
+  height: var(--hood-standards-logo-slot);
+  min-height: var(--hood-standards-logo-slot);
+  max-height: var(--hood-standards-logo-slot);
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-popup__gauge-column {
+  grid-area: gauge;
+  align-self: stretch;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  flex: unset;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__metrics-column--no-subscriptions
+  .hood-standards-gauge {
+  width: 100%;
+  max-width: min(100%, 5.5rem);
+  height: 100%;
+  max-height: 100%;
+  margin-inline: auto;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-gauge__label--low-battery {
+  font-size: clamp(7px, 1.15vw, 9px);
+  letter-spacing: 0.03em;
+  gap: 0.08em;
+}
+
 @media (min-width: 769px) {
   .full-diagnostics__standards-tablet .hood-standards-popup__metrics-column--stacked {
     display: grid;
@@ -12585,7 +13302,7 @@
     grid-area: gauge;
     align-self: stretch;
     justify-self: center;
-    width: min(100%, 5.75rem);
+    width: min(100%, 6.75rem);
     height: 100%;
     max-height: 100%;
     min-height: 0;
@@ -12625,41 +13342,55 @@
 
 .full-diagnostics__standards-tablet.hood-standards-summary
   .hood-standards-popup__database-panel {
-  flex: 0 0 50%;
-  width: 50%;
-  max-width: 50%;
+  flex: unset;
+  width: 100%;
+  max-width: 100%;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-panel {
-  flex: 0 0 50%;
-  width: 50%;
-  max-width: 50%;
+  flex: unset;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   min-height: 0;
   padding-top: 0;
-  margin-left: 0;
   padding-bottom: clamp(8px, 1.4vh, 14px);
+  padding-inline: clamp(4px, 0.7vw, 6px) clamp(8px, 1.4vw, 12px);
+  margin-left: 0;
   box-sizing: border-box;
   justify-content: flex-end;
+  align-items: center;
+  overflow: hidden;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-panel .hood-standards-popup__database-label {
-  font-size: clamp(9px, 1.4vw, 11px);
+  font-size: clamp(7px, 1.1vw, 10px);
+  letter-spacing: 0.04em;
   text-align: center;
+  white-space: normal;
+  max-width: 100%;
+  padding-inline: 2px;
+  line-height: 1.15;
+  overflow: hidden;
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-grid {
   flex: 0 0 auto;
-  gap: clamp(6px, 1.2vh, 10px) clamp(6px, 1.2vw, 10px);
-  grid-auto-rows: var(--hood-standards-logo-slot);
+  width: 100%;
+  max-width: 100%;
+  gap: clamp(4px, 0.9vh, 8px) clamp(4px, 0.7vw, 8px);
+  grid-auto-rows: var(--hood-standards-database-icon-slot, clamp(24px, 5.2vh, 34px));
   align-content: end;
+  justify-items: center;
+  box-sizing: border-box;
+  padding-inline: clamp(2px, 0.4vw, 4px);
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-grid-icon {
   width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: var(--hood-standards-logo-slot);
+  max-width: min(100%, var(--hood-standards-database-icon-slot, clamp(24px, 5.2vh, 34px)));
+  max-height: var(--hood-standards-database-icon-slot, clamp(24px, 5.2vh, 34px));
   align-self: center;
   object-fit: contain;
   object-position: center;
@@ -12710,49 +13441,69 @@
 .full-diagnostics__map-ui {
   --gps-controls-edge: clamp(8px, 1.5vw, 16px);
   --gps-controls-btn-size: clamp(34px, 6.8vw, 44px);
-  --gps-nav-direction-top: calc(
-    var(--gps-controls-edge) + var(--gps-controls-btn-size) + clamp(8px, 1.2vh, 14px)
-  );
+  --gps-nav-direction-top: var(--gps-controls-edge);
   --attendance-route-inset-x: var(--gps-controls-edge);
   position: absolute;
   inset: var(--hmi-chrome-border);
   z-index: 3;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  align-content: stretch;
+  justify-items: stretch;
+  gap: 0;
   pointer-events: none;
   border-radius: calc(var(--hmi-radius) - 5px);
+  overflow: hidden;
 }
 
 .full-diagnostics__map-webinar-wrap {
-  flex: 0 0 auto;
+  grid-row: 1;
+  flex: none;
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
   min-height: 0;
+  height: 100%;
   width: 100%;
-  padding: var(--gps-nav-direction-top) var(--attendance-route-inset-x)
-    clamp(8px, 1.2vh, 12px);
+  padding: var(--gps-nav-direction-top) var(--attendance-route-inset-x) 0;
   box-sizing: border-box;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .full-diagnostics__map-webinar-slot {
   width: 100%;
   max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   pointer-events: auto;
 }
 
 .full-diagnostics__map-attendance-wrap {
-  flex: 0 0 auto;
+  grid-row: 2;
+  flex: none;
   width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   pointer-events: auto;
+  overflow: hidden;
 }
 
 .full-diagnostics__map-attendance-wrap .journey-nav-attendance-bar {
   width: 100%;
+  height: 100%;
+  min-height: 0;
   margin-top: 0;
-  overflow: visible;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .full-diagnostics__map-attendance-wrap .journey-nav-attendance-bar__screen {
@@ -12766,6 +13517,10 @@
     0 4px 16px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
 }
 
 .full-diagnostics__map-attendance-wrap
@@ -12775,12 +13530,66 @@
 }
 
 .full-diagnostics__map-attendance-wrap .journey-nav-attendance-bar__main--readout {
-  column-gap: 15px;
-}
-
-.full-diagnostics__map-webinar-wrap .gps-event-popup--hours.gps-nav-direction {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
   width: 100%;
   max-width: 100%;
+  margin-inline: 0;
+  column-gap: clamp(4px, 0.65vw, 8px);
+}
+
+.full-diagnostics__map-attendance-wrap
+  .journey-nav-attendance-bar__main--readout
+  .journey-nav-attendance-bar__value {
+  flex: 0 0 auto;
+  justify-self: start;
+  text-align: left;
+  align-self: center;
+}
+
+.full-diagnostics__map-attendance-wrap
+  .journey-nav-attendance-bar__main--readout
+  .journey-nav-attendance-bar__route-slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  align-items: flex-start;
+  align-self: center;
+}
+
+.full-diagnostics__map-attendance-wrap
+  .journey-nav-attendance-bar__route-slot
+  .journey-nav-attendance-bar__route {
+  width: 100%;
+  padding-inline: 0;
+  margin-inline: 0;
+}
+
+.full-diagnostics__map-attendance-wrap
+  .journey-nav-attendance-bar__route-slot
+  .journey-nav-attendance-bar__route-upper {
+  justify-content: flex-start;
+}
+
+.full-diagnostics__map-attendance-wrap
+  .journey-nav-attendance-bar__route-slot
+  .journey-nav-attendance-bar__eyebrow,
+.full-diagnostics__map-attendance-wrap
+  .journey-nav-attendance-bar__route-slot
+  .journey-nav-attendance-bar__route-count {
+  text-align: left;
+}
+
+.full-diagnostics__map-webinar-wrap .gps-event-popup--hours.gps-nav-direction,
+.full-diagnostics__map-webinar-wrap .gps-nav-direction-stack {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .full-diagnostics__map-webinar-wrap .gps-event-popup--hours.gps-nav-direction::after {
@@ -12789,6 +13598,17 @@
   left: 50%;
   bottom: -6px;
   transform: translateX(-50%) rotate(45deg);
+}
+
+.full-diagnostics__map-webinar-wrap .gps-nav-direction__copy {
+  justify-content: center;
+  align-self: center;
+}
+
+.full-diagnostics__map-webinar-wrap .gps-nav-direction--webinar .gps-nav-direction__label {
+  font-size: clamp(18px, 2.8vw, 24px);
+  line-height: 1.1;
+  font-weight: 700;
 }
 
 /* Step 2 → share: dashboard band + map exit before final scene */
@@ -13002,15 +13822,15 @@
   }
 
   .full-diagnostics__stats-row--counter-only {
-    --full-diagnostics-counter-stat-h: clamp(3.75rem, 13vw, 5rem);
-    --full-diagnostics-counter-value-size: clamp(10px, 2.4vw, 13px);
-    --full-diagnostics-counter-label-size: clamp(7px, 1.15vw, 8.5px);
+    --full-diagnostics-counter-stat-h: clamp(4rem, 15vw, 5.5rem);
+    --full-diagnostics-counter-value-size: clamp(13px, 3.2vw, 17px);
+    --full-diagnostics-counter-label-size: clamp(10px, 2.4vw, 12px);
     align-items: stretch;
   }
 
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge {
-    --full-diagnostics-counter-value-size: clamp(10px, 2.4vw, 13px);
-    --full-diagnostics-counter-label-size: clamp(7px, 1.15vw, 8.5px);
+    --full-diagnostics-counter-value-size: clamp(13px, 3.2vw, 17px);
+    --full-diagnostics-counter-label-size: clamp(10px, 2.4vw, 12px);
     --journey-counter-stat-min-h: var(--full-diagnostics-counter-stat-h);
     min-height: var(--full-diagnostics-counter-stat-h);
   }
@@ -13057,6 +13877,7 @@
 
   .full-diagnostics__standards-tablet.hood-standards-summary.hood-standards-popup {
     --hood-standards-logo-slot: clamp(26px, 6vh, 36px);
+    --hood-standards-database-icon-slot: clamp(20px, 4.6vh, 28px);
   }
 
   .full-diagnostics__standards-tablet .hood-standards-popup__metrics-column {
@@ -13072,6 +13893,33 @@
       'logos'
       'gauge';
     gap: clamp(4px, 0.8vh, 8px);
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__metrics-column--no-subscriptions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'subscriptions subscriptions'
+      'logos gauge';
+    gap: clamp(6px, 1vh, 10px);
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__metrics-column--no-subscriptions
+    .hood-standards-protocol-logo {
+    max-width: min(100%, 3.75rem);
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__metrics-column--no-subscriptions
+    .hood-standards-gauge {
+    max-width: min(100%, 4.75rem);
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-gauge__label--low-battery {
+    font-size: clamp(6px, 1.8vw, 8px);
   }
 
   .full-diagnostics__standards-tablet
@@ -13102,15 +13950,36 @@
     grid-area: gauge;
     align-self: stretch;
     justify-self: center;
-    width: min(100%, 5.75rem);
+    width: min(100%, 6.75rem);
     height: 100%;
     max-height: 100%;
     min-height: 0;
   }
 
-  .full-diagnostics__standards-tablet .hood-standards-gauge {
+  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal {
+    --hood-standards-horizontal-shell-span: 92%;
+    --hood-standards-horizontal-shell-thickness: 0.54;
+    width: 100%;
     max-width: 100%;
-    min-height: 0;
+    height: 100%;
+    overflow: visible;
+    padding-inline: 6px;
+    box-sizing: border-box;
+  }
+
+  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal .hood-standards-gauge__shell {
+    transform: rotate(var(--hood-standards-shell-rotate, 90deg));
+    transform-origin: center center;
+  }
+
+  .full-diagnostics__standards-tablet
+    .hood-standards-gauge--horizontal
+    .hood-standards-gauge__label,
+  .full-diagnostics__standards-tablet
+    .hood-standards-gauge--horizontal
+    .hood-standards-gauge__label--low-battery {
+    transform: rotate(calc(-1 * var(--hood-standards-shell-rotate, 90deg)));
+    transform-origin: center center;
   }
 
   .full-diagnostics__standards-tablet .hood-standards-gauge__well {
@@ -13119,14 +13988,28 @@
 
   .full-diagnostics__standards-tablet .hood-standards-popup__database-panel {
     justify-content: flex-start;
-    align-items: stretch;
+    align-items: center;
     padding-top: 0;
     padding-bottom: 0;
+    padding-inline: clamp(3px, 0.8vw, 5px) clamp(6px, 1.6vw, 10px);
+    overflow: hidden;
+  }
+
+  .full-diagnostics__standards-tablet .hood-standards-popup__database-panel .hood-standards-popup__database-label {
+    font-size: clamp(6px, 1.6vw, 9px);
+    letter-spacing: 0.03em;
   }
 
   .full-diagnostics__standards-tablet .hood-standards-popup__database-grid {
     align-content: start;
     justify-content: center;
+    gap: clamp(3px, 0.8vh, 6px) clamp(3px, 0.6vw, 6px);
+    grid-auto-rows: var(--hood-standards-database-icon-slot, clamp(20px, 4.6vh, 28px));
+  }
+
+  .full-diagnostics__standards-tablet .hood-standards-popup__database-grid-icon {
+    max-width: min(100%, var(--hood-standards-database-icon-slot, clamp(20px, 4.6vh, 28px)));
+    max-height: var(--hood-standards-database-icon-slot, clamp(20px, 4.6vh, 28px));
   }
 
   .full-diagnostics__map-webinar-wrap .gps-event-popup--nav {
@@ -13143,11 +14026,11 @@
     container-type: size;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
     align-content: stretch;
     justify-items: stretch;
-    gap: clamp(5px, 1vh, 8px);
-    padding: clamp(10px, 2vh, 14px) var(--gps-controls-edge);
+    gap: 0;
+    padding: var(--gps-controls-edge);
     box-sizing: border-box;
     overflow: hidden;
     --gps-controls-edge: clamp(6px, 1.8vw, 12px);
@@ -13155,22 +14038,24 @@
   }
 
   .full-diagnostics__map-webinar-wrap {
-    grid-row: 2;
+    grid-row: 1;
     flex: none;
     width: 100%;
+    height: 100%;
     min-height: 0;
-    max-height: min(40cqh, 68px);
+    max-height: none;
     padding: 0;
     overflow: hidden;
   }
 
   .full-diagnostics__map-attendance-wrap {
-    grid-row: 3;
+    grid-row: 2;
     flex: none;
     width: 100%;
+    height: 100%;
     min-height: 0;
-    max-height: min(44cqh, 76px);
-    overflow: visible;
+    max-height: none;
+    overflow: hidden;
   }
 
   .full-diagnostics__map-webinar-wrap .gps-event-popup--hours.gps-nav-direction::after {
@@ -13184,17 +14069,25 @@
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction--webinar .gps-nav-direction__icon {
-    width: clamp(32px, 8.5vw, 38px);
-    min-height: clamp(32px, 8.5vw, 38px);
-    padding: clamp(2px, 0.4vh, 3px) clamp(3px, 0.6vw, 4px);
+    width: clamp(36px, 9vw, 42px);
+    aspect-ratio: 1;
+    min-height: 0;
+    padding: clamp(5px, 0.65vh, 6px) clamp(4px, 0.7vw, 5px);
+    box-sizing: border-box;
+    gap: 0;
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction__hours-value {
-    font-size: clamp(14px, 3.8vw, 18px);
+    font-size: clamp(17px, 4.4vw, 21px);
+  }
+
+  .full-diagnostics__map-webinar-wrap .gps-nav-direction__hours-label {
+    font-size: clamp(6px, 1.5vw, 8px);
+    line-height: 1;
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction--webinar .gps-nav-direction__label {
-    font-size: clamp(10px, 2.6vw, 12px);
+    font-size: clamp(18px, 5.2vw, 22px);
     line-height: 1.1;
   }
 
@@ -13223,7 +14116,7 @@
     .journey-nav-attendance-bar__route {
     --attendance-route-pin-lane: clamp(22px, 6vw, 28px);
     --attendance-route-pin-size: clamp(22px, 6vw, 28px);
-    padding-right: clamp(6px, 1.8vw, 8px);
+    padding-right: 0;
   }
 }
 
@@ -13264,17 +14157,18 @@
   }
 
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge {
-    --journey-counter-stat-min-h: clamp(4rem, 11vh, 5.75rem);
-    --full-diagnostics-counter-value-size: clamp(18px, 2.4vw, 26px);
-    --full-diagnostics-counter-label-size: clamp(10px, 1.4vw, 13px);
+    --journey-counter-stat-min-h: clamp(4.5rem, 12vh, 6.5rem);
+    --full-diagnostics-counter-value-size: clamp(22px, 2.6vw, 30px);
+    --full-diagnostics-counter-label-size: clamp(13px, 1.6vw, 17px);
   }
 
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
     .journey-speedometer-gauge__stat-below {
     flex-flow: column nowrap;
     justify-content: center;
-    gap: clamp(3px, 0.5vh, 6px);
-    padding-inline: clamp(6px, 1.2vw, 12px);
+    gap: clamp(4px, 0.6vh, 8px);
+    padding-inline: clamp(8px, 1.4vw, 14px);
+    padding-block: clamp(6px, 0.8vh, 10px);
   }
 
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
@@ -13283,7 +14177,6 @@
     max-width: 100%;
     width: auto;
     text-align: center;
-    align-items: center;
   }
 
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
@@ -13294,7 +14187,10 @@
     width: auto;
     padding-left: 0;
     text-align: center;
-    align-items: center;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+    text-wrap: pretty;
   }
 
   .full-diagnostics__upper-right {
@@ -13382,16 +14278,17 @@
   }
 
   .full-diagnostics__map-ui {
-    justify-content: flex-end;
+    justify-content: stretch;
     align-items: stretch;
-    gap: clamp(3px, 0.5vh, 5px);
-    padding: clamp(3px, 0.5vh, 5px);
+    gap: 0;
+    padding: var(--gps-controls-edge);
     --gps-controls-edge: 5px;
     --gps-controls-btn-size: clamp(24px, 3vw, 28px);
   }
 
   .full-diagnostics__map-webinar-wrap {
-    flex: 0 0 auto;
+    flex: none;
+    height: 100%;
     padding: 0;
   }
 
@@ -13412,22 +14309,26 @@
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction--webinar .gps-nav-direction__icon {
-    width: clamp(30px, 4vw, 34px);
-    min-height: clamp(30px, 4vw, 34px);
-    padding: clamp(2px, 0.35vh, 3px) clamp(3px, 0.5vw, 4px);
+    width: clamp(38px, 4.8vw, 42px);
+    aspect-ratio: 1;
+    min-height: 0;
+    padding: clamp(5px, 0.7vh, 6px) clamp(4px, 0.55vw, 5px);
     border-radius: 6px;
+    box-sizing: border-box;
+    gap: 0;
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction__hours-value {
-    font-size: clamp(13px, 1.8vw, 16px);
+    font-size: clamp(17px, 2.4vw, 21px);
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction__hours-label {
-    font-size: clamp(6px, 0.9vw, 8px);
+    font-size: clamp(6px, 0.8vw, 7px);
+    line-height: 1;
   }
 
   .full-diagnostics__map-webinar-wrap .gps-nav-direction--webinar .gps-nav-direction__label {
-    font-size: clamp(10px, 1.4vw, 12px);
+    font-size: clamp(18px, 2.8vw, 24px);
     line-height: 1.1;
   }
 
@@ -13438,7 +14339,13 @@
   }
 
   .full-diagnostics__map-attendance-wrap .journey-nav-attendance-bar__main--readout {
-    column-gap: clamp(8px, 1.2vw, 10px);
+    column-gap: clamp(4px, 0.8vw, 7px);
+  }
+
+  .full-diagnostics__map-attendance-wrap
+    .journey-nav-attendance-bar__main--readout
+    .journey-nav-attendance-bar__route-slot {
+    max-width: none;
   }
 
   .full-diagnostics__map-attendance-wrap

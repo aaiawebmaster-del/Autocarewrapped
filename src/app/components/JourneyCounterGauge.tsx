@@ -23,7 +23,7 @@ const FUEL_MAX_ANGLE = 360;
 const FUEL_SWEEP = FUEL_MAX_ANGLE - FUEL_MIN_ANGLE;
 const FUEL_LABEL_FONT_SIZE = 14;
 const BATTERY_WARNING_DELAY_MS = 750;
-const LOW_FUEL_CONTACTS_THRESHOLD = 15;
+const LOW_FUEL_CONTACTS_THRESHOLD = 5;
 
 function parseViewBoxHeight(viewBox: string) {
   const parts = viewBox.trim().split(/\s+/);

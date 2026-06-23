@@ -137,12 +137,7 @@ export function GpsEventRouteTrack({
       <div className="journey-nav-attendance-bar__route-upper">
         {showCount && inPersonTotal > 0 ? (
           <p
-            className={[
-              'journey-nav-attendance-bar__route-count',
-              loading ? 'journey-nav-attendance-bar__route-count--calculating' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            className="journey-nav-attendance-bar__route-count"
           >
             {loading ? 'Calculating' : `${attendedCount} of ${inPersonTotal}`}
           </p>
@@ -718,13 +713,11 @@ export function GpsAttendanceBottomBar({
               style={{ overflow: 'hidden' }}
               aria-hidden={compact}
             >
-              <div className="journey-nav-attendance-bar__copy-slot">
-                {calculating ? (
-                  <p className="journey-nav-attendance-bar__calculating">{ATTENDANCE_CALCULATING_COPY}</p>
-                ) : (
+              {!calculating && !compact ? (
+                <div className="journey-nav-attendance-bar__copy-slot">
                   <p className="journey-nav-attendance-bar__support">{attendanceCopy.asideMessage}</p>
-                )}
-              </div>
+                </div>
+              ) : null}
             </motion.div>
           </div>
           </motion.div>

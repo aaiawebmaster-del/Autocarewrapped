@@ -61,6 +61,34 @@ function CommunityLogoButton({
   );
 }
 
+function CommunityLogoEmptyShell({ aspect }: { aspect: string }) {
+  return (
+    <div
+      className="community-logo-gauge__button community-logo-gauge__button--empty"
+      role="img"
+      aria-label="No community membership"
+      style={{ ['--community-logo-aspect' as string]: aspect }}
+    >
+      <span className="community-logo-gauge__chrome" aria-hidden />
+      <span className="community-logo-gauge__face community-logo-gauge__face--empty">
+        <span className="community-logo-gauge__empty-mark" aria-hidden>
+          <svg viewBox="0 0 48 48" className="community-logo-gauge__empty-mark-icon">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="2.5" />
+            <path
+              d="M15 15 L33 33 M33 15 L15 33"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+        <span className="community-logo-gauge__gloss" aria-hidden />
+      </span>
+    </div>
+  );
+}
+
 export function CommunityLogoGauge({
   target,
   label,
@@ -83,6 +111,7 @@ export function CommunityLogoGauge({
   const onCountCompleteRef = useRef(onCountComplete);
   onCountCompleteRef.current = onCountComplete;
   const dualLogos = showDualCommunityLogos(communities);
+  const showEmptyShell = target === 0;
 
   const displayValue =
     target >= 1000 ? Math.round(gaugeValue).toLocaleString() : String(Math.round(gaugeValue));
@@ -107,6 +136,7 @@ export function CommunityLogoGauge({
 
   const rootClassName = [
     'community-logo-gauge',
+    showEmptyShell ? 'community-logo-gauge--empty' : '',
     dualLogos ? 'community-logo-gauge--dual' : '',
     className,
   ]
@@ -116,7 +146,7 @@ export function CommunityLogoGauge({
   const dialSlotClassName = [
     'journey-counter-gauge__dial-slot',
     counterDialBox ? 'journey-counter-gauge__dial-slot--counter' : '',
-    counterDialBox && !dualLogos ? 'journey-counter-gauge__dial-slot--community-logo' : '',
+    counterDialBox ? 'journey-counter-gauge__dial-slot--community-logo' : '',
     dualLogos ? 'journey-counter-gauge__dial-slot--dual-logos' : '',
   ]
     .filter(Boolean)
@@ -165,7 +195,9 @@ export function CommunityLogoGauge({
       }}
     >
       <div className={dialSlotClassName}>
-        {dualLogos ? (
+        {showEmptyShell ? (
+          <CommunityLogoEmptyShell aspect="300 / 126" />
+        ) : dualLogos ? (
           <div className="community-logo-gauge__stack">
             <CommunityLogoButton
               href={href || AWDA_COMMUNITY_HREF}

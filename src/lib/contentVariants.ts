@@ -50,23 +50,31 @@ const WEBINAR_CTA: ContentCta = {
   href: EXTERNAL_CTA_LINKS.browseWebinarLibrary,
 };
 
-export function getAttendanceVariant(attended: number, total: number): AttendanceVariant {
-  if (attended === 0) return 'none';
-  if (total > 0 && attended >= total * 0.5) return 'high';
+export function getAttendanceAsideMessage(attendancePct: number): string {
+  if (attendancePct > 50) {
+    return "You're showing up in a critical arena to fuel your education and business development! Explore upcoming events for you and your team";
+  }
+  return "We'd love to see you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.";
+}
+
+export function getAttendanceVariant(attendancePct: number): AttendanceVariant {
+  if (attendancePct === 0) return 'none';
+  if (attendancePct > 50) return 'high';
   return 'some';
 }
 
 export function getWebinarVariant(hours: number): WebinarVariant {
   if (hours === 0) return 'none';
-  if (hours >= 50) return 'many';
+  if (hours > 5) return 'many';
   return 'some';
 }
 
 export function getAttendanceCopy(
   events: EventsMetrics,
-  variant = getAttendanceVariant(events.inPersonAttended, events.inPersonTotal),
+  variant = getAttendanceVariant(events.attendancePct),
 ): AttendanceCopy {
   const { inPersonAttended, inPersonTotal } = events;
+  const asideMessage = getAttendanceAsideMessage(events.attendancePct);
 
   const copy: Record<AttendanceVariant, AttendanceCopy> = {
     none: {
@@ -74,8 +82,7 @@ export function getAttendanceCopy(
       metricLabel: 'in-person event attendance',
       eventsTotalLabel: `${inPersonTotal} in-person auto care events`,
       detailLabel: (_attended, total) => `0 of ${total} in-person auto care events`,
-      asideMessage:
-        "We'd love to see you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.",
+      asideMessage,
       body: "You haven't attended an in-person event yet — there's still time to connect, learn, and grow with the Auto Care community.",
       cta: EVENTS_CTA,
     },
@@ -85,8 +92,7 @@ export function getAttendanceCopy(
       eventsTotalLabel: `${inPersonTotal} in-person auto care events`,
       detailLabel: (attended, total) =>
         `${attended} of ${total} in-person auto care events`,
-      asideMessage:
-        "You're missing out! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.",
+      asideMessage,
       body: 'Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.',
       cta: EVENTS_CTA,
     },
@@ -96,8 +102,7 @@ export function getAttendanceCopy(
       eventsTotalLabel: `${inPersonTotal} in-person auto care events`,
       detailLabel: (attended, total) =>
         `${attended} of ${total} in-person auto care events`,
-      asideMessage:
-        'Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.',
+      asideMessage,
       body: "Outstanding engagement! You're making the most of in-person Auto Care events — keep building those industry connections.",
       cta: EVENTS_CTA,
     },
@@ -106,12 +111,16 @@ export function getAttendanceCopy(
   return copy[variant];
 }
 
-export function getWebinarMessageBody(webinarCount: number): string {
-  if (webinarCount === 0) {
-    return 'Explore on-demand webinars to keep your team learning between events.';
+export function getAapex2026DetailMessage(aapexExhibitor = false): string {
+  if (aapexExhibitor) {
+    return "You're front and center at our industry's homecoming. See what's new at the upcoming show";
   }
-  if (webinarCount <= 1) {
-    return 'See what you missed and view our webinars on-demand.';
+  return 'Being at AAPEX is the #1 way to not only stay connected and forge new business.';
+}
+
+export function getWebinarMessageBody(hours: number): string {
+  if (hours <= 5) {
+    return 'See what you missed and view our webinars on-demand on the Digital Hub';
   }
   return 'Are there other employees who could benefit from our robust library of on-demand content?';
 }
@@ -156,6 +165,7 @@ export function getHoodStandardsMessages(report: WrappedReport): {
 } {
   const subscribedProducts = report.standards?.subscribedProducts ?? [];
   const subscribedPct = getStandardsSubscribedPct(subscribedProducts);
+  const hasNoStandardsSubscriptions = subscribedProducts.length === 0;
   const subscribed = subscribedProducts.length > 0 ? subscribedProducts : ['IPO', 'ISHOP', 'ACES', 'PIES'];
   const subscribedCount =
     report.standards?.subscribedCount ?? subscribed.length;
@@ -166,9 +176,12 @@ export function getHoodStandardsMessages(report: WrappedReport): {
   return {
     checking: 'checking standards levels',
     subscribed: `you are subscribed to ${subscribedPct}% of our data standards`,
-    subscribedDatabase: 'Make sure your databases are up-to-date with the latest releases',
+    subscribedDatabase:
+      'Is your data healthy? Utilize our Catalog Assessment tool to find opportunities where standards can help you increase sales and reduce returns',
     missing: `you are subscribed to ${subscribedCount} standards: ${subscribedLabel}`,
-    vip: 'Make sure your databases are up-to-date with the latest releases',
+    vip: hasNoStandardsSubscriptions
+      ? 'Is your data healthy? Utilize our Catalog Assessment tool to find opportunities where standards can help you increase sales and reduce returns'
+      : 'Make sure your databases are up-to-date with the latest releases',
     subscribedPct,
     databaseAccessIcons,
     protocolLogos: getStandardsProtocolLogos(subscribedProducts),
@@ -188,8 +201,62 @@ export type TireReadoutConfig = {
   upsellMessage?: string;
 };
 
+export function shouldSkipTrendlensPhase(_report: WrappedReport): boolean {
+  return false;
+}
+
+export function getInitialTirePhase(report: WrappedReport): TirePhase {
+  return shouldSkipTrendlensPhase(report) ? 'demandindex' : 'trendlens';
+}
+
+export function resolveTirePhaseForReport(
+  report: WrappedReport,
+  phase: TirePhase,
+): TirePhase {
+  if (shouldSkipTrendlensPhase(report) && phase === 'trendlens') {
+    return 'demandindex';
+  }
+  return phase;
+}
+
+const ALL_TIRE_PHASES: TirePhase[] = ['trendlens', 'demandindex', 'factbook', 'academy'];
+
+export function getTirePhasesForReport(report: WrappedReport): TirePhase[] {
+  if (shouldSkipTrendlensPhase(report)) {
+    return ALL_TIRE_PHASES.filter((phase) => phase !== 'trendlens');
+  }
+  return ALL_TIRE_PHASES;
+}
+
+export function getNextTirePhaseForReport(
+  phase: TirePhase,
+  report: WrappedReport,
+): TirePhase | null {
+  const order = getTirePhasesForReport(report);
+  const i = order.indexOf(phase);
+  if (i < 0 || i >= order.length - 1) return null;
+  return order[i + 1];
+}
+
+export function getPrevTirePhaseForReport(
+  phase: TirePhase,
+  report: WrappedReport,
+): TirePhase | null {
+  const order = getTirePhasesForReport(report);
+  const i = order.indexOf(phase);
+  if (i <= 0) return null;
+  return order[i - 1];
+}
+
 export function isTirePhaseEmpty(report: WrappedReport, phase: TirePhase): boolean {
   return buildTireReadoutConfig(report)[phase].primaryValue === 0;
+}
+
+export function getAcademyCtaMessage(academyUsers: number): string {
+  if (academyUsers === 0) {
+    return "See what you've missed by exploring our current course catalog";
+  }
+  return "See what's new in our course catalog";
 }
 
 export function buildTireReadoutConfig(

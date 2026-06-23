@@ -16,7 +16,8 @@
     "inPersonAttended": 5,
     "inPersonTotal": 8,
     "attendancePct": 63,
-    "webinarCount": 18
+    "webinarCount": 18,
+    "aapexExhibitor": true
   },
   "products": {
     "trendLensUsers": 4,

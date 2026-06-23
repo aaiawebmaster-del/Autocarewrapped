@@ -21,6 +21,8 @@ export type WrappedReport = {
     attendancePct: number;
     /** Total webinars attended; UI may label this as hours. */
     webinarCount: number;
+    /** Listed as an AAPEX exhibitor — changes AAPEX 2026 arrival copy. */
+    aapexExhibitor?: boolean;
   };
   products: {
     trendLensUsers: number;
