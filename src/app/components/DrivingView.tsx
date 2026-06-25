@@ -4,6 +4,7 @@ import { JourneyCounterGauge } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { LazyLottie } from './LazyLottie';
 import { GpsUiControls } from './GpsUiControls';
+import { JourneyNavDriverMarker } from './JourneyNavDriverMarker';
 import {
   GpsPopupContent,
   GpsAttendanceBottomBar,
@@ -19,6 +20,20 @@ import {
   type TirePhase,
 } from './MapSimulation';
 import carStartSound from '../../assets/car-start-drive-off.mp3';
+import { playJourneySlideOutcomeSound } from '@/lib/journeySlideSound';
+import {
+  playNoInPersonEventsAlertSound,
+  playInPersonEventsAchievementSound,
+  playWebinarAttendanceOutcomeSound,
+  startAttendanceCalculatingSound,
+  stopAttendanceCalculatingSound,
+} from '@/lib/journeyAttendanceSound';
+import {
+  playAapexArrivalAlertSound,
+  playAapex2026RerouteAlertSound,
+} from '@/lib/journeyAapexSound';
+import { playUiClickSound, primeUiClickSoundSession } from '@/lib/uiClickSound';
+import { isAppAudioMuted, playAppAudio } from '@/lib/appAudio';
 import { loadDrivingAnimation } from '@/lib/lazyLottieData';
 import { useMobileViewport } from '@/lib/useMobileViewport';
 import { DashboardPrndl } from './DashboardPrndl';
@@ -35,8 +50,15 @@ import {
   JOURNEY_SCENE_TRANSITION,
 } from '@/lib/journeySceneTiming';
 import { prefersReducedMotion } from '@/lib/browserCompat';
+import {
+  DRIVING_LOTTIE_PLAYBACK_SPEED,
+  JOURNEY_GAUGE_DURATION_MS,
+  scaleExperienceMs,
+  scaleExperienceS,
+} from '@/lib/experienceAnimationTiming';
 import { debugSessionLog } from '@/lib/debugSessionLog';
 import type { WrappedReport } from '@/types/wrappedReport';
+import { LicensePlate } from './LicensePlate';
 
 const INTRO_WELCOME_GREETING = 'Welcome,';
 
@@ -61,7 +83,7 @@ const STARS = Array.from({ length: 45 }, (_, i) => ({
 
 const SUN_RISE_BOTTOM_Y = 92;
 const SUN_RISE_TOP_Y = -108;
-const SKY_SUNRISE_DURATION_S = 20;
+const SKY_SUNRISE_DURATION_S = scaleExperienceS(20);
 
 const FOLLOW_UP_SLIDE_TEXTS = [
   'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
@@ -73,15 +95,15 @@ const FOLLOW_UP_SLIDE_TEXTS = [
 const DRIVING_SLIDE_COUNT = 1 + FOLLOW_UP_SLIDE_TEXTS.length;
 const SKY_SUNRISE_ANIMATION = { duration: SKY_SUNRISE_DURATION_S, ease: [0.35, 0, 0.25, 1] as const };
 const INTRO_LAYOUT_TRANSITION = {
-  duration: 1.35,
+  duration: scaleExperienceS(1.35),
   ease: [0.22, 1, 0.36, 1] as const,
 };
 const INTRO_START_BUTTON_TRANSITION = {
-  duration: 1.75,
+  duration: scaleExperienceS(1.75),
   ease: [0.16, 1, 0.3, 1] as const,
 };
 const LICENSE_PLATE_EXIT_TRANSITION = {
-  duration: 1.5,
+  duration: scaleExperienceS(1.5),
   ease: [0.22, 1, 0.36, 1] as const,
 };
 
@@ -376,7 +398,7 @@ function InfotainmentHeadUnit({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 6 }}
-      transition={{ ...INTRO_LAYOUT_TRANSITION, delay: 0.06 }}
+      transition={{ ...INTRO_LAYOUT_TRANSITION, delay: scaleExperienceS(0.06) }}
     >
       <InfotainmentHeadunitFrame contentClassName="infotainment-headunit__layout infotainment-headunit__layout--intro">
         <div className="infotainment-headunit__main">
@@ -392,7 +414,7 @@ function InfotainmentHeadUnit({
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.55, ease: INTRO_LAYOUT_TRANSITION.ease }}
+                      transition={{ duration: scaleExperienceS(0.55), ease: INTRO_LAYOUT_TRANSITION.ease }}
                     >
                       {currentSlide === 0 ? (
                         <div className="intro-slide__welcome">
@@ -669,7 +691,7 @@ function JourneyNavArrivalOverlay({
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.38, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: scaleExperienceS(0.38), ease: [0.4, 0, 0.2, 1] }}
     >
       <div
         className={`journey-nav-arrival__card${isRerouting ? ' journey-nav-arrival__card--rerouting' : ''}`}
@@ -681,7 +703,7 @@ function JourneyNavArrivalOverlay({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: scaleExperienceS(0.28), ease: [0.4, 0, 0.2, 1] }}
           >
             <div className="journey-nav-arrival__icon" aria-hidden>
               {isRerouting ? (
@@ -750,9 +772,10 @@ function gpsAdvanceLabel(phase: number): string {
   return 'next';
 }
 
-const ATTENDANCE_CALCULATING_MS = 2500;
-const EVENT_BAR_FILL_MS = 2000;
-const GPS_POPUP_EXIT_MS = 500;
+const ATTENDANCE_CALCULATING_MS = scaleExperienceMs(2500);
+const CAR_START_TRIM_S = 0.5;
+const EVENT_BAR_FILL_MS = scaleExperienceMs(2000);
+const GPS_POPUP_EXIT_MS = scaleExperienceMs(500);
 
 function GpsNavSection({
   onGoToHood,
@@ -790,6 +813,7 @@ function GpsNavSection({
   );
   const [exitingToArrival, setExitingToArrival] = useState(false);
   const [attendanceRevealExpanded, setAttendanceRevealExpanded] = useState(false);
+  const attendanceOutcomePlayedRef = useRef(false);
   const attendanceDetailsReady = barW >= attendanceTarget;
   const attendanceBarCompact =
     phase >= 3 ||
@@ -859,6 +883,43 @@ function GpsNavSection({
   }, [phase, initialPhase, mapReplayKey]);
 
   useEffect(() => {
+    if (!attendanceCalculating) {
+      stopAttendanceCalculatingSound();
+      return;
+    }
+
+    startAttendanceCalculatingSound();
+    return () => stopAttendanceCalculatingSound();
+  }, [attendanceCalculating]);
+
+  const handleAttendanceSupportRevealed = useCallback(() => {
+    if (phase !== 2 || attendanceCalculating) return;
+    if (initialPhase >= 2 && mapReplayKey === 0) return;
+    if (attendanceOutcomePlayedRef.current) return;
+
+    stopAttendanceCalculatingSound();
+    attendanceOutcomePlayedRef.current = true;
+
+    if (eventsMetrics.inPersonAttended === 0) {
+      playNoInPersonEventsAlertSound();
+    } else {
+      playInPersonEventsAchievementSound();
+    }
+  }, [
+    phase,
+    attendanceCalculating,
+    initialPhase,
+    mapReplayKey,
+    eventsMetrics.inPersonAttended,
+  ]);
+
+  useEffect(() => {
+    if (phase !== 2) {
+      attendanceOutcomePlayedRef.current = false;
+    }
+  }, [phase]);
+
+  useEffect(() => {
     if (phase !== 2 || attendanceCalculating) return;
     if (initialPhase >= 2 && mapReplayKey === 0) return;
     setBarW(0);
@@ -910,6 +971,7 @@ function GpsNavSection({
     setLeavingForHood(false);
     setHoursCount(0);
     setAttendanceCalculating(false);
+    attendanceOutcomePlayedRef.current = false;
     setMapReplayKey((key) => key + 1);
     if (initialPhase >= 2) {
       setPhase(2);
@@ -921,8 +983,11 @@ function GpsNavSection({
   }, [initialPhase]);
 
   const handleNavBack = () => {
+    playUiClickSound();
     if (phase === 3) {
-      setAttendanceRevealExpanded(true);
+      attendanceOutcomePlayedRef.current = false;
+      setAttendanceRevealExpanded(false);
+      setMapReplayKey((key) => key + 1);
       setPhase(2);
       return;
     }
@@ -939,11 +1004,17 @@ function GpsNavSection({
 
   const handleAdvance = () => {
     if (phase === 2) {
+      if (!attendanceDetailsReady || attendanceCalculating) return;
+      playUiClickSound(() => {
+        playWebinarAttendanceOutcomeSound(webinarTarget);
+      });
       setAttendanceRevealExpanded(false);
       setPhase(3);
       return;
     }
     if (phase === 3) {
+      if (!webinarDetailsReady || exitingToArrival) return;
+      playUiClickSound();
       handleWebinarNext();
     }
   };
@@ -952,9 +1023,11 @@ function GpsNavSection({
     if (!exitingToArrival) return;
     setExitingToArrival(false);
     setPhase(4);
+    playAapexArrivalAlertSound();
   };
 
   const handleArrivalNavBack = () => {
+    playUiClickSound();
     if (arrivalStep === 'rerouting') {
       setArrivalStep('arrived');
       return;
@@ -964,9 +1037,13 @@ function GpsNavSection({
 
   const handleArrivalNavNext = () => {
     if (arrivalStep === 'arrived') {
+      playUiClickSound(() => {
+        playAapex2026RerouteAlertSound();
+      });
       setArrivalStep('rerouting');
       return;
     }
+    playUiClickSound();
     handleGoToHoodWithTransition();
   };
 
@@ -1015,6 +1092,8 @@ function GpsNavSection({
           <JourneyNavMapAnimation key={mapReplayKey} />
         </Suspense>
       </div>
+
+      <JourneyNavDriverMarker />
 
       {showNavControls && <GpsUiControls />}
 
@@ -1081,7 +1160,7 @@ function GpsNavSection({
                           }
                           transition={{
                             layout: {
-                              duration: 0.48,
+                              duration: scaleExperienceS(0.48),
                               ease: [0.22, 1, 0.36, 1],
                             },
                             opacity: { duration: GPS_POPUP_EXIT_MS / 1000 },
@@ -1090,7 +1169,7 @@ function GpsNavSection({
                               ease: [0.22, 1, 0.36, 1],
                             },
                             y: {
-                              duration: popupPhase === 3 ? 0.48 : GPS_POPUP_EXIT_MS / 1000,
+                              duration: popupPhase === 3 ? scaleExperienceS(0.48) : GPS_POPUP_EXIT_MS / 1000,
                               ease: [0.22, 1, 0.36, 1],
                             },
                             scale: {
@@ -1139,6 +1218,7 @@ function GpsNavSection({
             eventsMetrics={eventsMetrics}
             compact={attendanceBarCompact}
             showScreen
+            onAttendanceSupportRevealed={handleAttendanceSupportRevealed}
           />
         )}
       </motion.div>
@@ -1172,7 +1252,7 @@ function JourneySectionSubtitle({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: scaleExperienceS(0.25) }}
         >
           {subtitle}
         </motion.p>
@@ -1316,6 +1396,7 @@ function JourneySectionCounterGauge({
     label: section.label,
     labelLines: section.labelLines,
     animationKey: sectionIdx,
+    duration: JOURNEY_GAUGE_DURATION_MS,
     readoutMode: 'below' as const,
     circleSize: '100%',
     counterDialBox: true,
@@ -1377,12 +1458,26 @@ function YourJourney({
   const section = journeySections[sectionIdx];
   const isFirst = sectionIdx === 0;
 
-  const goToPrevCounterSection = () => {
-    changeSectionIdx((i) => i - 1);
+  const goToPrevJourneySection = () => {
+    const prevIdx = sectionIdx - 1;
+    if (prevIdx < 0) return;
+
+    const prevSection = journeySections[prevIdx];
+    playUiClickSound(() => {
+      playJourneySlideOutcomeSound(prevSection);
+    });
+    changeSectionIdx(prevIdx);
   };
 
-  const goToNextCounterSection = () => {
-    changeSectionIdx((i) => i + 1);
+  const goToNextJourneySection = () => {
+    const nextIdx = sectionIdx + 1;
+    if (nextIdx >= journeySections.length) return;
+
+    const nextSection = journeySections[nextIdx];
+    playUiClickSound(() => {
+      playJourneySlideOutcomeSound(nextSection);
+    });
+    changeSectionIdx(nextIdx);
   };
 
   // Counter ↔ map: pure horizontal carousel (mirror of map → committee exit).
@@ -1416,7 +1511,7 @@ function YourJourney({
               initialPhase={initialGpsPhase}
               eventsMetrics={eventsMetrics}
               onGoToHood={onGoToHood}
-              onGoBack={() => changeSectionIdx((i) => i - 1)}
+              onGoBack={goToPrevJourneySection}
               uiSceneMotion={{
                 initial: { opacity: 1 },
                 animate: { opacity: 1 },
@@ -1454,8 +1549,8 @@ function YourJourney({
                       footerButton={section.footerButton}
                       isFirst={isFirst}
                       showNextLabel={isFirst}
-                      onBack={goToPrevCounterSection}
-                      onNext={goToNextCounterSection}
+                      onBack={goToPrevJourneySection}
+                      onNext={goToNextJourneySection}
                     />
                   </div>
                   <JourneySectionCounterGauge
@@ -1482,8 +1577,8 @@ function YourJourney({
                   footerButton={section.footerButton}
                   isFirst={isFirst}
                   showNextLabel={isFirst}
-                  onBack={() => changeSectionIdx((i) => i - 1)}
-                  onNext={() => changeSectionIdx((i) => i + 1)}
+                  onBack={goToPrevJourneySection}
+                  onNext={goToNextJourneySection}
                 />
               </section>
             ) : null}
@@ -1956,7 +2051,7 @@ function DashboardPanel({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+                    transition={{ duration: scaleExperienceS(0.45), ease: [0.4, 0, 0.2, 1] }}
                   >
                     <YourJourney
                       key={`journey-${journeyInitialSectionIdx ?? 0}-${journeyInitialGpsPhase ?? 1}`}
@@ -1976,7 +2071,7 @@ function DashboardPanel({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                    transition={{ duration: scaleExperienceS(0.4), ease: [0.4, 0, 0.2, 1] }}
                   >
                     <PreJourneyStage
                       phase={preJourneyPhase}
@@ -2087,6 +2182,7 @@ export function DrivingView({
   const lastTirePhaseRef = useRef<TirePhase>(getInitialTirePhase(report));
   const drivingRootRef = useRef<HTMLDivElement>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
+  const carStartAudioRef = useRef<HTMLAudioElement | null>(null);
   const [dashboardPanelMounted, setDashboardPanelMounted] = useState(false);
   const assignDashboardPanelRef = useCallback((node: HTMLDivElement | null) => {
     dashboardPanelRef.current = node;
@@ -2152,25 +2248,14 @@ export function DrivingView({
     }
   }, [currentScreen, skyProgress]);
 
-  useEffect(() => {
-    const audio = new Audio(carStartSound);
-    audio.preload = 'auto';
-
-    const playStartup = () => {
-      audio.currentTime = 0;
-      void audio.play().catch(() => {});
-    };
-
-    if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      playStartup();
-    } else {
-      audio.addEventListener('canplaythrough', playStartup, { once: true });
+  const playCarStartSound = useCallback(() => {
+    if (isAppAudioMuted()) return;
+    if (!carStartAudioRef.current) {
+      carStartAudioRef.current = new Audio(carStartSound);
     }
-
-    return () => {
-      audio.removeEventListener('canplaythrough', playStartup);
-      audio.pause();
-    };
+    const audio = carStartAudioRef.current;
+    audio.currentTime = CAR_START_TRIM_S;
+    playAppAudio(audio);
   }, []);
 
   const handleRestart = () => {
@@ -2191,24 +2276,33 @@ export function DrivingView({
   };
 
   const handleSkip = () => {
+    playUiClickSound();
     setCurrentSlide(null);
     setCurrentScreen('journey');
     skyProgress.set(1);
   };
 
   const handleSlideBack = () => {
-    if (currentSlide !== null && currentSlide > 0) setCurrentSlide(currentSlide - 1);
+    if (currentSlide !== null && currentSlide > 0) {
+      playUiClickSound();
+      setCurrentSlide(currentSlide - 1);
+    }
   };
 
   const handleSlideNext = () => {
     if (currentSlide === null) return;
-    if (currentSlide < DRIVING_SLIDE_COUNT - 1) {
-      setCurrentSlide(currentSlide + 1);
-    } else {
+    const isEnteringJourney = currentSlide === DRIVING_SLIDE_COUNT - 1;
+
+    if (isEnteringJourney) {
+      playUiClickSound();
       skyProgress.set(1);
       setCurrentSlide(null);
       setCurrentScreen('journey');
+      return;
     }
+
+    playUiClickSound();
+    setCurrentSlide(currentSlide + 1);
   };
 
   const enterHoodScreen = () => {
@@ -2489,10 +2583,12 @@ export function DrivingView({
   }, [saveJourneyResumeForNav]);
 
   const handleStart = useCallback(() => {
+    primeUiClickSoundSession();
+    playCarStartSound();
     setIsStarted(true);
     setCurrentSlide(0);
     setSkyRunId((n) => n + 1);
-  }, []);
+  }, [playCarStartSound]);
 
   const isHoodScreen = currentScreen === 'hood';
   const isDiagnosticsScreen = currentScreen === 'diagnostics';
@@ -2656,6 +2752,7 @@ export function DrivingView({
                       active={showRoadLottie}
                       loop
                       autoplay
+                      playbackSpeed={DRIVING_LOTTIE_PLAYBACK_SPEED}
                       className="driving-view-backdrop__lottie-cutout"
                       style={{ width: '100%', height: '100%' }}
                       rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
@@ -2666,6 +2763,7 @@ export function DrivingView({
                     active={showRoadLottie}
                     loop
                     autoplay
+                    playbackSpeed={DRIVING_LOTTIE_PLAYBACK_SPEED}
                     className="driving-view-backdrop__lottie"
                     style={{ width: '100%', height: '100%' }}
                     rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
@@ -2817,35 +2915,7 @@ export function DrivingView({
                 exit={{ opacity: 0, y: -10, scale: 0.97 }}
                 transition={LICENSE_PLATE_EXIT_TRANSITION}
               >
-                <div
-                  className="landing-license-plate"
-                  role="img"
-                  aria-label="DRIVEN-BY-YOU, Your Year In Review"
-                >
-                  <div className="landing-license-plate__shadow" aria-hidden />
-                  <div className="landing-license-plate__rim" aria-hidden />
-                  <div className="landing-license-plate__surface">
-                    <div className="landing-license-plate__header">
-                      <span className="landing-license-plate__jurisdiction">Auto Care Association</span>
-                      <div className="landing-license-plate__sticker" aria-hidden>
-                        <span className="landing-license-plate__sticker-shine" />
-                        <span className="landing-license-plate__sticker-month">June</span>
-                        <span className="landing-license-plate__sticker-year">2026</span>
-                      </div>
-                    </div>
-                    <div className="landing-license-plate__body">
-                      <div className="landing-license-plate__copy">
-                        <h1 className="landing-license-plate__title">DRIVEN-BY-YOU</h1>
-                        <p className="landing-license-plate__subtitle">Your Year In Review</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="landing-license-plate__chrome" aria-hidden />
-                  <span className="landing-license-plate__bolt landing-license-plate__bolt--tl" aria-hidden />
-                  <span className="landing-license-plate__bolt landing-license-plate__bolt--tr" aria-hidden />
-                  <span className="landing-license-plate__bolt-hole landing-license-plate__bolt-hole--bl" aria-hidden />
-                  <span className="landing-license-plate__bolt-hole landing-license-plate__bolt-hole--br" aria-hidden />
-                </div>
+                <LicensePlate reportYear={report.reportYear} />
               </motion.div>
             )}
           </AnimatePresence>

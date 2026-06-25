@@ -60,8 +60,8 @@
 .reduce-motion .driving-view-backdrop__lottie,
 .reduce-motion .hood-standards-scene__battery-player,
 .reduce-motion .hood-tire-wheel__asset,
-.reduce-motion .journey-nav-map-panel__lottie {
-  animation: none !important;
+.reduce-motion .journey-nav-map-panel__map {
+  transition: none !important;
 }
 
 .reduce-motion .driving-view-sky__star {

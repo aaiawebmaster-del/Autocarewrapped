@@ -11,6 +11,14 @@ import {
 } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { debugSessionLog } from '@/lib/debugSessionLog';
+import {
+  getHoodTypewriterDurationMs,
+  HOOD_TYPEWRITER_CHAR_DELAY_MS,
+  playHoodStandardsBackClickSound,
+  playHoodStandardsForwardClickSound,
+  startHoodStandardsDataProcessingBeep,
+  stopHoodStandardsDataProcessingBeep,
+} from '@/lib/hoodStandardsClickSound';
 import { useMobileViewport } from '@/lib/useMobileViewport';
 import { isTireHubMobileStack, useTireHubMobileStack } from '@/lib/viewportLayout';
 import { LazyLottie } from './LazyLottie';
@@ -28,7 +36,7 @@ import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
 import factbookTizraTileImage from '../../assets/factbook-2027-tizra-tile-600x460.png?url';
-import trendlensLogoImage from '../../assets/trendlens-logo-black.png?url';
+import trendlensLogoImage from '../../assets/trendlens-logo.svg?url';
 import tireAcademyImage from '../../assets/tire-academy.svg?url';
 import tireCheckNullImage from '../../assets/tire-check-null.png?url';
 import tireCheck2Image from '../../assets/tire-check-2.png?url';
@@ -195,8 +203,8 @@ const HOOD_MOBILE_TIRE_TABLET_GAP_PX = 16;
 const HOOD_MOBILE_TIRE_TOP_PAD_PX = 12;
 const HOOD_MOBILE_TIRE_LANE_MAX_PX = 190;
 const HOOD_MOBILE_TIRE_LANE_VW_RATIO = 0.42;
-const HOOD_MOBILE_TABLET_TIRE_VW_RATIO = 0.576;
-const HOOD_MOBILE_TABLET_TIRE_MAX_PX = 243;
+const HOOD_MOBILE_TABLET_TIRE_VW_RATIO = 0.5;
+const HOOD_MOBILE_TABLET_TIRE_MAX_PX = 215;
 const DRIVING_FOOTER_PX = 96;
 const TIRE_WHEEL_NATIVE_PX: Record<TirePhase, number> = {
   trendlens: 548,
@@ -539,7 +547,7 @@ function HoodTypewriterText({
   text,
   onComplete,
   onTypingStart,
-  charDelayMs = 42,
+  charDelayMs = HOOD_TYPEWRITER_CHAR_DELAY_MS,
   scrollContainerRef,
   showCursorAfterComplete = false,
 }: {
@@ -561,7 +569,17 @@ function HoodTypewriterText({
     typingStartedRef.current = false;
     const el = scrollContainerRef?.current;
     if (el) el.scrollTop = 0;
-  }, [text, scrollContainerRef]);
+
+    if (text.length > 0) {
+      startHoodStandardsDataProcessingBeep(
+        getHoodTypewriterDurationMs(text.length, charDelayMs),
+      );
+    } else {
+      stopHoodStandardsDataProcessingBeep();
+    }
+
+    return () => stopHoodStandardsDataProcessingBeep();
+  }, [text, scrollContainerRef, charDelayMs]);
 
   useEffect(() => {
     if (count >= text.length) {
@@ -570,6 +588,7 @@ function HoodTypewriterText({
         // #region agent log
         fetch('http://127.0.0.1:7309/ingest/e37df176-7b34-48f2-acb9-bbc0f91681a3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dacadc'},body:JSON.stringify({sessionId:'dacadc',location:'MapSimulation.tsx:HoodTypewriterText.complete',message:'Typewriter complete',data:{textLen:text.length,count},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
         // #endregion
+        stopHoodStandardsDataProcessingBeep();
         onComplete?.();
       }
       return;
@@ -615,7 +634,7 @@ function HoodStandardsGauge({
   targetProgress: number;
   animateFill: boolean;
   showFull: boolean;
-  orientation?: 'vertical' | 'horizontal';
+  orientation?: 'vertical' | 'horizontal' | 'horizontal-lr';
   /** Hide shell while checking — keeps layout slot without showing empty battery outline. */
   dormant?: boolean;
   /** Blinking red low-battery label when the user has no database subscriptions. */
@@ -651,13 +670,19 @@ function HoodStandardsGauge({
   const labelPct = Math.round(fillProgress);
   const useTransition = animateFill && !showFull;
   const showLowBatteryLabel = lowBattery && fillProgress < 12;
-  const isHorizontal = orientation === 'horizontal';
+  const isHorizontalLr = orientation === 'horizontal-lr';
+  const isHorizontalRotated = orientation === 'horizontal';
+  const isHorizontal = isHorizontalLr || isHorizontalRotated;
+  const fillStyle = isHorizontalLr
+    ? { width: `${fillProgress}%`, height: '100%' }
+    : { height: `${fillProgress}%` };
 
   return (
     <div
       className={[
         'hood-standards-gauge',
-        isHorizontal ? 'hood-standards-gauge--horizontal' : '',
+        isHorizontalRotated ? 'hood-standards-gauge--horizontal' : '',
+        isHorizontalLr ? 'hood-standards-gauge--horizontal-lr' : '',
         dormant ? 'hood-standards-gauge--dormant' : '',
         showLowBatteryLabel ? 'hood-standards-gauge--low-battery' : '',
       ]
@@ -680,34 +705,35 @@ function HoodStandardsGauge({
         <div className="hood-standards-gauge__well">
           <div
             className={`hood-standards-gauge__fill${useTransition ? '' : ' hood-standards-gauge__fill--instant'}`}
-            style={{ height: `${fillProgress}%` }}
+            style={fillStyle}
           >
             {labelPct >= 12 && !showLowBatteryLabel && (
               <span className="hood-standards-gauge__label">{labelPct}%</span>
             )}
-            {showLowBatteryLabel ? (
-              <span
-                className={[
-                  'hood-standards-gauge__label',
-                  'hood-standards-gauge__label--low-battery',
-                  isHorizontal
-                    ? 'hood-standards-gauge__label--low-battery-inline'
-                    : 'hood-standards-gauge__label--low-battery-stacked',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
-                {isHorizontal ? (
-                  'Low Battery'
-                ) : (
-                  <>
-                    <span>Low</span>
-                    <span>Battery</span>
-                  </>
-                )}
-              </span>
-            ) : null}
           </div>
+          {showLowBatteryLabel ? (
+            <span
+              className={[
+                'hood-standards-gauge__label',
+                'hood-standards-gauge__label--low-battery',
+                'hood-standards-gauge__label--low-battery-well',
+                isHorizontal
+                  ? 'hood-standards-gauge__label--low-battery-inline'
+                  : 'hood-standards-gauge__label--low-battery-stacked',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              {isHorizontal ? (
+                'Low Battery'
+              ) : (
+                <>
+                  <span>Low</span>
+                  <span>Battery</span>
+                </>
+              )}
+            </span>
+          ) : null}
         </div>
       </div>
     </div>
@@ -865,7 +891,7 @@ function HoodStandardsDatabaseAccess({
 function HoodStandardsPopup({
   index,
   onTypeComplete,
-  onBackToJourney,
+  onBack,
   onNext,
   nextDisabled = false,
   showNavButtons = false,
@@ -875,7 +901,7 @@ function HoodStandardsPopup({
 }: {
   index: number;
   onTypeComplete?: () => void;
-  onBackToJourney?: () => void;
+  onBack?: () => void;
   onNext?: () => void;
   nextDisabled?: boolean;
   showNavButtons?: boolean;
@@ -916,7 +942,12 @@ function HoodStandardsPopup({
   const hasNoSubscriptions = hoodMessages.subscribedPct === 0;
   const useCatalogAssessmentCta = hasNoSubscriptions;
   const hasNoDatabaseAccess = databaseAccessIcons.length === 0;
-  const gaugeOrientation = 'vertical' as const;
+  const gaugeOrientation =
+    showMobileMetricsLayout && !hasNoSubscriptions
+      ? ('horizontal-lr' as const)
+      : ('vertical' as const);
+  const embedProtocolLogosInGauge =
+    showMobileMetricsLayout && gaugeOrientation === 'vertical';
 
   useEffect(() => {
     setGaugeFillStarted(false);
@@ -977,6 +1008,26 @@ function HoodStandardsPopup({
     onTypeComplete?.();
   }, [onTypeComplete]);
 
+  const handleBackClick = useCallback(() => {
+    playHoodStandardsBackClickSound();
+    if (index === HOOD_SUBSCRIBED_POPUP_INDEX) {
+      const durationMs = getHoodTypewriterDurationMs(message.length);
+      window.setTimeout(() => {
+        startHoodStandardsDataProcessingBeep(durationMs);
+      }, 0);
+    }
+    onBack?.();
+  }, [index, message.length, onBack]);
+
+  const handleNextClick = useCallback(() => {
+    playHoodStandardsForwardClickSound();
+    onNext?.();
+  }, [onNext]);
+
+  const handleCtaClick = useCallback(() => {
+    playHoodStandardsForwardClickSound();
+  }, []);
+
   return (
     <motion.div
       className="hood-standards-popup-row"
@@ -1028,7 +1079,7 @@ function HoodStandardsPopup({
             <div className="hood-standards-popup__body">
               <div className="hood-standards-popup__main">
                 <div className="hood-standards-popup__metrics-column">
-                  {showProtocolColumn ? (
+                  {showProtocolColumn && !embedProtocolLogosInGauge ? (
                     <HoodStandardsProtocolLogos
                       protocolLogos={protocolLogos}
                       showLogos={showProtocolLogos}
@@ -1036,7 +1087,24 @@ function HoodStandardsPopup({
                       layout={showMobileMetricsLayout ? 'pair' : 'stack'}
                     />
                   ) : null}
-                  <div className="hood-standards-popup__gauge-column">
+                  <div
+                    className={[
+                      'hood-standards-popup__gauge-column',
+                      embedProtocolLogosInGauge
+                        ? 'hood-standards-popup__gauge-column--with-logos'
+                        : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {embedProtocolLogosInGauge && showProtocolColumn ? (
+                      <HoodStandardsProtocolLogos
+                        protocolLogos={protocolLogos}
+                        showLogos={showProtocolLogos}
+                        hideLabel={index === HOOD_CHECKING_POPUP_INDEX}
+                        layout="stack"
+                      />
+                    ) : null}
                     <HoodStandardsGauge
                       targetProgress={gaugeTarget}
                       animateFill={gaugeAnimateFill}
@@ -1083,7 +1151,7 @@ function HoodStandardsPopup({
               <button
                 type="button"
                 className="hood-standards-device__btn hood-standards-device__btn--back"
-                onClick={onBackToJourney}
+                onClick={handleBackClick}
               >
                 BACK
               </button>
@@ -1094,6 +1162,7 @@ function HoodStandardsPopup({
                     className="hood-standards-device__btn hood-standards-device__btn--cta"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={handleCtaClick}
                   >
                     SEE ALL SUBSCRIPTIONS
                   </a>
@@ -1103,6 +1172,7 @@ function HoodStandardsPopup({
                     className="hood-standards-device__btn hood-standards-device__btn--cta"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={handleCtaClick}
                   >
                     EXPLORE VIP
                   </a>
@@ -1112,6 +1182,7 @@ function HoodStandardsPopup({
                   className="hood-standards-device__btn hood-standards-device__btn--cta"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handleCtaClick}
                 >
                   {useCatalogAssessmentCta ? 'CATALOG ASSESSMENT TOOL' : 'SEE LATEST RELEASES'}
                 </a>
@@ -1119,7 +1190,7 @@ function HoodStandardsPopup({
               <button
                 type="button"
                 className="hood-standards-device__btn hood-standards-device__btn--next"
-                onClick={onNext}
+                onClick={handleNextClick}
                 disabled={nextDisabled}
               >
                 NEXT
@@ -1267,8 +1338,13 @@ export function HoodStandardsSummaryDevice({
   className?: string;
   animateOnMount?: boolean;
 }) {
+  const isMobile = useMobileViewport();
   const [gaugeFillStarted, setGaugeFillStarted] = useState(false);
   const hasNoSubscriptions = subscribedPct === 0;
+  const gaugeOrientation =
+    isMobile && !hasNoSubscriptions
+      ? ('horizontal-lr' as const)
+      : ('vertical' as const);
 
   useEffect(() => {
     if (!animateOnMount) {
@@ -1336,7 +1412,7 @@ export function HoodStandardsSummaryDevice({
                       targetProgress={subscribedPct}
                       animateFill={gaugeFillStarted}
                       showFull={!animateOnMount}
-                      orientation="vertical"
+                      orientation={gaugeOrientation}
                       lowBattery={subscribedPct === 0}
                     />
                   </div>
@@ -1375,6 +1451,18 @@ function HoodTireWheel({ tirePhase }: { tirePhase: TirePhase }) {
 
 type MobileTabletTireRollMode = 'hidden' | 'enter' | 'parked' | 'exit';
 
+function measureMobileTabletTireTravelX(node: HTMLElement): number {
+  const stageWidth = node.clientWidth;
+  if (stageWidth <= 0) return 140;
+
+  const hub = node.closest('.hood-tire-hub');
+  const tireSizeRaw = hub
+    ? getComputedStyle(hub).getPropertyValue('--hood-mobile-tablet-tire-size').trim()
+    : '';
+  const tireSize = parseFloat(tireSizeRaw) || HOOD_MOBILE_TABLET_TIRE_MAX_PX;
+  return Math.round(stageWidth / 2 + tireSize / 2);
+}
+
 function HoodMobileTabletTire({
   tirePhase,
   rollMode,
@@ -1385,9 +1473,10 @@ function HoodMobileTabletTire({
   onRollComplete?: () => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
-  const [travelX, setTravelX] = useState(140);
   const enterReportedRef = useRef(false);
   const rollTravelXRef = useRef(140);
+  const [travelX, setTravelX] = useState(140);
+  const [rollReady, setRollReady] = useState(rollMode !== 'enter');
   const duration = HOOD_WHEEL_ROLL_IN_MS / 1000;
   const rollTransition = { duration, ease: HOOD_TABLET_TIRE_ROLL_EASE };
   /** Keep roll-in rotation when parked — resetting 720→0 replays a visible spin. */
@@ -1398,15 +1487,8 @@ function HoodMobileTabletTire({
     if (!node) return;
 
     const measure = () => {
-      const stageWidth = node.clientWidth;
-      if (stageWidth <= 0) return;
-
-      const hub = node.closest('.hood-tire-hub');
-      const tireSizeRaw = hub
-        ? getComputedStyle(hub).getPropertyValue('--hood-mobile-tablet-tire-size').trim()
-        : '';
-      const tireSize = parseFloat(tireSizeRaw) || HOOD_MOBILE_TABLET_TIRE_MAX_PX;
-      const nextTravelX = Math.round(stageWidth / 2 + tireSize / 2);
+      const nextTravelX = measureMobileTabletTireTravelX(node);
+      if (nextTravelX <= 0) return;
       rollTravelXRef.current = nextTravelX;
       if (rollMode !== 'enter' || enterReportedRef.current) {
         setTravelX(nextTravelX);
@@ -1419,11 +1501,21 @@ function HoodMobileTabletTire({
     return () => observer.disconnect();
   }, [rollMode, tirePhase]);
 
-  useEffect(() => {
-    if (rollMode === 'enter') {
-      enterReportedRef.current = false;
-      setTravelX(rollTravelXRef.current);
+  useLayoutEffect(() => {
+    if (rollMode !== 'enter') {
+      setRollReady(true);
+      return;
     }
+    enterReportedRef.current = false;
+    const node = stageRef.current;
+    if (!node) {
+      setRollReady(false);
+      return;
+    }
+    const nextTravelX = measureMobileTabletTireTravelX(node);
+    rollTravelXRef.current = nextTravelX;
+    setTravelX(nextTravelX);
+    setRollReady(nextTravelX > 0);
   }, [rollMode, tirePhase]);
 
   if (rollMode === 'hidden') {
@@ -1444,48 +1536,50 @@ function HoodMobileTabletTire({
       className="hood-tire-hub__mobile-tire-stage hood-tire-hub__mobile-tire-stage--viewport"
       aria-hidden
     >
-      <motion.div
-        key={tirePhase}
-        className="hood-tire-hub__mobile-tire-roll-wrap"
-        style={{ transformOrigin: '50% 50%' }}
-        initial={
-          rollMode === 'enter'
-            ? { x: -travelX, rotate: 0 }
-            : rollMode === 'exit'
-              ? { x: 0, rotate: parkedRotate }
-              : false
-        }
-        animate={
-          isActiveRoll
-            ? rollMode === 'enter'
-              ? { x: 0, rotate: parkedRotate }
-              : { x: travelX, rotate: parkedRotate * 2 }
-            : { x: 0, rotate: parkedRotate }
-        }
-        transition={
-          isActiveRoll
-            ? rollTransition
-            : { duration: 0, x: { duration: 0 }, rotate: { duration: 0 } }
-        }
-        onAnimationComplete={() => {
-          if (rollMode === 'enter') {
-            if (enterReportedRef.current) return;
-            enterReportedRef.current = true;
-            onRollComplete?.();
-            return;
+      {rollReady ? (
+        <motion.div
+          key={tirePhase}
+          className="hood-tire-hub__mobile-tire-roll-wrap"
+          style={{ transformOrigin: '50% 50%' }}
+          initial={
+            rollMode === 'enter'
+              ? { x: -travelX, rotate: 0 }
+              : rollMode === 'exit'
+                ? { x: 0, rotate: parkedRotate }
+                : false
           }
-          if (rollMode === 'exit') {
-            onRollComplete?.();
+          animate={
+            isActiveRoll
+              ? rollMode === 'enter'
+                ? { x: 0, rotate: parkedRotate }
+                : { x: travelX, rotate: parkedRotate * 2 }
+              : { x: 0, rotate: parkedRotate }
           }
-        }}
-      >
-        <img
-          src={TIRE_WHEEL_IMAGES[tirePhase]}
-          alt=""
-          className="hood-tire-hub__pressure-gauge-tire"
-          draggable={false}
-        />
-      </motion.div>
+          transition={
+            isActiveRoll
+              ? rollTransition
+              : { duration: 0, x: { duration: 0 }, rotate: { duration: 0 } }
+          }
+          onAnimationComplete={() => {
+            if (rollMode === 'enter') {
+              if (enterReportedRef.current) return;
+              enterReportedRef.current = true;
+              onRollComplete?.();
+              return;
+            }
+            if (rollMode === 'exit') {
+              onRollComplete?.();
+            }
+          }}
+        >
+          <img
+            src={TIRE_WHEEL_IMAGES[tirePhase]}
+            alt=""
+            className="hood-tire-hub__pressure-gauge-tire"
+            draggable={false}
+          />
+        </motion.div>
+      ) : null}
     </div>
   );
 }
@@ -1572,9 +1666,11 @@ function HoodTireHubReadout({
   counterActive,
   screenVisible,
   tabletShowsTireArt = false,
+  introWheelActive = false,
   isRolling = false,
   rollTarget = null,
   onReadoutReady,
+  onMobileWheelIntroComplete,
   onNavigateToTire,
   onFinishTireSequence,
   onReadoutBack,
@@ -1586,9 +1682,12 @@ function HoodTireHubReadout({
   screenVisible: boolean;
   /** Mobile: show the active tire SVG in the tablet instead of the gauge Lottie. */
   tabletShowsTireArt?: boolean;
+  /** Mobile first-load intro: tire roll drives scene intro timing. */
+  introWheelActive?: boolean;
   isRolling?: boolean;
   rollTarget?: TireRollTarget;
   onReadoutReady?: () => void;
+  onMobileWheelIntroComplete?: () => void;
   onNavigateToTire?: (target: TirePhase) => void;
   onFinishTireSequence?: () => void;
   onReadoutBack?: () => void;
@@ -1622,7 +1721,10 @@ function HoodTireHubReadout({
 
   const handleMobileTireRollComplete = useCallback(() => {
     setTireRollComplete(true);
-  }, []);
+    if (introWheelActive) {
+      onMobileWheelIntroComplete?.();
+    }
+  }, [introWheelActive, onMobileWheelIntroComplete]);
 
   const handleMobileTireExitComplete = useCallback(() => {
     setReadoutPhase('cta');
@@ -1707,12 +1809,16 @@ function HoodTireHubReadout({
     else onFinishTireSequence?.();
   };
 
+  const showStatsContent =
+    (readoutPhase !== 'idle' || (tabletShowsTireArt && showStatsSlide)) && !showCta;
+  const statsContentReserved = tabletShowsTireArt && showStatsSlide && readoutPhase === 'idle';
+
   return (
     <motion.div
       className={`hood-tire-hub__screen${readoutInteractive ? ' hood-tire-hub__screen--interactive' : ''}`}
-      initial={{ opacity: 0 }}
+      initial={tabletShowsTireArt ? false : { opacity: 0 }}
       animate={{ opacity: screenVisible ? 1 : 0 }}
-      transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: tabletShowsTireArt ? 0 : 0.45, ease: [0.4, 0, 0.2, 1] }}
       role="status"
       aria-live="polite"
     >
@@ -1801,16 +1907,27 @@ function HoodTireHubReadout({
               )}
             </div>
           )}
-          {readoutPhase !== 'idle' && !showCta ? (
-            <div className="hood-tire-hub__screen-content">
+          {showStatsContent ? (
+            <div
+              className={`hood-tire-hub__screen-content${
+                statsContentReserved ? ' hood-tire-hub__screen-content--reserved' : ''
+              }`}
+              aria-hidden={statsContentReserved}
+            >
               <div className="hood-tire-hub__results">
                 <div className="hood-tire-hub__stat-block">
                   <p className="hood-tire-hub__line hood-tire-hub__line--primary">
                     <span className="hood-tire-hub__stat-value">
-                      <HoodCountUp value={config.primaryValue} active={counting} />
+                      {statsContentReserved ? (
+                        <span aria-hidden>&nbsp;</span>
+                      ) : (
+                        <HoodCountUp value={config.primaryValue} active={counting} />
+                      )}
                     </span>
                   </p>
-                  <p className="hood-tire-hub__line hood-tire-hub__stat-label">{config.primaryLabel}</p>
+                  <p className="hood-tire-hub__line hood-tire-hub__stat-label">
+                    {statsContentReserved ? <span aria-hidden>&nbsp;</span> : config.primaryLabel}
+                  </p>
                 </div>
                 {readoutPhase === 'counting' ? (
                   <p
@@ -1951,6 +2068,9 @@ function HoodTireHubScene({
   const groundRiseReportedRef = useRef(false);
   const groundExitReportedRef = useRef(false);
   const contentFadeReportedRef = useRef(false);
+  const mobileIntroCompleteRef = useRef(false);
+  const onIntroCompleteRef = useRef(onIntroComplete);
+  onIntroCompleteRef.current = onIntroComplete;
   const {
     laneW,
     offLeft,
@@ -1982,6 +2102,20 @@ function HoodTireHubScene({
   const parked = !isRolling && introStep !== 'ground' && introStep !== 'wheel';
   const rolling = introWheelRolling || swapping;
   const playGroundIntro = introMode === 'full' || introMode === 'ground-only';
+  const mobileTabletIntro =
+    isMobile && (introMode === 'content-only' || introMode === 'full');
+  const introWheelActive =
+    mobileTabletIntro && introStep === 'wheel' && !mobileIntroCompleteRef.current;
+
+  const finishMobileWheelIntro = useCallback(() => {
+    if (mobileIntroCompleteRef.current) return;
+    mobileIntroCompleteRef.current = true;
+    setIntroStep('counter');
+    window.setTimeout(() => {
+      setIntroStep('done');
+      onIntroCompleteRef.current();
+    }, 80);
+  }, []);
 
   useEffect(() => {
     if (!slideGroundOut) {
@@ -2004,24 +2138,32 @@ function HoodTireHubScene({
   useEffect(() => {
     if (slideGroundOut || contentFadeOut) return;
     if (introMode === 'none') {
+      mobileIntroCompleteRef.current = false;
       setIntroStep('done');
       return;
     }
     if (introMode === 'ground-only') {
+      mobileIntroCompleteRef.current = false;
       setIntroStep('ground');
       return;
     }
     if (introMode === 'content-only') {
-      setIntroStep('wheel');
+      if (!mobileIntroCompleteRef.current) {
+        setIntroStep('wheel');
+      }
+      if (isMobile) {
+        return;
+      }
       const timers = [
         setTimeout(() => setIntroStep('counter'), HOOD_WHEEL_ROLL_IN_MS),
         setTimeout(() => {
           setIntroStep('done');
-          onIntroComplete();
+          onIntroCompleteRef.current();
         }, HOOD_WHEEL_ROLL_IN_MS + 80),
       ];
       return () => timers.forEach(clearTimeout);
     }
+    mobileIntroCompleteRef.current = false;
     setIntroStep('ground');
     const timers = [
       setTimeout(() => setIntroStep('wheel'), HOOD_GROUND_RISE_MS),
@@ -2032,13 +2174,13 @@ function HoodTireHubScene({
       setTimeout(
         () => {
           setIntroStep('done');
-          onIntroComplete();
+          onIntroCompleteRef.current();
         },
         HOOD_GROUND_RISE_MS + HOOD_WHEEL_ROLL_IN_MS + 80,
       ),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [introMode, slideGroundOut, contentFadeOut, onIntroComplete]);
+  }, [introMode, slideGroundOut, contentFadeOut, isMobile]);
 
   const rollDuration =
     introWheelRolling ? HOOD_WHEEL_ROLL_IN_MS / 1000 : TIRE_ROLL_MS / 1000;
@@ -2161,9 +2303,11 @@ function HoodTireHubScene({
             counterActive={counterActive}
             screenVisible={screenVisible}
             tabletShowsTireArt={isMobile}
+            introWheelActive={introWheelActive}
             isRolling={isRolling}
             rollTarget={rollTarget}
             onReadoutReady={onReadoutReady}
+            onMobileWheelIntroComplete={finishMobileWheelIntro}
             onNavigateToTire={onNavigateToTire}
             onFinishTireSequence={onFinishTireSequence}
             onReadoutBack={onReadoutBack}
@@ -2217,6 +2361,7 @@ export function DashboardHoodArch({
   const isMobile = useMobileViewport();
   const isTireHubMobile = useTireHubMobileStack();
   const [popupIndex, setPopupIndex] = useState(HOOD_CHECKING_POPUP_INDEX);
+  const skipCheckingAutoAdvanceRef = useRef(false);
   const [popupTyped, setPopupTyped] = useState(false);
   const [subscribedMobileSlide, setSubscribedMobileSlide] = useState<0 | 1>(0);
 
@@ -2349,6 +2494,12 @@ export function DashboardHoodArch({
   }, [phase, prevTirePhase, popupIndex, beginReturnToStandards, rollToTirePhase, isMobile, subscribedMobileSlide]);
 
   const handleNext = useCallback(() => {
+    if (popupIndex === HOOD_CHECKING_POPUP_INDEX && popupTyped) {
+      skipCheckingAutoAdvanceRef.current = true;
+      setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
+      setPopupTyped(false);
+      return;
+    }
     if (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX) {
       if (isMobile && subscribedMobileSlide === 0) {
         setSubscribedMobileSlide(1);
@@ -2385,16 +2536,27 @@ export function DashboardHoodArch({
       setPopupTyped(true);
       return;
     }
+    if (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX) {
+      onBackToJourney?.();
+      return;
+    }
+    if (popupIndex === HOOD_VIP_POPUP_INDEX) {
+      setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
+      setPopupTyped(false);
+      setSubscribedMobileSlide(0);
+      return;
+    }
     onBackToJourney?.();
   }, [popupIndex, isMobile, subscribedMobileSlide, onBackToJourney]);
 
   const showStandardsControls = phase === 'standards';
   const forwardDisabled =
-    popupIndex === HOOD_CHECKING_POPUP_INDEX ||
+    (popupIndex === HOOD_CHECKING_POPUP_INDEX && !popupTyped) ||
     (popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped);
 
   useEffect(() => {
     if (hoodNavTransition) return;
+    if (skipCheckingAutoAdvanceRef.current) return;
     if (popupIndex !== HOOD_CHECKING_POPUP_INDEX || !popupTyped) return;
     const timer = setTimeout(() => {
       setPopupIndex(HOOD_SUBSCRIBED_POPUP_INDEX);
@@ -2512,7 +2674,7 @@ export function DashboardHoodArch({
                 index={popupIndex}
                 hoodMessages={hoodMessages}
                 onTypeComplete={handlePopupTypeComplete}
-                onBackToJourney={handleDeviceBack}
+                onBack={handleDeviceBack}
                 onNext={handleNext}
                 nextDisabled={forwardDisabled}
                 showNavButtons={showStandardsControls}

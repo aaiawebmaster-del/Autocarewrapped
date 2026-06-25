@@ -14,6 +14,8 @@ type LazyLottieProps = {
     preserveAspectRatio?: string;
     hideOnTransparent?: boolean;
   };
+  /** Lottie playback rate (1 = normal). Use 0.5 for half speed. */
+  playbackSpeed?: number;
 };
 
 export function LazyLottie({
@@ -24,6 +26,7 @@ export function LazyLottie({
   loop = false,
   autoplay = true,
   rendererSettings,
+  playbackSpeed = 1,
 }: LazyLottieProps) {
   const [animationData, setAnimationData] = useState<LottieAnimationData | null>(null);
   const lottieRef = useRef<LottieRefCurrentProps>(null);
@@ -48,12 +51,15 @@ export function LazyLottie({
     if (!instance || !animationData) return;
 
     if (shouldAnimate && autoplay) {
+      if (typeof instance.setSpeed === 'function') {
+        instance.setSpeed(playbackSpeed);
+      }
       instance.play();
       return;
     }
 
     instance.pause();
-  }, [animationData, shouldAnimate, autoplay, active]);
+  }, [animationData, shouldAnimate, autoplay, active, playbackSpeed]);
 
   useLayoutEffect(() => {
     if (!active || !animationData) return;

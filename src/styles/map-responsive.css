@@ -496,106 +496,83 @@
   box-sizing: border-box;
 }
 
-.landing-license-plate {
-  --plate-ratio: 2;
-  --plate-aspect: 2 / 1;
-  --plate-max-width: clamp(280px, 58cqw, 560px);
-  --plate-radius: clamp(7px, 2.2cqw, 11px);
-  --plate-brand-orange: #e37f0d;
+/* License plate hero — Pennsylvania template proportions (251.1 × 102) */
+.license-plate {
+  --plate-orange: #f3901d;
+  --plate-dark: #101214;
+  --plate-border: #060708;
   --plate-font: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-  container-type: size;
+  --plate-header-ratio: 26%;
+  --plate-band-ratio: 50%;
+  --plate-caption-ratio: 24%;
+  --plate-aspect: 251.1 / 102;
+  --plate-max-width: 560px;
+  --plate-sticker-hole-clearance: calc(3.27cqi + 5px);
+  container-type: inline-size;
   container-name: license-plate;
   position: relative;
   isolation: isolate;
-  display: flex;
-  flex-direction: column;
   flex: 0 0 auto;
   align-self: center;
-  width: min(var(--plate-max-width), 100cqw);
-  max-width: 100%;
+  display: block;
   aspect-ratio: var(--plate-aspect);
-  height: auto;
-  max-height: 100cqh;
-  border-radius: var(--plate-radius);
-  transform: perspective(1100px) rotateX(2.5deg);
-  filter: drop-shadow(0 clamp(10px, 2vh, 18px) clamp(22px, 3.5vh, 36px) rgba(0, 0, 0, 0.62))
-    drop-shadow(0 clamp(3px, 0.6vh, 6px) clamp(8px, 1.2vh, 14px) rgba(0, 0, 0, 0.38));
+  width: min(var(--plate-max-width), 88vw, calc(46vh * 251.1 / 102));
+  max-width: 100%;
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.55)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
 }
 
-.landing-license-plate__shadow {
+.license-plate__shadow {
   position: absolute;
   left: 8%;
   right: 8%;
-  bottom: clamp(-10px, -1.4vh, -6px);
-  height: clamp(8px, 1.2vh, 14px);
+  bottom: -6%;
+  height: 10%;
   border-radius: 50%;
-  background: radial-gradient(ellipse 100% 100% at 50% 50%, rgba(0, 0, 0, 0.55) 0%, transparent 72%);
-  filter: blur(clamp(3px, 0.5vw, 6px));
+  background: radial-gradient(ellipse 100% 100% at 50% 50%, rgba(0, 0, 0, 0.5) 0%, transparent 72%);
+  filter: blur(4px);
   z-index: 0;
   pointer-events: none;
 }
 
-.landing-license-plate__rim {
+.license-plate__shell {
   position: absolute;
   inset: 0;
-  z-index: 3;
-  border-radius: inherit;
-  pointer-events: none;
-  box-shadow:
-    inset 0 0 0 clamp(2px, 0.64cqw, 3px) rgba(255, 255, 255, 0.42),
-    inset 0 0 0 clamp(3px, 0.96cqw, 5px) rgba(0, 0, 0, 0.22),
-    inset 0 0 0 clamp(4px, 1.24cqw, 6px) rgba(255, 255, 255, 0.12),
-    inset 0 0 0 clamp(5px, 1.56cqw, 7px) #101214,
-    0 0 0 clamp(1px, 0.36cqw, 2px) rgba(255, 255, 255, 0.18),
-    0 0 0 clamp(2px, 0.7cqw, 4px) #060708;
-}
-
-.landing-license-plate__surface {
-  position: relative;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  border-radius: inherit;
-  overflow: hidden;
+  box-sizing: border-box;
+  padding: 2.7%;
+  border-radius: 5.5%;
+  background: var(--plate-dark);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 5px rgba(0, 0, 0, 0.08);
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 0 0 2px var(--plate-border);
 }
 
-.landing-license-plate__chrome {
-  position: absolute;
-  inset: clamp(5px, 1.56cqw, 7px);
-  border-radius: calc(var(--plate-radius) - 3px);
-  pointer-events: none;
-  z-index: 6;
-  background:
-    linear-gradient(
-      118deg,
-      rgba(255, 255, 255, 0.55) 0%,
-      rgba(255, 255, 255, 0.14) 14%,
-      transparent 28%,
-      transparent 72%,
-      rgba(255, 255, 255, 0.08) 86%,
-      rgba(0, 0, 0, 0.05) 100%
-    );
-  mix-blend-mode: soft-light;
-  opacity: 0.92;
+.license-plate__face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 26fr 50fr 24fr;
+  overflow: hidden;
+  border-radius: 3.4%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-.landing-license-plate__header {
+.license-plate__header {
   position: relative;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 22%;
   min-height: 0;
-  padding: clamp(3px, 1.2cqh, 6px) clamp(12px, 3.6cqw, 18px);
+  display: grid;
+  grid-template-columns: 4% 17% 58% 17% 4%;
+  grid-template-rows: 1fr;
+  align-items: center;
+  box-sizing: border-box;
   overflow: hidden;
-  background-color: #dce6f2;
-  background-image:
+  isolation: isolate;
+  background:
     linear-gradient(
       90deg,
       rgba(255, 255, 255, 0.55) 0%,
@@ -604,149 +581,137 @@
       rgba(255, 255, 255, 0.1) 78%,
       rgba(255, 255, 255, 0.45) 100%
     ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.06) 0,
-      rgba(255, 255, 255, 0.06) 1px,
-      transparent 1px,
-      transparent 2px
-    ),
     linear-gradient(180deg, #eef3f9 0%, #d4e0ed 38%, #b8c9dc 72%, #a8bbcf 100%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.28);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-.landing-license-plate__header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 90% 120% at 18% -40%, rgba(255, 255, 255, 0.45) 0%, transparent 58%),
-    repeating-linear-gradient(
-      112deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 1px,
-      transparent 1px,
-      transparent 4px
-    );
-  mix-blend-mode: soft-light;
-  opacity: 0.9;
-}
-
-.landing-license-plate__header::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.18) 20%, rgba(0, 0, 0, 0.18) 80%, transparent);
-  pointer-events: none;
-}
-
-.landing-license-plate__jurisdiction {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  text-align: center;
-  font-family: var(--plate-font);
-  font-size: clamp(8px, 2.5cqw, 13px);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: none;
-  color: #0f2844;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.85),
-    0 -1px 0 rgba(0, 0, 0, 0.12);
-}
-
-.landing-license-plate__sticker {
-  position: absolute;
-  right: clamp(10px, 3.2cqw, 16px);
-  top: 50%;
-  z-index: 2;
-  flex-shrink: 0;
+.license-plate__logo-wrap {
+  grid-column: 3;
+  grid-row: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: clamp(38px, 10.4cqw, 52px);
-  padding: clamp(2px, 0.8cqh, 3px) clamp(6px, 1.8cqw, 9px) clamp(3px, 1cqh, 4px);
-  border-radius: clamp(2px, 0.7cqw, 3px);
+  justify-self: center;
+  min-width: 0;
+  width: 50%;
+  height: 78%;
+  align-self: center;
   overflow: hidden;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.license-plate__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  flex-shrink: 0;
+}
+
+.license-plate__sticker {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 78%;
+  min-height: 0;
+  align-self: center;
+  box-sizing: border-box;
+  border-radius: 3px;
   background:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.65) 0%,
-      rgba(255, 255, 255, 0.08) 18%,
-      transparent 42%
-    ),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.08) 18%, transparent 42%),
     linear-gradient(180deg, #ffe566 0%, #f0c820 38%, #d9a80a 72%, #bf8f06 100%);
   border: 1px solid rgba(0, 0, 0, 0.32);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     inset 0 -2px 4px rgba(0, 0, 0, 0.18),
-    0 1px 2px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.15);
-  transform: translateY(-50%) perspective(200px) rotateX(8deg);
+    0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.landing-license-plate__sticker-shine {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      112deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.55) 42%,
-      transparent 58%
-    );
-  opacity: 0.65;
-  pointer-events: none;
+.license-plate__sticker--month {
+  grid-column: 2;
+  justify-self: start;
+  margin-left: var(--plate-sticker-hole-clearance);
+  width: calc(100% - var(--plate-sticker-hole-clearance));
 }
 
-.landing-license-plate__sticker-month {
-  position: relative;
-  z-index: 1;
+.license-plate__sticker--year {
+  grid-column: 4;
+  justify-self: end;
+  margin-right: var(--plate-sticker-hole-clearance);
+  width: calc(100% - var(--plate-sticker-hole-clearance));
+}
+
+.license-plate__sticker-text {
   font-family: var(--plate-font);
-  font-size: clamp(5px, 1.6cqw, 8px);
-  font-weight: 700;
+  font-size: clamp(9px, 7.8cqi, 18px);
+  font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1;
-  color: #123456;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
-  text-transform: capitalize;
-}
-
-.landing-license-plate__sticker-year {
-  position: relative;
-  z-index: 1;
-  font-family: var(--plate-font);
-  font-size: clamp(9px, 2.6cqw, 13px);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.05;
   color: #0a2238;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
 }
 
-.landing-license-plate__body {
+.license-plate__band {
   position: relative;
   z-index: 1;
-  flex: 1 1 auto;
+  min-height: 0;
+  background:
+    linear-gradient(
+      108deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.06) 14%,
+      transparent 32%,
+      transparent 68%,
+      rgba(255, 255, 255, 0.05) 84%,
+      rgba(255, 255, 255, 0.12) 100%
+    ),
+    linear-gradient(180deg, #f9a84a 0%, var(--plate-orange) 38%, #e07f10 72%, #c96f0c 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.license-plate__registration {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  margin: 0;
+  padding: 0 20% 0 calc(20% + 0.04em);
+  box-sizing: border-box;
+  font-family: 'License Plate', var(--plate-font);
+  font-size: clamp(18px, 16.5cqi, 68px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #152433;
+  -webkit-text-stroke: 0.35px rgba(0, 0, 0, 0.1);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85),
+    0 2px 0 rgba(255, 255, 255, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.2),
+    1px 2px 2px rgba(0, 0, 0, 0.12);
+}
+
+.license-plate__caption {
+  position: relative;
   min-height: 0;
-  padding: clamp(4px, 1.8cqh, 10px) clamp(8px, 3.2cqw, 16px) clamp(6px, 2.4cqh, 12px);
+  display: grid;
+  place-items: center;
   overflow: hidden;
-  background-color: #d8dde5;
-  background-image:
-    radial-gradient(ellipse 95% 60% at 50% 115%, rgba(0, 0, 0, 0.09) 0%, transparent 58%),
+  background:
     linear-gradient(
       108deg,
       rgba(255, 255, 255, 0.72) 0%,
@@ -756,193 +721,102 @@
       rgba(255, 255, 255, 0.12) 84%,
       rgba(255, 255, 255, 0.35) 100%
     ),
-    repeating-linear-gradient(
-      -12deg,
-      rgba(255, 255, 255, 0.05) 0,
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px,
-      transparent 3px,
-      rgba(0, 0, 0, 0.016) 3px,
-      rgba(0, 0, 0, 0.016) 4px,
-      transparent 4px,
-      transparent 7px
-    ),
-    repeating-linear-gradient(
-      78deg,
-      rgba(0, 0, 0, 0.012) 0,
-      rgba(0, 0, 0, 0.012) 1px,
-      transparent 1px,
-      transparent 4px
-    ),
     linear-gradient(172deg, #fafbfd 0%, #eef2f7 12%, #e2e8f0 32%, #d4dbe4 58%, #c8d0db 82%, #bcc5d1 100%);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.92),
-    inset 0 -4px 10px rgba(0, 0, 0, 0.07);
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.06);
 }
 
-.landing-license-plate__body::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.48;
-  mix-blend-mode: soft-light;
-  background:
-    radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.65) 0, rgba(255, 255, 255, 0.65) 0.5px, transparent 0.65px),
-    radial-gradient(circle at 44% 68%, rgba(0, 0, 0, 0.07) 0, rgba(0, 0, 0, 0.07) 0.5px, transparent 0.65px),
-    radial-gradient(circle at 76% 38%, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0.5) 0.5px, transparent 0.65px);
-  background-size: 6px 6px, 6px 6px, 6px 6px;
-}
-
-.landing-license-plate__body::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.18;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 88px 88px;
-}
-
-.landing-license-plate__copy {
-  position: relative;
-  z-index: 2;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(2px, 1.2cqh, 5px);
-  padding: clamp(2px, 1.2cqh, 6px) 0;
-  text-align: center;
-}
-
-.landing-license-plate__title {
+.license-plate__caption-text {
   margin: 0;
+  padding: 0 6%;
   width: 100%;
-  max-width: 100%;
-  font-family: 'License Plate', var(--plate-font);
-  font-size: clamp(30px, 14.8cqw, 74px);
-  font-weight: 400;
-  line-height: 0.9;
-  letter-spacing: 0.04em;
-  color: #152433;
-  text-transform: uppercase;
-  white-space: nowrap;
-  -webkit-text-stroke: 0.35px rgba(0, 0, 0, 0.08);
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.98),
-    0 2px 0 rgba(255, 255, 255, 0.55),
-    0 3px 0 rgba(255, 255, 255, 0.18),
-    0 -1px 0 rgba(0, 0, 0, 0.18),
-    0 -2px 0 rgba(0, 0, 0, 0.08),
-    1px 2px 2px rgba(0, 0, 0, 0.14),
-    -1px 0 1px rgba(255, 255, 255, 0.35);
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.65));
-}
-
-.landing-license-plate__subtitle {
-  margin: 0;
-  width: 100%;
+  box-sizing: border-box;
   font-family: var(--plate-font);
-  font-size: clamp(13px, 4.8cqw, 24px);
+  font-size: clamp(8px, 5.8cqi, 22px);
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: lowercase;
+  letter-spacing: 0.16em;
+  line-height: 1;
   text-align: center;
-  color: var(--plate-brand-orange, #e37f0d);
+  color: #3d4a57;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95),
-    0 -1px 0 rgba(0, 0, 0, 0.14),
-    0 1px 2px rgba(0, 0, 0, 0.12);
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
-.landing-license-plate__bolt {
+.license-plate__chrome {
   position: absolute;
-  z-index: 7;
-  width: clamp(10px, 2.8cqw, 14px);
-  height: clamp(10px, 2.8cqw, 14px);
+  inset: 4.5%;
+  border-radius: 3%;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.12) 14%,
+    transparent 28%,
+    transparent 72%,
+    rgba(255, 255, 255, 0.08) 86%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.9;
+}
+
+.license-plate__mount {
+  position: absolute;
+  z-index: 5;
+  width: 2.75%;
+  aspect-ratio: 1;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 30% 26%, #eceff3 0%, #9aa0aa 22%, #5a6068 58%, #2a2d34 100%);
+  background: radial-gradient(
+    circle at 50% 36%,
+    #f0f3f6 0%,
+    #c5ccd4 28%,
+    #8a939c 58%,
+    #3a424a 100%
+  );
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.65),
-    inset 0 1px 1px rgba(255, 255, 255, 0.55),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.35),
-    0 2px 4px rgba(0, 0, 0, 0.42);
+    inset 0 1px 2px rgba(0, 0, 0, 0.65),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.72),
+    0 0 0 1.5px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
 }
 
-.landing-license-plate__bolt::before {
-  content: '';
-  position: absolute;
-  inset: 28%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #3a3d44 0%, #121316 100%);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.65);
+.license-plate__mount--tl {
+  top: 13%;
+  left: 7%;
 }
 
-.landing-license-plate__bolt::after {
-  content: '';
-  position: absolute;
-  inset: 42% 22%;
-  border-radius: 1px;
-  background: linear-gradient(90deg, #1a1c20 0%, #4a4e56 50%, #1a1c20 100%);
-  transform: rotate(32deg);
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.45);
+.license-plate__mount--tr {
+  top: 13%;
+  right: 7%;
 }
 
-.landing-license-plate__bolt--tl {
-  top: clamp(5px, 1.6cqh, 8px);
-  left: clamp(7px, 2.4cqw, 12px);
+.license-plate__mount--bl {
+  bottom: 13%;
+  left: 7%;
 }
 
-.landing-license-plate__bolt--tr {
-  top: clamp(5px, 1.6cqh, 8px);
-  right: clamp(7px, 2.4cqw, 12px);
-}
-
-.landing-license-plate__bolt-hole {
-  position: absolute;
-  z-index: 2;
-  width: clamp(6px, 1.8cqw, 9px);
-  height: clamp(6px, 1.8cqw, 9px);
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, #1a1d22 0%, #060708 72%);
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
-  opacity: 0.75;
-}
-
-.landing-license-plate__bolt-hole--bl {
-  bottom: clamp(7px, 2cqh, 10px);
-  left: clamp(14px, 4.4cqw, 22px);
-}
-
-.landing-license-plate__bolt-hole--br {
-  bottom: clamp(7px, 2cqh, 10px);
-  right: clamp(14px, 4.4cqw, 22px);
+.license-plate__mount--br {
+  bottom: 13%;
+  right: 7%;
 }
 
 @media (max-width: 480px) {
-  .landing-license-plate {
-    --plate-max-width: clamp(260px, 88cqw, 420px);
+  .license-plate {
+    width: min(420px, 92vw, calc(40vh * 251.1 / 102));
   }
 
-  .landing-license-plate__title {
+  .license-plate__registration {
     letter-spacing: 0.03em;
-    font-size: clamp(24px, 13.2cqw, 46px);
+    padding-left: calc(20% + 0.03em);
+    font-size: clamp(16px, 15cqi, 44px);
   }
 
-  .landing-license-plate__subtitle {
-    font-size: clamp(12px, 4.8cqw, 20px);
-    letter-spacing: 0.14em;
+  .license-plate__caption-text {
+    letter-spacing: 0.12em;
   }
 }
 
@@ -4269,11 +4143,29 @@
 
 .hood-standards-gauge__label--low-battery-inline {
   white-space: nowrap;
+  text-align: center;
+}
+
+.hood-standards-gauge__label--low-battery-well {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  pointer-events: none;
 }
 
 .hood-standards-gauge--low-battery .hood-standards-gauge__fill {
   background: linear-gradient(180deg, #f87171 0%, #dc2626 52%, #991b1b 100%);
   min-height: 18%;
+}
+
+.hood-standards-gauge--horizontal-lr.hood-standards-gauge--low-battery .hood-standards-gauge__fill {
+  min-width: 12%;
+  min-height: 0;
+  background: linear-gradient(90deg, #991b1b 0%, #dc2626 48%, #f87171 100%);
 }
 
 .hood-standards-gauge--low-battery .hood-standards-gauge__label--low-battery {
@@ -4327,6 +4219,76 @@
   transform: rotate(calc(-1 * var(--hood-standards-shell-rotate)));
   transform-origin: center center;
   white-space: nowrap;
+}
+
+/* Native left-to-right battery (no shell rotation). */
+.hood-standards-gauge--horizontal-lr {
+  width: 100%;
+  height: auto;
+  min-height: clamp(30px, 8vw, 40px);
+  aspect-ratio: unset;
+  overflow: visible;
+  padding-inline: 2px 10px;
+  box-sizing: border-box;
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__shell {
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  height: clamp(30px, 7.5vw, 38px);
+  min-height: clamp(30px, 7.5vw, 38px);
+  max-height: clamp(30px, 7.5vw, 38px);
+  transform: none;
+  padding: 2px 3px 2px 2px;
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__caps {
+  top: 50%;
+  left: auto;
+  right: -7px;
+  flex-direction: column;
+  gap: clamp(2px, 0.5vw, 4px);
+  transform: translateY(-50%);
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__cap {
+  width: 5px;
+  height: clamp(8px, 2.2vw, 11px);
+  border-radius: 0 2px 2px 0;
+  border-left: none;
+  border-bottom: 2px solid #42d84f;
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__well {
+  flex: 1 1 auto;
+  width: auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__fill {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: auto;
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #2fb838 0%, #42d84f 48%, #58e85f 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset -3px 0 6px rgba(0, 0, 0, 0.18);
+  transition: width 1.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__fill--instant {
+  transition: none;
+}
+
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__label,
+.hood-standards-gauge--horizontal-lr .hood-standards-gauge__label--low-battery {
+  transform: none;
 }
 
 .hood-standards-gauge--dormant .hood-standards-gauge__shell {
@@ -4751,6 +4713,18 @@
     min-height: calc(var(--hood-standards-mobile-copy-height) - 0.25rem);
   }
 
+  .hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text-scroll {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
+    padding-top: 0;
+  }
+
+  .hood-standards-popup--no-databases:not(.hood-standards-summary) .hood-standards-popup__text {
+    min-height: 0;
+  }
+
   .hood-standards-popup:not(.hood-standards-summary) .hood-standards-popup__metrics-column {
     grid-area: metrics;
     grid-column: 1 / -1;
@@ -4894,7 +4868,7 @@
     padding-left: 0;
   }
 
-  /* Subscribed popup slide 1: copy + subscription logos + vertical battery */
+  /* Subscribed popup slide 1: copy + subscription logos + horizontal battery */
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary) .hood-standards-popup__body,
   .hood-standards-popup--mobile-database:not(.hood-standards-summary) .hood-standards-popup__body {
     display: flex;
@@ -4943,16 +4917,35 @@
     flex: initial;
     overflow: hidden;
     align-self: stretch;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: clamp(6px, 1.5vw, 10px);
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
     .hood-standards-popup__metrics-column
     .hood-standards-popup__protocol-block--pair {
+    grid-row: 1;
+    grid-column: 1;
+    flex: 1 1 auto;
     width: 100%;
     min-width: 0;
-    height: 100%;
     min-height: 0;
+    max-height: 100%;
+    height: auto;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 1vh, 6px);
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__metrics-column
+    .hood-standards-popup__protocol-block--pair
+    .hood-standards-popup__protocol-label {
+    flex: 0 0 auto;
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
@@ -4960,34 +4953,199 @@
     .hood-standards-popup__protocol-row--pair {
     flex: 1 1 auto;
     min-height: 0;
-    height: 100%;
+    max-height: 100%;
+    height: auto;
     padding-block: 0;
     overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    justify-items: center;
+    gap: clamp(6px, 1.5vw, 10px);
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
     .hood-standards-popup__metrics-column
     .hood-standards-protocol-logo {
+    width: 100%;
     height: 100%;
     max-height: 100%;
     min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__metrics-column
+    .hood-standards-protocol-logo__image {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center center;
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
     .hood-standards-popup__gauge-column {
+    grid-row: 2;
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: clamp(32px, 9vw, 42px);
+    max-height: none;
+    overflow: visible;
+    padding-inline: 4px 12px;
+    box-sizing: border-box;
+  }
+
+  /* No subscriptions: logos + vertical battery share one metrics row. */
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__metrics-column:has(
+      .hood-standards-popup__gauge-column--with-logos
+    ) {
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos {
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'subscriptions subscriptions'
+      'logos gauge';
+    align-items: center;
+    justify-items: center;
+    gap: clamp(6px, 1.2vh, 10px);
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    padding-inline: clamp(4px, 1vw, 8px);
+    overflow: visible;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-popup__protocol-block {
+    display: contents;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-popup__protocol-label {
+    grid-area: subscriptions;
+    width: 100%;
+    text-align: center;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-popup__protocol-row {
+    grid-area: logos;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    gap: clamp(6px, 1vh, 10px);
+    width: auto;
+    max-width: min(100%, 5rem);
+    height: 100%;
     min-height: 0;
+    padding-block: 0;
+    overflow: visible;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-protocol-logo {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: min(100%, 4.5rem);
+    height: var(--hood-standards-logo-slot, clamp(36px, 10vw, 48px));
+    min-height: var(--hood-standards-logo-slot, clamp(36px, 10vw, 48px));
+    max-height: var(--hood-standards-logo-slot, clamp(36px, 10vw, 48px));
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-gauge {
+    grid-area: gauge;
+    align-self: center;
+    justify-self: center;
+    width: 100%;
+    max-width: min(100%, 5rem);
+    height: 100%;
     max-height: 100%;
-    padding-right: 0;
+    min-height: 0;
+    flex: unset;
+    overflow: visible;
+    padding-top: 6px;
+    padding-bottom: 6px;
     box-sizing: border-box;
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
-    .hood-standards-gauge:not(.hood-standards-gauge--horizontal) {
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-gauge__shell {
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-popup__gauge-column--with-logos
+    .hood-standards-gauge__well {
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge--horizontal-lr {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    flex: 0 0 auto;
+    overflow: visible;
+    padding-inline: 0;
+    box-sizing: border-box;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge--horizontal-lr
+    .hood-standards-gauge__shell {
+    width: 100%;
+    max-width: 100%;
+    height: clamp(28px, 7vw, 36px);
+    min-height: clamp(28px, 7vw, 36px);
+    max-height: clamp(28px, 7vw, 36px);
+    transform: none;
+    flex: 0 0 auto;
+  }
+
+  .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal-lr):not(
+      .hood-standards-gauge--horizontal
+    ) {
     --hood-standards-gauge-aspect: 0.69;
     aspect-ratio: var(--hood-standards-gauge-aspect);
     width: auto;
@@ -5013,7 +5171,9 @@
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
-    .hood-standards-gauge:not(.hood-standards-gauge--horizontal)
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal-lr):not(
+      .hood-standards-gauge--horizontal
+    )
     .hood-standards-gauge__shell {
     flex: 1 1 auto;
     min-height: 0;
@@ -5043,28 +5203,20 @@
     transform-origin: center center;
   }
 
-  /* Mid-width tablets — wider vertical battery beside protocol logos */
+  /* Mid-width tablets — same stacked subscriptions + full-width battery */
   @media (min-width: 481px) {
     .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
-      .hood-standards-popup__metrics-column {
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-    }
-
-    .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
       .hood-standards-popup__gauge-column {
-      flex: 0 0 min(40%, 7.5rem);
-      max-width: min(40%, 7.5rem);
+      width: 100%;
+      max-width: 100%;
     }
 
     .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
-      .hood-standards-gauge:not(.hood-standards-gauge--horizontal) {
-      max-width: min(100%, 7rem);
-      width: 100%;
-    }
-
-    .hood-standards-gauge--horizontal {
-      --hood-standards-horizontal-shell-span: 92%;
-      --hood-standards-horizontal-shell-thickness: 0.54;
+      .hood-standards-gauge--horizontal-lr
+      .hood-standards-gauge__shell {
+      height: clamp(32px, 6vw, 40px);
+      min-height: clamp(32px, 6vw, 40px);
+      max-height: clamp(32px, 6vw, 40px);
     }
   }
 
@@ -5077,7 +5229,9 @@
   }
 
   .hood-standards-popup--mobile-metrics:not(.hood-standards-summary)
-    .hood-standards-gauge:not(.hood-standards-gauge--horizontal)
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal-lr):not(
+      .hood-standards-gauge--horizontal
+    )
     .hood-standards-gauge__label {
     transform: none;
   }
@@ -5126,6 +5280,38 @@
 
   .hood-standards-popup--mobile-database:not(.hood-standards-summary)
     .hood-standards-popup__text {
+    min-height: 0;
+  }
+
+  /* No database access: slide 2 copy fills the full tablet body (no logo row). */
+  .hood-standards-popup--mobile-database.hood-standards-popup--no-databases:not(.hood-standards-summary)
+    .hood-standards-popup__main {
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'copy';
+    gap: 0;
+    height: 100%;
+  }
+
+  .hood-standards-popup--mobile-database.hood-standards-popup--no-databases:not(.hood-standards-summary)
+    .hood-standards-popup__text-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
+    padding-top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .hood-standards-popup--mobile-database.hood-standards-popup--no-databases:not(.hood-standards-summary)
+    .hood-standards-popup__text {
+    flex: 0 0 auto;
+    width: 100%;
     min-height: 0;
   }
 
@@ -5538,7 +5724,7 @@
 }
 
 .journey-nav-stage-inner::after {
-  z-index: 3;
+  z-index: 2;
   background:
     linear-gradient(
       135deg,
@@ -5556,11 +5742,21 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.journey-nav-stage-inner > .journey-nav-slide-bg,
-.journey-nav-stage-inner > .gps-ui-controls,
-.journey-nav-stage-inner > .journey-nav-ui,
-.journey-nav-stage-inner .journey-nav-arrival {
+.journey-nav-stage-inner > .journey-nav-slide-bg {
   z-index: 1;
+}
+
+.journey-nav-stage-inner > .journey-nav-driver-marker {
+  z-index: 3;
+}
+
+.journey-nav-stage-inner > .gps-ui-controls,
+.journey-nav-stage-inner > .journey-nav-ui {
+  z-index: 4;
+}
+
+.journey-nav-stage-inner .journey-nav-arrival {
+  z-index: 5;
 }
 
 .journey-nav-stage-inner--tray-visible::before {
@@ -5605,27 +5801,76 @@
   overflow: hidden;
 }
 
-.journey-nav-map-frame .journey-nav-map-panel__lottie {
+.journey-nav-map-panel__scroll {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  display: block;
+  overflow: hidden;
   pointer-events: none;
 }
 
-.journey-nav-map-frame .journey-nav-map-panel__lottie > div {
+.journey-nav-map-panel__map {
+  position: absolute;
+  left: 0;
+  bottom: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
-.journey-nav-map-frame .journey-nav-map-panel__lottie svg,
-.journey-nav-map-frame .journey-nav-map-panel__lottie canvas {
-  display: block;
+/* Fixed driver position — centered over scrolling map, above bezel, below popups */
+.journey-nav-driver-marker {
+  --journey-nav-driver-marker-size: clamp(36px, 7vw, 52px);
+  --journey-nav-driver-marker-x-offset: 6px;
+  --journey-nav-driver-marker-track-width: 15px;
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: var(--hmi-chrome-border);
+  right: var(--hmi-chrome-border);
+  bottom: var(--journey-map-screen-bottom);
+  left: var(--hmi-chrome-border);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border-radius: calc(var(--hmi-radius) - 5px);
+}
+
+.journey-nav-driver-marker__track {
+  position: absolute;
+  left: calc(50% + var(--journey-nav-driver-marker-x-offset));
+  width: var(--journey-nav-driver-marker-track-width);
+  transform: translateX(-50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.journey-nav-driver-marker__track--ahead {
+  top: 0;
+  bottom: 50%;
+  background: #ffffff;
+}
+
+.journey-nav-driver-marker__track--driven {
+  top: 50%;
+  bottom: 0;
+  background: #ffb057;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.journey-nav-driver-marker__icon {
+  position: relative;
+  z-index: 1;
+  width: var(--journey-nav-driver-marker-size);
+  height: var(--journey-nav-driver-marker-size);
+  display: block;
+  flex-shrink: 0;
+  color: #f3901d;
+  transform: translateX(var(--journey-nav-driver-marker-x-offset));
 }
 
 /* GPS map control overlay — screen content, below bezel glow and glass */
@@ -5639,7 +5884,7 @@
   right: var(--hmi-chrome-border);
   bottom: var(--journey-map-screen-bottom);
   left: var(--hmi-chrome-border);
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
   border-radius: calc(var(--hmi-radius) - 5px);
   overflow: hidden;
@@ -5763,6 +6008,7 @@
 }
 
 .full-diagnostics__map-stage-inner .gps-ui-controls {
+  display: none;
   --gps-controls-bottom: clamp(14px, 2.2vh, 22px);
 }
 
@@ -5841,7 +6087,7 @@
   right: var(--hmi-chrome-border);
   bottom: var(--journey-map-screen-bottom);
   left: var(--hmi-chrome-border);
-  z-index: 2;
+  z-index: 4;
   width: auto;
   min-height: 0;
   max-height: none;
@@ -6800,7 +7046,7 @@
   right: var(--hmi-chrome-border);
   bottom: var(--journey-map-screen-bottom);
   left: var(--hmi-chrome-border);
-  z-index: 3;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10500,7 +10746,7 @@
   line-height: 1;
 }
 
-.gps-nav-direction__cta:hover:not(:disabled) {
+.gps-nav-direction__cta:hover:not(:disabled):not(.gps-nav-direction__cta-tag) {
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -11597,21 +11843,21 @@
     flex: 0 0 auto;
     width: 100%;
     height: auto;
-    min-height: var(--hood-mobile-tablet-tire-size, 243px);
+    min-height: var(--hood-mobile-tablet-tire-size, 215px);
     max-height: none;
     margin-top: 0;
-    margin-bottom: auto;
+    margin-bottom: 0;
     align-self: stretch;
     align-items: center;
     justify-content: center;
-    padding-top: clamp(6px, 1.4vh, 12px);
+    padding-top: clamp(4px, 1vh, 8px);
     overflow: visible;
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__pressure-gauge--tire-art {
     width: 100%;
     min-width: 0;
-    min-height: var(--hood-mobile-tablet-tire-size, 243px);
+    min-height: var(--hood-mobile-tablet-tire-size, 215px);
     padding-inline: 0;
     padding-block: 0;
     align-items: center;
@@ -11628,9 +11874,9 @@
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    height: var(--hood-mobile-tablet-tire-size, 243px);
-    min-height: var(--hood-mobile-tablet-tire-size, 243px);
-    max-height: var(--hood-mobile-tablet-tire-size, 243px);
+    height: var(--hood-mobile-tablet-tire-size, 215px);
+    min-height: var(--hood-mobile-tablet-tire-size, 215px);
+    max-height: var(--hood-mobile-tablet-tire-size, 215px);
     overflow: hidden;
     flex: 0 0 auto;
     position: relative;
@@ -11644,12 +11890,12 @@
     position: relative;
     inset: auto;
     margin: 0;
-    width: var(--hood-mobile-tablet-tire-size, 243px);
-    height: var(--hood-mobile-tablet-tire-size, 243px);
-    min-width: var(--hood-mobile-tablet-tire-size, 243px);
-    min-height: var(--hood-mobile-tablet-tire-size, 243px);
-    max-width: var(--hood-mobile-tablet-tire-size, 243px);
-    max-height: var(--hood-mobile-tablet-tire-size, 243px);
+    width: var(--hood-mobile-tablet-tire-size, 215px);
+    height: var(--hood-mobile-tablet-tire-size, 215px);
+    min-width: var(--hood-mobile-tablet-tire-size, 215px);
+    min-height: var(--hood-mobile-tablet-tire-size, 215px);
+    max-width: var(--hood-mobile-tablet-tire-size, 215px);
+    max-height: var(--hood-mobile-tablet-tire-size, 215px);
     flex: 0 0 auto;
     display: grid;
     place-items: center;
@@ -11676,6 +11922,11 @@
     margin-bottom: 0;
     align-items: stretch;
     align-self: stretch;
+  }
+
+  .hood-tire-hub--mobile-stack .hood-tire-hub__screen-content--reserved {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .hood-tire-hub--mobile-stack .hood-tire-hub__screen-glass--stats-slide .hood-tire-hub__results,
@@ -12368,6 +12619,101 @@
   align-items: center;
   justify-content: center;
   gap: clamp(8px, 1.2vw, 12px);
+}
+
+.full-diagnostics__share-side {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vh, 18px);
+  width: min(100%, 280px);
+}
+
+.full-diagnostics__feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.2vh, 12px);
+  width: 100%;
+  text-align: center;
+}
+
+.full-diagnostics__feedback-title {
+  margin: 0;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(10px, 1.6vw, 12px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.88);
+}
+
+.full-diagnostics__feedback-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 16px);
+}
+
+.full-diagnostics__feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(40px, 6vw, 48px);
+  height: clamp(40px, 6vw, 48px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.full-diagnostics__feedback-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.full-diagnostics__feedback-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.full-diagnostics__feedback-btn--positive:hover:not(:disabled) {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.55);
+  background: rgba(74, 222, 128, 0.14);
+}
+
+.full-diagnostics__feedback-btn--negative:hover:not(:disabled) {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.full-diagnostics__feedback-icon {
+  width: clamp(20px, 3vw, 24px);
+  height: clamp(20px, 3vw, 24px);
+  display: block;
+  flex: none;
+  aspect-ratio: 1;
+}
+
+.full-diagnostics__feedback-thanks {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(11px, 1.8vw, 14px);
+  line-height: 1.4;
+  color: #f3901d;
 }
 
 .full-diagnostics__social-row {
@@ -13164,6 +13510,12 @@
 }
 
 .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+  .hood-standards-popup__main--summary:not(:has(.hood-standards-popup__database-panel)) {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
   .hood-standards-popup__metrics-column--no-subscriptions {
   flex: 1 1 auto;
   width: 100%;
@@ -13175,8 +13527,8 @@
     'subscriptions subscriptions'
     'logos gauge';
   gap: clamp(6px, 1vh, 10px);
-  align-items: stretch;
-  justify-items: stretch;
+  align-items: center;
+  justify-items: center;
 }
 
 .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
@@ -13197,9 +13549,9 @@
   .hood-standards-popup__protocol-block {
   grid-area: logos;
   align-self: center;
-  justify-self: stretch;
-  width: 100%;
-  max-width: 100%;
+  justify-self: center;
+  width: auto;
+  max-width: min(100%, 5.5rem);
   height: auto;
   min-height: 0;
 }
@@ -13232,16 +13584,19 @@
   .hood-standards-popup__metrics-column--no-subscriptions
   .hood-standards-popup__gauge-column {
   grid-area: gauge;
-  align-self: stretch;
-  justify-self: stretch;
-  width: 100%;
-  max-width: 100%;
+  align-self: center;
+  justify-self: center;
+  width: auto;
+  max-width: min(100%, 5.5rem);
   height: 100%;
   min-height: 0;
   max-height: 100%;
   flex: unset;
-  padding-top: 0;
-  padding-bottom: 0;
+  overflow: visible;
+  box-sizing: border-box;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-inline: 0;
 }
 
 .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
@@ -13252,6 +13607,7 @@
   height: 100%;
   max-height: 100%;
   margin-inline: auto;
+  box-sizing: border-box;
 }
 
 .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
@@ -13765,6 +14121,11 @@
   gap: clamp(10px, 2vw, 14px);
 }
 
+.full-diagnostics--share-focus .full-diagnostics__share-side {
+  width: 100%;
+  max-width: min(100%, 360px);
+}
+
 .full-diagnostics--share-focus .full-diagnostics__map {
   position: absolute;
   left: 0;
@@ -13896,25 +14257,39 @@
   }
 
   .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__main--summary:not(:has(.hood-standards-popup__database-panel)) {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
     .hood-standards-popup__metrics-column--no-subscriptions {
+    width: 100%;
+    max-width: 100%;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       'subscriptions subscriptions'
       'logos gauge';
-    gap: clamp(6px, 1vh, 10px);
+    gap: clamp(8px, 1.2vh, 12px);
+    align-items: center;
+    justify-items: center;
   }
 
   .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
     .hood-standards-popup__metrics-column--no-subscriptions
     .hood-standards-protocol-logo {
-    max-width: min(100%, 3.75rem);
+    max-width: min(100%, 4.25rem);
   }
 
   .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
     .hood-standards-popup__metrics-column--no-subscriptions
-    .hood-standards-gauge {
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal-lr) {
+    width: 100%;
     max-width: min(100%, 4.75rem);
+    height: 100%;
+    max-height: 100%;
+    aspect-ratio: 0.69;
   }
 
   .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
@@ -13948,38 +14323,84 @@
     .hood-standards-popup__metrics-column--stacked
     .hood-standards-popup__gauge-column {
     grid-area: gauge;
+    grid-column: 1 / -1;
     align-self: stretch;
-    justify-self: center;
-    width: min(100%, 6.75rem);
-    height: 100%;
-    max-height: 100%;
-    min-height: 0;
-  }
-
-  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal {
-    --hood-standards-horizontal-shell-span: 92%;
-    --hood-standards-horizontal-shell-thickness: 0.54;
+    justify-self: stretch;
     width: 100%;
     max-width: 100%;
-    height: 100%;
+    height: auto;
+    min-height: clamp(30px, 8vw, 38px);
+    max-height: none;
     overflow: visible;
-    padding-inline: 6px;
+    padding-inline: 2px 12px;
     box-sizing: border-box;
   }
 
-  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal .hood-standards-gauge__shell {
-    transform: rotate(var(--hood-standards-shell-rotate, 90deg));
-    transform-origin: center center;
+  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal-lr {
+    --hood-standards-gauge-aspect: unset;
+    aspect-ratio: unset;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    min-height: clamp(30px, 8vw, 38px);
+    flex: 0 0 auto;
+    align-self: stretch;
+    overflow: visible;
+    padding-inline: 2px 10px;
+    box-sizing: border-box;
   }
 
-  .full-diagnostics__standards-tablet
-    .hood-standards-gauge--horizontal
-    .hood-standards-gauge__label,
-  .full-diagnostics__standards-tablet
-    .hood-standards-gauge--horizontal
-    .hood-standards-gauge__label--low-battery {
-    transform: rotate(calc(-1 * var(--hood-standards-shell-rotate, 90deg)));
-    transform-origin: center center;
+  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal-lr .hood-standards-gauge__shell {
+    width: 100%;
+    max-width: 100%;
+    height: clamp(30px, 7.5vw, 38px);
+    max-height: clamp(30px, 7.5vw, 38px);
+    transform: none;
+    flex: 0 0 auto;
+  }
+
+  .full-diagnostics__standards-tablet .hood-standards-gauge--horizontal-lr .hood-standards-gauge__well {
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__metrics-column--no-subscriptions
+    .hood-standards-popup__gauge-column {
+    grid-area: gauge;
+    grid-column: auto;
+    align-self: center;
+    justify-self: center;
+    width: auto;
+    max-width: min(100%, 4.75rem);
+    height: 100%;
+    min-height: clamp(68px, 17vh, 104px);
+    max-height: 100%;
+    overflow: visible;
+    box-sizing: border-box;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-inline: 0;
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__metrics-column--no-subscriptions
+    .hood-standards-popup__protocol-block {
+    justify-self: center;
+    align-self: center;
+    width: auto;
+    max-width: min(100%, 4.75rem);
+  }
+
+  .full-diagnostics__standards-tablet.hood-standards-summary--no-subscriptions
+    .hood-standards-popup__metrics-column--no-subscriptions
+    .hood-standards-gauge:not(.hood-standards-gauge--horizontal-lr) {
+    width: 100%;
+    max-width: min(100%, 4.75rem);
+    height: 100%;
+    max-height: 100%;
+    margin-inline: auto;
   }
 
   .full-diagnostics__standards-tablet .hood-standards-gauge__well {
@@ -14548,12 +14969,11 @@
   /* Keep the left edge of the map visible; clip overflow on the right. */
   .journey-nav-slide-bg,
   .journey-nav-map-frame,
-  .journey-nav-map-frame .journey-nav-map-panel__lottie {
+  .journey-nav-map-panel__scroll {
     overflow: hidden;
   }
 
-  .journey-nav-map-frame .journey-nav-map-panel__lottie svg,
-  .journey-nav-map-frame .journey-nav-map-panel__lottie canvas {
+  .journey-nav-map-panel__map {
     left: 0;
     right: auto;
   }

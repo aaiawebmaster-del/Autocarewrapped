@@ -1,18 +1,23 @@
 /** Shared motion + event timing for counter ↔ map journey transitions. */
+import { scaleExperienceMs, scaleExperienceS } from '@/lib/experienceAnimationTiming';
+
 export const JOURNEY_SCENE_TRANSITION = {
-  duration: 0.55,
+  duration: scaleExperienceS(0.55),
   ease: [0.4, 0, 0.2, 1] as const,
 };
 
 export const JOURNEY_SCENE_SLIDE_TRANSITION = {
-  duration: 0.95,
+  duration: scaleExperienceS(0.95),
   ease: [0.22, 1, 0.36, 1] as const,
 };
 
 export const JOURNEY_SCENE_SLIDE_MS = Math.round(JOURNEY_SCENE_SLIDE_TRANSITION.duration * 1000);
 
 /** Brief layout settle while the panel slide is in progress. */
-export const JOURNEY_MAP_STABLE_MS = 120;
+export const JOURNEY_MAP_STABLE_MS = scaleExperienceMs(120);
+
+/** GPS map SVG scroll — bottom of artboard to top of artboard. */
+export const JOURNEY_MAP_SCROLL_DURATION_MS = scaleExperienceMs(25_000);
 
 export const JOURNEY_MAP_ENTRY_FALLBACK_MS = JOURNEY_SCENE_SLIDE_MS + 40;
 

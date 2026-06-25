@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { appendFeedbackEntry } from './feedback-store.mjs';
 import { getSampleReport } from '../src/mocks/sampleReports.ts';
 import type { WrappedReportScenario } from '../src/types/wrappedReport.ts';
 
@@ -22,6 +23,19 @@ function isAuthenticated(req: IncomingMessage): boolean {
   return cookie.includes('wrapped_session=1') || cookie.includes('mock_auth=1');
 }
 
+async function readJsonBody(req: IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  if (chunks.length === 0) return {};
+  return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
+}
+
+function isFeedbackRating(value: unknown): value is 'positive' | 'negative' {
+  return value === 'positive' || value === 'negative';
+}
+
 /**
  * Reference mock handler for GET /api/wrapped/report and /api/wrapped/health.
  * Wire this into the Auto Care API service with real Impexium + Snowflake logic.
@@ -32,6 +46,11 @@ export function handleMockWrappedApi(req: IncomingMessage, res: ServerResponse):
 
   if (req.method === 'GET' && pathname === '/api/wrapped/health') {
     sendJson(res, 200, { status: 'ok' });
+    return true;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/wrapped/feedback') {
+    void handleFeedbackSubmit(req, res);
     return true;
   }
 
@@ -48,4 +67,39 @@ export function handleMockWrappedApi(req: IncomingMessage, res: ServerResponse):
   }
 
   return false;
+}
+
+async function handleFeedbackSubmit(req: IncomingMessage, res: ServerResponse) {
+  try {
+    const payload = (await readJsonBody(req)) as Record<string, unknown>;
+    const companyId = String(payload.companyId ?? '').trim();
+    const companyName = String(payload.companyName ?? '').trim();
+    const rating = payload.rating;
+
+    if (!companyId || !companyName || !isFeedbackRating(rating)) {
+      sendJson(res, 400, { error: 'companyId, companyName, and rating are required' });
+      return;
+    }
+
+    const recordNumber =
+      payload.recordNumber === undefined || payload.recordNumber === null
+        ? undefined
+        : Number(payload.recordNumber);
+    const reportYear =
+      payload.reportYear === undefined || payload.reportYear === null
+        ? undefined
+        : Number(payload.reportYear);
+
+    const entry = await appendFeedbackEntry({
+      companyId,
+      companyName,
+      rating,
+      recordNumber: recordNumber !== undefined && !Number.isNaN(recordNumber) ? recordNumber : undefined,
+      reportYear: reportYear !== undefined && !Number.isNaN(reportYear) ? reportYear : undefined,
+    });
+
+    sendJson(res, 201, { ok: true, id: entry.id });
+  } catch {
+    sendJson(res, 400, { error: 'Invalid JSON body' });
+  }
 }

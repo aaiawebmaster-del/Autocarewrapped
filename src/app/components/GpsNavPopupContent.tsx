@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { LayoutGroup, motion } from 'motion/react';
 import hourglassIcon from '../../assets/hourglass-duotone-solid-full.png';
 import type { EventsMetrics } from '@/types/wrappedReport';
@@ -592,6 +592,7 @@ export function GpsAttendanceBottomBar({
   compact = false,
   calculating = false,
   showScreen = true,
+  onAttendanceSupportRevealed,
 }: {
   evtPct: number;
   barW: number;
@@ -600,10 +601,31 @@ export function GpsAttendanceBottomBar({
   compact?: boolean;
   calculating?: boolean;
   showScreen?: boolean;
+  /** Fires once when the support copy below the route track finishes revealing. */
+  onAttendanceSupportRevealed?: () => void;
 }) {
   const attendanceCopy = getAttendanceCopy(eventsMetrics);
   const reduceMotion = prefersReducedMotion();
   const isLoading = calculating || !detailsReady;
+  const showSupportCopy = !calculating && !compact;
+  const supportRevealedRef = useRef(false);
+
+  useEffect(() => {
+    supportRevealedRef.current = false;
+  }, [calculating, compact, eventsMetrics.inPersonAttended]);
+
+  useEffect(() => {
+    if (!showSupportCopy || !onAttendanceSupportRevealed || !reduceMotion) return;
+    if (supportRevealedRef.current) return;
+    supportRevealedRef.current = true;
+    onAttendanceSupportRevealed();
+  }, [showSupportCopy, onAttendanceSupportRevealed, reduceMotion]);
+
+  const handleHeadlineRevealComplete = () => {
+    if (!showSupportCopy || !onAttendanceSupportRevealed || supportRevealedRef.current) return;
+    supportRevealedRef.current = true;
+    onAttendanceSupportRevealed();
+  };
 
   return (
     <LayoutGroup id="journey-nav-attendance-bar">
@@ -688,6 +710,7 @@ export function GpsAttendanceBottomBar({
             <motion.div
               className="journey-nav-attendance-bar__headline"
               initial={false}
+              onAnimationComplete={handleHeadlineRevealComplete}
               animate={
                 compact
                   ? {

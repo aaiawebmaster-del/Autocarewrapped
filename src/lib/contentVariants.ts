@@ -176,8 +176,9 @@ export function getHoodStandardsMessages(report: WrappedReport): {
   return {
     checking: 'checking standards levels',
     subscribed: `you are subscribed to ${subscribedPct}% of our data standards`,
-    subscribedDatabase:
-      'Is your data healthy? Utilize our Catalog Assessment tool to find opportunities where standards can help you increase sales and reduce returns',
+    subscribedDatabase: hasNoStandardsSubscriptions
+      ? 'Is your data healthy? Utilize our Catalog Assessment tool to find opportunities where standards can help you increase sales and reduce returns'
+      : 'Make sure your databases are up-to-date with the latest releases',
     missing: `you are subscribed to ${subscribedCount} standards: ${subscribedLabel}`,
     vip: hasNoStandardsSubscriptions
       ? 'Is your data healthy? Utilize our Catalog Assessment tool to find opportunities where standards can help you increase sales and reduce returns'
@@ -310,7 +311,7 @@ export function buildTireReadoutConfig(
     academy: {
       measuring: 'measuring academy progress..',
       primaryValue: products.academyUsers,
-      primaryLabel: 'Academy Users',
+      primaryLabel: 'Auto Care Academy Students',
       secondary: {
         type: 'count',
         value: products.academyCoursesCompleted,

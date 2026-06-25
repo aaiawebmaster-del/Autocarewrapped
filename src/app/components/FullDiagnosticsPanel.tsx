@@ -9,13 +9,14 @@ import {
 import { JourneyCounterGauge } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
-import { GpsUiControls } from './GpsUiControls';
+import { JourneyNavDriverMarker } from './JourneyNavDriverMarker';
 import { GpsPopupContent, GpsAttendanceRoutePanel } from './GpsNavPopupContent';
 import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
 import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
 import { debugSessionLog } from '@/lib/debugSessionLog';
+import { DiagnosticsFeedback } from './DiagnosticsFeedback';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
 import tireFactbookImage from '../../assets/tire-factbook.svg?url';
@@ -191,17 +192,20 @@ function DiagnosticsShareSlide({
       transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
     >
       <p className="full-diagnostics__share-message">{DIAGNOSTICS_SHARE_MESSAGE}</p>
-      <div className="full-diagnostics__share-actions">
-        <button type="button" className="full-diagnostics__share-btn" onClick={handleShare}>
-          Share with your team
-        </button>
-        <button
-          type="button"
-          className="full-diagnostics__share-btn full-diagnostics__share-btn--back"
-          onClick={onBackToStart}
-        >
-          Back to the start
-        </button>
+      <div className="full-diagnostics__share-side">
+        <div className="full-diagnostics__share-actions">
+          <button type="button" className="full-diagnostics__share-btn" onClick={handleShare}>
+            Share with your team
+          </button>
+          <button
+            type="button"
+            className="full-diagnostics__share-btn full-diagnostics__share-btn--back"
+            onClick={onBackToStart}
+          >
+            Back to the start
+          </button>
+        </div>
+        <DiagnosticsFeedback report={report} />
       </div>
     </motion.div>
   );
@@ -272,7 +276,7 @@ function DiagnosticsMapEngagement({
           <div className="journey-nav-slide-bg" aria-hidden>
             <JourneyNavMapAnimation />
           </div>
-          <GpsUiControls />
+          <JourneyNavDriverMarker />
           {showPopups ? (
             <div className="full-diagnostics__map-ui">
               <div className="full-diagnostics__map-webinar-wrap">

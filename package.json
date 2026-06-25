@@ -10,10 +10,12 @@
     "dev:api": "node server/reference-api.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "feedback:report": "node scripts/send-feedback-report.mjs",
     "docs:architecture-pdf": "node scripts/generate-architecture-pdf.mjs",
     "docs:architecture-pdf": "node scripts/generate-architecture-pdf.mjs"
   },
   "dependencies": {
+    "@netlify/blobs": "^8.2.0",
     "lottie-react": "^2.4.1",
     "motion": "12.23.24",
     "react": "18.3.1",

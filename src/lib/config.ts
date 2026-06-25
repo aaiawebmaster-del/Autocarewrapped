@@ -20,6 +20,7 @@ export const appConfig = {
   embedRecordNumber: embed.recordNumber,
   reportEndpoint: `${apiBaseUrl}/api/wrapped/report`,
   healthEndpoint: `${apiBaseUrl}/api/wrapped/health`,
+  feedbackEndpoint: `${apiBaseUrl}/api/wrapped/feedback`,
 } as const;
 
 export function buildSsoLoginRedirect(returnUrl?: string): string {
