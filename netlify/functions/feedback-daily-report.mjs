@@ -1,10 +1,10 @@
-import { listFeedbackEntriesBetween } from './feedback-store.mjs';
+import { listFeedbackEntriesBetween } from './lib/feedback-store.mjs';
 import {
   buildFeedbackSummary,
   feedbackEntriesToCsv,
   previousEasternDayWindow,
   sendFeedbackReportEmail,
-} from '../netlify/functions/lib/feedback-report.mjs';
+} from './lib/feedback-report.mjs';
 
 const REPORT_TO = process.env.FEEDBACK_REPORT_TO ?? 'kyle.hardy@autocare.org';
 
