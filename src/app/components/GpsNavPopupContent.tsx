@@ -237,7 +237,7 @@ function GpsWebinarHoursBadge({ hours }: { hours: number }) {
   return (
     <>
       <span className="gps-nav-direction__hours-value">{hours}</span>
-      <span className="gps-nav-direction__hours-label">HOURS</span>
+      <span className="gps-nav-direction__hours-label">{hours === 1 ? 'HOUR' : 'HOURS'}</span>
     </>
   );
 }
@@ -430,7 +430,7 @@ function GpsWebinarDirectionCard({
       onNext={onNext}
       nextDisabled={nextDisabled}
       nextLabel={nextLabel}
-      ariaLabel={`${hours} hours, webinar attendance`}
+      ariaLabel={`${hours} ${hours === 1 ? 'hour' : 'hours'}, webinar attendance`}
     />
   );
 }

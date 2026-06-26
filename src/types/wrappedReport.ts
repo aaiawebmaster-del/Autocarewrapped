@@ -23,6 +23,8 @@ export type WrappedReport = {
     webinarCount: number;
     /** Listed as an AAPEX exhibitor — changes AAPEX 2026 arrival copy. */
     aapexExhibitor?: boolean;
+    /** When false, skip the AAPEX 2025 arrival slide and show AAPEX 2026 re-routing first. */
+    aapexAttended?: boolean;
   };
   products: {
     trendLensUsers: number;

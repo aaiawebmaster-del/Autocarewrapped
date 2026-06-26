@@ -6,7 +6,7 @@
     "recordNumber": 1255413
   },
   "journey": {
-    "membershipTenureYears": 19,
+    "membershipTenureYears": 18,
     "activeContacts": 11,
     "communityMembers": 13,
     "communities": [
@@ -15,15 +15,16 @@
     "committeeMembers": 0
   },
   "events": {
-    "inPersonAttended": 7,
+    "inPersonAttended": 0,
     "inPersonTotal": 8,
-    "attendancePct": 88,
-    "webinarCount": 2
+    "attendancePct": 0,
+    "webinarCount": 2,
+    "aapexAttended": false
   },
   "products": {
     "trendLensUsers": 0,
     "trendLensContactPct": 0,
-    "demandIndexGroups": 183,
+    "demandIndexGroups": 0,
     "demandIndexGroupsTotal": 200,
     "academyUsers": 0,
     "academyCoursesCompleted": 0

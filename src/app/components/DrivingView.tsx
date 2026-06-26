@@ -88,9 +88,9 @@ const SUN_RISE_TOP_Y = -108;
 const SKY_SUNRISE_DURATION_S = scalePlaybackS(20);
 
 const FOLLOW_UP_SLIDE_TEXTS = [
-  'Because of members like you, the auto care industry continues to grow stronger, smarter, and more connected.',
-  'This report captures your role in that progress — the events you attended, the insights you gained, and the voices you amplified.',
-  "Your engagement matters. Your impact multiplies.\n\nHere's your year with Auto Care in motion.",
+  'This report brings your engagement to life—showing how your team connected with the Auto Care Association through events, insights, and initiatives throughout the year.',
+  'Each touchpoint helps you stay informed, build relationships, and drive your business forward.',
+  "Here's your year in motion.",
 ];
 
 /** Slide 0 = welcome; slides 1–3 = FOLLOW_UP_SLIDE_TEXTS */
@@ -753,7 +753,7 @@ function JourneyNavArrivalOverlay({
               )}
             </div>
             <p className="journey-nav-arrival__eyebrow">
-              {isRerouting ? 'Re-routing to' : 'You have arrived'}
+              {isRerouting ? 'Re-routing to' : 'YOU MADE IT'}
             </p>
             {isRerouting ? (
               <img
@@ -769,7 +769,7 @@ function JourneyNavArrivalOverlay({
             >
               {isRerouting
                 ? getAapex2026DetailMessage(aapexExhibitor)
-                : 'Thank you for Attending AAPEX 2025'}
+                : 'Thank you for Attending AAPEX 2025.'}
             </p>
             {isRerouting ? (
               <div className="journey-nav-arrival__actions">
@@ -839,6 +839,8 @@ function GpsNavSection({
 }) {
   const attendanceTarget = eventsMetrics.attendancePct;
   const webinarTarget = eventsMetrics.webinarCount;
+  const aapexAttended = eventsMetrics.aapexAttended !== false;
+  const initialArrivalStep: ArrivalStep = aapexAttended ? 'arrived' : 'rerouting';
   const [phase, setPhase] = useState(initialPhase);
   const [dotCount, setDotCount] = useState(1);
   const [barW, setBarW] = useState(initialPhase >= 2 ? attendanceTarget : 0);
@@ -847,7 +849,7 @@ function GpsNavSection({
   );
   const [popupMinimized, setPopupMinimized] = useState(false);
   const [attendanceCalculating, setAttendanceCalculating] = useState(false);
-  const [arrivalStep, setArrivalStep] = useState<ArrivalStep>('arrived');
+  const [arrivalStep, setArrivalStep] = useState<ArrivalStep>(initialArrivalStep);
   const [mapReplayKey, setMapReplayKey] = useState(0);
   const [leavingForHood, setLeavingForHood] = useState(false);
   const [visiblePopupPhase, setVisiblePopupPhase] = useState<number | null>(
@@ -1006,7 +1008,7 @@ function GpsNavSection({
   };
 
   const handleRestartSequence = useCallback(() => {
-    setArrivalStep('arrived');
+    setArrivalStep(initialArrivalStep);
     setPopupMinimized(false);
     setAttendanceRevealExpanded(false);
     setExitingToArrival(false);
@@ -1021,7 +1023,7 @@ function GpsNavSection({
     }
     setPhase(1);
     setBarW(0);
-  }, [initialPhase]);
+  }, [initialPhase, initialArrivalStep]);
 
   const handleNavBack = () => {
     playUiClickSound();
@@ -1063,12 +1065,22 @@ function GpsNavSection({
     if (!exitingToArrival) return;
     setExitingToArrival(false);
     setPhase(4);
-    playAapexArrivalAlertSound();
+    if (aapexAttended) {
+      playAapexArrivalAlertSound();
+      return;
+    }
+    setArrivalStep('rerouting');
+    playAapex2026RerouteAlertSound();
   };
 
   const handleArrivalNavBack = () => {
     playUiClickSound();
     if (arrivalStep === 'rerouting') {
+      if (!aapexAttended) {
+        setPhase(3);
+        setHoursCount(webinarTarget);
+        return;
+      }
       setArrivalStep('arrived');
       return;
     }
@@ -1116,8 +1128,8 @@ function GpsNavSection({
 
   useEffect(() => {
     if (phase === 4) return;
-    setArrivalStep('arrived');
-  }, [phase]);
+    setArrivalStep(initialArrivalStep);
+  }, [phase, initialArrivalStep]);
 
   useEffect(() => {
     if (!registerDashboardNav) return;
@@ -1489,9 +1501,8 @@ function JourneySectionCounterGauge({
   if (section.gaugeVariant === 'community-logo') {
     return (
       <CommunityLogoGauge
-        {...sharedProps}
-        communities={communities}
-        href={section.footerButton?.href}
+        communities={section.communities ?? communities}
+        counterDialBox
       />
     );
   }

@@ -7,12 +7,12 @@
   },
   "journey": {
     "membershipTenureYears": 13,
-    "activeContacts": 16,
+    "activeContacts": 15,
     "communityMembers": 32,
     "communities": [
       "AWDA Community"
     ],
-    "committeeMembers": 0
+    "committeeMembers": 1
   },
   "events": {
     "inPersonAttended": 1,

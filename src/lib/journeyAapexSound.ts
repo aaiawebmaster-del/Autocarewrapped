@@ -4,7 +4,7 @@ import aapex2026Alert from '@/assets/journey-aapex-2026-alert.mp3';
 
 const ALERT_VOLUME = 0.85;
 
-/** "You have arrived" AAPEX 2025 overlay — after webinar next transition completes. */
+/** "YOU MADE IT" AAPEX 2025 overlay — after webinar next transition completes. */
 export function playAapexArrivalAlertSound(): void {
   if (typeof window === 'undefined') return;
 

@@ -7,10 +7,13 @@
   },
   "journey": {
     "membershipTenureYears": 56,
-    "activeContacts": 90,
+    "activeContacts": 88,
     "communityMembers": 176,
     "communities": [
-      "AWDA Community"
+      "Automotive Communications Council",
+      "AWDA Community",
+      "Women in Auto Care",
+      "YANG Membership"
     ],
     "committeeMembers": 2
   },
@@ -18,15 +21,15 @@
     "inPersonAttended": 5,
     "inPersonTotal": 8,
     "attendancePct": 63,
-    "webinarCount": 18
+    "webinarCount": 22
   },
   "products": {
     "trendLensUsers": 4,
     "trendLensContactPct": 4,
-    "demandIndexGroups": 7,
+    "demandIndexGroups": 6,
     "demandIndexGroupsTotal": 200,
     "academyUsers": 2,
-    "academyCoursesCompleted": 4
+    "academyCoursesCompleted": 2
   },
   "factbook": {
     "users": 3,

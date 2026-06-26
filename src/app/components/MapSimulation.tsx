@@ -167,7 +167,7 @@ type TireCtaConfig = {
 
 const TIRE_CTA_CONFIG: Partial<Record<TirePhase, TireCtaConfig>> = {
   trendlens: {
-    message: 'Get the most interactive and up to date economic data',
+    message: 'Get the most interactive and up to date economic data.',
     linkLabel: 'Visit TrendLens',
     href: EXTERNAL_CTA_LINKS.visitTrendLens,
     nextTarget: 'demandindex',
@@ -186,7 +186,7 @@ const TIRE_CTA_CONFIG: Partial<Record<TirePhase, TireCtaConfig>> = {
     nextTarget: 'academy',
   },
   academy: {
-    message: "See what's new in our course catalog",
+    message: "See what's new in our course catalog.",
     linkLabel: 'Explore Academy Courses',
     href: EXTERNAL_CTA_LINKS.exploreAcademyCourses,
     nextTarget: null,

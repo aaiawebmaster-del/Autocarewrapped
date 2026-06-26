@@ -1,4 +1,5 @@
 import type { WrappedReport } from '@/types/wrappedReport';
+import { resolveCommunityLogos } from '@/lib/communityLogos';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import { getAttendanceAsideMessage, getWebinarMessageBody } from '@/lib/contentVariants';
 
@@ -10,6 +11,7 @@ export type JourneySection =
       label: string;
       labelLines?: string[];
       gaugeVariant?: 'speedometer' | 'fuel' | 'battery' | 'community-logo';
+      communities?: string[];
       footerMessage?: string;
       footerButton?: { label: string; href: string };
     }
@@ -50,7 +52,8 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
       target: journey.communityMembers,
       label: 'community members',
       gaugeVariant: 'community-logo',
-      footerMessage: getCommunityFooterMessage(journey.communityMembers),
+      communities: journey.communities,
+      footerMessage: getCommunityFooterMessage(journey.communities),
       footerButton: {
         label: 'explore all communities',
         href: EXTERNAL_CTA_LINKS.exploreAllCommunities,
@@ -86,7 +89,7 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
 
 function getTenureFooterMessage(years: number): string {
   if (years >= 25) {
-    return "Thank you for your longstanding support! You're continuing a legacy of industry participation";
+    return "Thank you for your longstanding support! You're continuing a legacy of industry participation.";
   }
   if (years >= 5) {
     return "Thank you for your continued support — you're building a strong track record in our industry.";
@@ -96,28 +99,25 @@ function getTenureFooterMessage(years: number): string {
 
 function getActiveContactsFooterMessage(contacts: number): string {
   if (contacts > 50) {
-    return "Your organization is killing it! Don't forget you've got unlimited seats available in your membership";
+    return "Your organization is killing it! Don't forget you've got unlimited seats available in your membership.";
   }
   if (contacts >= 25) {
-    return "Excellent work! Don't forget you've got unlimited seats available in your membership";
+    return "Excellent work! Don't forget you've got unlimited seats available in your membership.";
   }
   if (contacts >= 5) {
-    return "Great job! Don't forget you've got unlimited seats available in your membership";
+    return "Great job! Don't forget you've got unlimited seats available in your membership.";
   }
   return 'Many more of your employees are able to take advantage of their membership benefits - they just need to create a free account.';
 }
 
-function getCommunityFooterMessage(members: number): string {
-  if (members > 25) {
+function getCommunityFooterMessage(communities: string[] | undefined): string {
+  const communityCount = resolveCommunityLogos(communities).length;
+
+  if (communityCount >= 2) {
     return "WOW! You're one of our most active participants in Auto Care communities, driving our industry forward.";
   }
-  if (members >= 4) {
-    return 'Thank you volunteering your time to be active in our communities!';
-  }
-  if (members >= 1) {
-    return "You're on your way! More communities mean more connections and opportunities: Explore more communities to get involved with segment-specific challenges while driving industry leadership";
-  }
-  return "You're missing out! Join a community or committee to find your tribe and start influencing the future of our industry";
+
+  return 'Explore more of our communities and get involved to address segment-specific challenges while driving industry leadership!';
 }
 
 function getCommitteeFooterMessage(members: number): string {

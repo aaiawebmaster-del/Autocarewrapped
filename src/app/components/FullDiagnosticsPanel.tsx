@@ -71,6 +71,9 @@ function DiagnosticsJourneyStatsRow({
             'journey-counter-panel__gauge',
             'full-diagnostics__stat-gauge',
             counterOnly ? 'full-diagnostics__stat-gauge--counter-only' : '',
+            stat.gaugeVariant === 'community-logo'
+              ? 'full-diagnostics__stat-gauge--community-logos'
+              : '',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -78,13 +81,7 @@ function DiagnosticsJourneyStatsRow({
         >
           {stat.gaugeVariant === 'community-logo' ? (
             <CommunityLogoGauge
-              target={stat.target}
-              label={stat.label}
               communities={report.journey.communities}
-              animationKey={stat.animationKey}
-              delay={stat.delay}
-              readoutMode="below"
-              circleSize="100%"
               counterDialBox
             />
           ) : (

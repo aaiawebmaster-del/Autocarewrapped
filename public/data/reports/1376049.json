@@ -7,11 +7,11 @@
   },
   "journey": {
     "membershipTenureYears": 6,
-    "activeContacts": 14,
+    "activeContacts": 15,
     "communityMembers": 84,
     "communities": [
+      "Automotive Content Professionals Network",
       "AWDA Community",
-      "Heavy Duty Community",
       "Import Vehicle Community"
     ],
     "committeeMembers": 0
@@ -20,7 +20,7 @@
     "inPersonAttended": 0,
     "inPersonTotal": 8,
     "attendancePct": 0,
-    "webinarCount": 1
+    "webinarCount": 2
   },
   "products": {
     "trendLensUsers": 0,
@@ -28,7 +28,7 @@
     "demandIndexGroups": 0,
     "demandIndexGroupsTotal": 200,
     "academyUsers": 3,
-    "academyCoursesCompleted": 6
+    "academyCoursesCompleted": 3
   },
   "factbook": {
     "users": 0,

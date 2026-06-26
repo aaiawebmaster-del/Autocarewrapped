@@ -19,16 +19,62 @@ const DEMAND_INDEX_EXCLUDED = new Set([
   'Product Plus (includes 4 products)',
 ]);
 
+/** Manual community lists per Impexium record until CRM export is authoritative. */
+const COMMUNITY_LIST_OVERRIDES = {
+  '1101050': [
+    'Automotive Communications Council',
+    'AWDA Community',
+    'Women in Auto Care',
+    'YANG Membership',
+  ],
+  '1376049': [
+    'Automotive Content Professionals Network',
+    'AWDA Community',
+    'Import Vehicle Community',
+  ],
+  '1351167': ['AWDA Community'],
+  '1257307': ['AWDA Community', 'Women in Auto Care', 'YANG Membership'],
+  '1255413': ['AWDA Community'],
+};
+
 /** Manual Kick the Tires / Factbook values until TrendLens & Factbook APIs are wired. */
 const REPORT_PRODUCT_OVERRIDES = {
   '1101050': {
+    journey: {
+      activeContacts: 88,
+    },
+    events: {
+      webinarCount: 22,
+    },
     products: {
       trendLensUsers: 4,
-      demandIndexGroups: 7,
+      demandIndexGroups: 6,
       demandIndexGroupsTotal: 200,
+      academyCoursesCompleted: 2,
     },
     factbook: {
       users: 3,
+    },
+  },
+  '1376049': {
+    journey: {
+      activeContacts: 15,
+    },
+    events: {
+      webinarCount: 2,
+    },
+    products: {
+      academyCoursesCompleted: 3,
+    },
+  },
+  '1351167': {
+    journey: {
+      activeContacts: 15,
+      committeeMembers: 1,
+    },
+    events: {
+      inPersonAttended: 1,
+      attendancePct: 13,
     },
   },
   '1257307': {
@@ -38,16 +84,17 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1255413': {
     journey: {
-      membershipTenureYears: 19,
+      membershipTenureYears: 18,
       communityMembers: 13,
     },
     events: {
-      inPersonAttended: 7,
+      inPersonAttended: 0,
       inPersonTotal: 8,
-      attendancePct: 88,
+      attendancePct: 0,
+      aapexAttended: false,
     },
     products: {
-      demandIndexGroups: 183,
+      demandIndexGroups: 0,
     },
   },
 };
@@ -221,6 +268,11 @@ function buildReports(workbook) {
     }
     if (override?.events) {
       Object.assign(report.events, override.events);
+    }
+
+    const communityOverride = COMMUNITY_LIST_OVERRIDES[recordNumber];
+    if (communityOverride) {
+      report.journey.communities = communityOverride;
     }
 
     report.products.trendLensContactPct = contactPct(

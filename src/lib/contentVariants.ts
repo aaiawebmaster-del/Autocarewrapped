@@ -61,7 +61,7 @@ export function getAttendanceAsideMessage(
   inPersonAttended = 0,
 ): string {
   if (attendancePct > 50) {
-    return "You're showing up in a critical arena to fuel your education and business development! Explore upcoming events for you and your team";
+    return "You're showing up in a critical arena to fuel your education and business development! Explore upcoming events for you and your team.";
   }
   if (inPersonAttended >= 1 && inPersonAttended <= 2) {
     return FEW_EVENTS_ATTENDED_COPY;
@@ -128,14 +128,14 @@ export function getAttendanceCopy(
 
 export function getAapex2026DetailMessage(aapexExhibitor = false): string {
   if (aapexExhibitor) {
-    return "You're front and center at our industry's homecoming. See what's new at the upcoming show";
+    return "You're front and center at our industry's homecoming. See what's new at the upcoming show.";
   }
   return 'Being at AAPEX is the #1 way to not only stay connected and forge new business.';
 }
 
 export function getWebinarMessageBody(hours: number): string {
   if (hours <= 5) {
-    return 'See what you missed and view our webinars on-demand on the Digital Hub';
+    return 'See what you missed and view our webinars on-demand on the Digital Hub.';
   }
   return 'Are there other employees who could benefit from our robust library of on-demand content?';
 }
@@ -270,9 +270,9 @@ export function isTirePhaseEmpty(report: WrappedReport, phase: TirePhase): boole
 
 export function getAcademyCtaMessage(academyUsers: number): string {
   if (academyUsers === 0) {
-    return "See what you've missed by exploring our current course catalog";
+    return "See what you've missed by exploring our current course catalog.";
   }
-  return "See what's new in our course catalog";
+  return "See what's new in our course catalog.";
 }
 
 export function buildTireReadoutConfig(

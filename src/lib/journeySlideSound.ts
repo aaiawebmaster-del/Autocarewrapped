@@ -19,7 +19,9 @@ export function isJourneyCounterSectionNegative(section: JourneySection): boolea
   const { target, gaugeVariant } = section;
   if (gaugeVariant === 'fuel') return target < LOW_FUEL_CONTACTS_THRESHOLD;
   if (gaugeVariant === 'battery') return target === 0;
-  if (gaugeVariant === 'community-logo') return target === 0;
+  if (gaugeVariant === 'community-logo') {
+    return (section.communities?.length ?? 0) === 0;
+  }
   return false;
 }
 
