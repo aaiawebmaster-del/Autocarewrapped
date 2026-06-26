@@ -8,7 +8,6 @@ export function VehicleVent({ side }: { side: 'left' | 'right' }) {
             <div className="vehicle-vent__slats" />
             <span className="vehicle-vent__tab" />
           </div>
-          <span className="vehicle-vent__bezel-gloss" />
         </div>
       </div>
     </div>

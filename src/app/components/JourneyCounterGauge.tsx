@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { motion, animate } from 'motion/react';
 import gasPumpIconUrl from '../../assets/gas-pump-solid.png';
 
-const BRAND_ORANGE = '#f3901d';
+import { BRAND_PRIMARY, BRAND_PRIMARY_TINT, BRAND_PRIMARY_RGB } from '@/lib/brandColors';
 
 export const JOURNEY_GAUGE_SIZE = 'clamp(200px, 32vw, 280px)';
 export const JOURNEY_GAUGE_WIDE_SIZE = 'min(100%, clamp(18rem, 64vw, 25rem))';
@@ -597,7 +597,7 @@ export function JourneyCounterGauge({
               ) : null}
               <linearGradient id={`${uid}-fuel-fill`} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#e85d04" />
-                <stop offset="100%" stopColor={BRAND_ORANGE} />
+                <stop offset="100%" stopColor={BRAND_PRIMARY} />
               </linearGradient>
               <filter id={`${uid}-fuel-glow`} x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -847,7 +847,7 @@ export function JourneyCounterGauge({
                       width={bodyW - segmentGap * 2}
                       height={segmentH}
                       rx={2 * batteryScale}
-                      fill={isFilled ? BRAND_ORANGE : '#252525'}
+                      fill={isFilled ? BRAND_PRIMARY : '#252525'}
                       stroke={isFilled ? '#e07a10' : '#333'}
                       strokeWidth="1"
                     />
@@ -912,7 +912,7 @@ export function JourneyCounterGauge({
           </linearGradient>
           <linearGradient id={`${uid}-bezel-accent`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#444" />
-            <stop offset="50%" stopColor={BRAND_ORANGE} />
+            <stop offset="50%" stopColor={BRAND_PRIMARY} />
             <stop offset="100%" stopColor="#444" />
           </linearGradient>
           {wide && bezelBaseLipGradientCoords ? (
@@ -935,8 +935,8 @@ export function JourneyCounterGauge({
             <stop offset="100%" stopColor="#060606" />
           </radialGradient>
           <linearGradient id={`${uid}-needle`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ff8c42" />
-            <stop offset="100%" stopColor={BRAND_ORANGE} />
+            <stop offset="0%" stopColor={BRAND_PRIMARY_TINT} />
+            <stop offset="100%" stopColor={BRAND_PRIMARY} />
           </linearGradient>
           <linearGradient id={`${uid}-glass`} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.12)" />
@@ -986,7 +986,7 @@ export function JourneyCounterGauge({
           <path
             d={buildGaugeArcD(cx, cy, trackR + 1, speedoValueToAngle(80), SPEEDO_MAX_ANGLE)}
             fill="none"
-            stroke="rgba(243, 144, 29, 0.12)"
+            stroke={`rgba(${BRAND_PRIMARY_RGB}, 0.12)`}
             strokeWidth={wide ? 20 : 16}
             strokeLinecap="butt"
           />
@@ -1001,7 +1001,7 @@ export function JourneyCounterGauge({
               key={`arc-${animationKey ?? target}`}
               d={buildGaugeArcD(cx, cy, trackR, SPEEDO_MIN_ANGLE, needleAngle)}
               fill="none"
-              stroke={BRAND_ORANGE}
+              stroke={BRAND_PRIMARY}
               strokeWidth={wide ? 10 : 8}
               strokeLinecap="round"
               filter={`url(#${uid}-arc-glow)`}
@@ -1093,7 +1093,7 @@ export function JourneyCounterGauge({
           </g>
 
           <circle cx={cx} cy={cy} r={wide ? 18 : 14} fill="#1a1a1a" stroke="#444" strokeWidth="1.5" />
-          <circle cx={cx} cy={cy} r={wide ? 10 : 8} fill={BRAND_ORANGE} />
+          <circle cx={cx} cy={cy} r={wide ? 10 : 8} fill={BRAND_PRIMARY} />
           <circle cx={cx} cy={cy} r={wide ? 4.5 : 3.5} fill="#111" />
         </g>
         </svg>

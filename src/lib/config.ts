@@ -21,6 +21,7 @@ export const appConfig = {
   reportEndpoint: `${apiBaseUrl}/api/wrapped/report`,
   healthEndpoint: `${apiBaseUrl}/api/wrapped/health`,
   feedbackEndpoint: `${apiBaseUrl}/api/wrapped/feedback`,
+  reportingFeedbackEndpoint: `${apiBaseUrl}/api/wrapped/reporting/feedback`,
 } as const;
 
 export function buildSsoLoginRedirect(returnUrl?: string): string {

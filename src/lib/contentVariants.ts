@@ -50,11 +50,23 @@ const WEBINAR_CTA: ContentCta = {
   href: EXTERNAL_CTA_LINKS.browseWebinarLibrary,
 };
 
-export function getAttendanceAsideMessage(attendancePct: number): string {
+const LOW_ATTENDANCE_EVENTS_COPY =
+  "We'd love to see you! Our events are the easiest way to get fresh education, make new connections, and reinforce business relationships.";
+
+const FEW_EVENTS_ATTENDED_COPY =
+  "We'd love to see more of you! Our events are the easiest way to get fresh education, make new connections, and reinforce business relationships.";
+
+export function getAttendanceAsideMessage(
+  attendancePct: number,
+  inPersonAttended = 0,
+): string {
   if (attendancePct > 50) {
     return "You're showing up in a critical arena to fuel your education and business development! Explore upcoming events for you and your team";
   }
-  return "We'd love to see you! Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.";
+  if (inPersonAttended >= 1 && inPersonAttended <= 2) {
+    return FEW_EVENTS_ATTENDED_COPY;
+  }
+  return LOW_ATTENDANCE_EVENTS_COPY;
 }
 
 export function getAttendanceVariant(attendancePct: number): AttendanceVariant {
@@ -74,7 +86,10 @@ export function getAttendanceCopy(
   variant = getAttendanceVariant(events.attendancePct),
 ): AttendanceCopy {
   const { inPersonAttended, inPersonTotal } = events;
-  const asideMessage = getAttendanceAsideMessage(events.attendancePct);
+  const asideMessage = getAttendanceAsideMessage(
+    events.attendancePct,
+    events.inPersonAttended,
+  );
 
   const copy: Record<AttendanceVariant, AttendanceCopy> = {
     none: {
@@ -93,7 +108,7 @@ export function getAttendanceCopy(
       detailLabel: (attended, total) =>
         `${attended} of ${total} in-person auto care events`,
       asideMessage,
-      body: 'Our Events are the easiest way to get fresh education, make new connections, and reinforce business relationships.',
+      body: 'Our events are the easiest way to get fresh education, make new connections, and reinforce business relationships.',
       cta: EVENTS_CTA,
     },
     high: {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { submitExperienceFeedback } from '@/lib/api/feedback';
+import { buildEngagementReportFeedbackMailto } from '@/lib/feedbackContact';
 import type { FeedbackRating } from '@/types/feedback';
 import type { WrappedReport } from '@/types/wrappedReport';
 
@@ -56,7 +57,12 @@ export function DiagnosticsFeedback({ report }: DiagnosticsFeedbackProps) {
   return (
     <section className="full-diagnostics__feedback" aria-label="Experience feedback">
       {submitted ? (
-        <p className="full-diagnostics__feedback-thanks">Thank you for your feedback!</p>
+        <div className="full-diagnostics__feedback-thanks-wrap">
+          <p className="full-diagnostics__feedback-thanks">Thank you for your feedback!</p>
+          <a className="full-diagnostics__feedback-more" href={buildEngagementReportFeedbackMailto()}>
+            Tell us more!
+          </a>
+        </div>
       ) : (
         <>
           <h2 className="full-diagnostics__feedback-title">We&apos;d love your feedback</h2>

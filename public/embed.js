@@ -48,8 +48,8 @@
   iframe.style.width = '100%';
   iframe.style.maxWidth = '100%';
   iframe.style.display = 'block';
-  iframe.style.minHeight = '100dvh';
-  iframe.style.height = script.getAttribute('data-height') || '100dvh';
+  iframe.style.minHeight = '94vh';
+  iframe.style.height = script.getAttribute('data-height') || '94vh';
 
   mount.innerHTML = '';
   mount.appendChild(iframe);

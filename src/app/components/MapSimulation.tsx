@@ -119,6 +119,7 @@ const HOOD_TIRE_CONTENT_FADE_MS = 420;
 const HOOD_WHEEL_ROLL_IN_MS = 900;
 const HOOD_COUNTER_COUNT_MS = 1200;
 const HOOD_WHEEL_MAX_PX = 272; /* ~15% smaller than 320px */
+const HOOD_WHEEL_DESKTOP_MAX_PX = Math.round(HOOD_WHEEL_MAX_PX * 1.75);
 const HOOD_READOUT_GAP_PX = 20;
 const HOOD_READOUT_WIDTH_DESKTOP = 340;
 const HOOD_READOUT_WIDTH_MOBILE_RATIO = 0.9;
@@ -289,7 +290,7 @@ function useWheelLaneMetrics() {
         return;
       }
 
-      const wheelW = Math.min(laneW * 0.82, HOOD_WHEEL_MAX_PX);
+      const wheelW = Math.min(laneW * 0.82, HOOD_WHEEL_DESKTOP_MAX_PX);
       const stageH = window.innerHeight - DRIVING_FOOTER_PX;
       const maxBezelH = Math.max(0, stageH - HOOD_DESKTOP_TABLET_MARGIN_PX * 2);
       let readoutWidth = HOOD_READOUT_WIDTH_DESKTOP;

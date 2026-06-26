@@ -36,7 +36,7 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
       type: 'counter',
       subtitle: 'Active Contacts',
       target: journey.activeContacts,
-      label: 'active contacts',
+      label: 'contacts',
       gaugeVariant: 'fuel',
       footerMessage: getActiveContactsFooterMessage(journey.activeContacts),
       footerButton: {
@@ -128,7 +128,10 @@ function getCommitteeFooterMessage(members: number): string {
 }
 
 function getNavSectionMessage(report: WrappedReport): string {
-  return getAttendanceAsideMessage(report.events.attendancePct);
+  return getAttendanceAsideMessage(
+    report.events.attendancePct,
+    report.events.inPersonAttended,
+  );
 }
 
 function getWebinarSectionMessage(hours: number): string {
@@ -147,7 +150,7 @@ export function buildDiagnosticsCounterStats(report: WrappedReport) {
     },
     {
       target: journey.activeContacts,
-      label: 'active contacts',
+      label: 'contacts',
       animationKey: 'diag-contacts',
       delay: 200,
       gaugeVariant: 'fuel' as const,

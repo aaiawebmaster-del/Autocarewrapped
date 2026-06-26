@@ -587,7 +587,7 @@ export function GpsMapControlTray({
 export function GpsAttendanceBottomBar({
   evtPct,
   barW,
-  detailsReady,
+  detailsReady: _detailsReady,
   eventsMetrics,
   compact = false,
   calculating = false,
@@ -606,7 +606,7 @@ export function GpsAttendanceBottomBar({
 }) {
   const attendanceCopy = getAttendanceCopy(eventsMetrics);
   const reduceMotion = prefersReducedMotion();
-  const isLoading = calculating || !detailsReady;
+  const showHourglass = calculating;
   const showSupportCopy = !calculating && !compact;
   const supportRevealedRef = useRef(false);
 
@@ -680,18 +680,18 @@ export function GpsAttendanceBottomBar({
             <div
               className={[
                 'journey-nav-attendance-bar__value',
-                isLoading ? 'journey-nav-attendance-bar__value--calculating' : '',
+                showHourglass ? 'journey-nav-attendance-bar__value--calculating' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
             >
-              {isLoading ? (
+              {showHourglass ? (
                 <img
                   src={hourglassIcon}
                   alt=""
                   className="journey-nav-attendance-bar__hourglass gps-icon-turn gps-icon-hourglass--loading"
-                  width={40}
-                  height={40}
+                  width={54}
+                  height={54}
                 />
               ) : (
                 `${evtPct}%`
@@ -703,7 +703,7 @@ export function GpsAttendanceBottomBar({
                 eyebrow={attendanceCopy.eyebrow}
                 barW={barW}
                 eventsMetrics={eventsMetrics}
-                loading={isLoading}
+                loading={calculating}
               />
             </div>
 

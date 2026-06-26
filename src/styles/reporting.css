@@ -1,0 +1,223 @@
+.reporting-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(24px, 4vw, 48px);
+  background: #0a0a0a;
+  color: #e5e7eb;
+  box-sizing: border-box;
+}
+
+.reporting-page__inner {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.reporting-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.reporting-page__title {
+  margin: 0;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: clamp(18px, 2.4vw, 24px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f5f7fa;
+}
+
+.reporting-page__subtitle {
+  margin: 8px 0 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reporting-page__button {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f5f7fa;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.reporting-page__button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.reporting-page__button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.reporting-page__gate {
+  width: min(100%, 420px);
+  margin: 64px auto 0;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.reporting-page__gate-title {
+  margin: 0 0 8px;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f5f7fa;
+}
+
+.reporting-page__gate-copy {
+  margin: 0 0 16px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.reporting-page__label {
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color: rgba(229, 231, 235, 0.8);
+}
+
+.reporting-page__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #f5f7fa;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+}
+
+.reporting-page__input:focus {
+  outline: 2px solid rgba(96, 165, 250, 0.45);
+  outline-offset: 1px;
+}
+
+.reporting-page__error {
+  margin: 0 0 12px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color: #f87171;
+}
+
+.reporting-page__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.reporting-page__summary-card {
+  min-width: 120px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.reporting-page__summary-value {
+  display: block;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 22px;
+  color: #f5f7fa;
+}
+
+.reporting-page__summary-label {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 12px;
+  color: rgba(229, 231, 235, 0.7);
+}
+
+.reporting-page__table-wrap {
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.reporting-page__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.reporting-page__table th,
+.reporting-page__table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  vertical-align: top;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.reporting-page__table th {
+  position: sticky;
+  top: 0;
+  background: #121212;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.82);
+}
+
+.reporting-page__table tr:last-child td {
+  border-bottom: none;
+}
+
+.reporting-page__rating--positive {
+  color: #4ade80;
+}
+
+.reporting-page__rating--negative {
+  color: #f87171;
+}
+
+.reporting-page__empty {
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__status {
+  margin: 0 0 16px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  color: rgba(229, 231, 235, 0.72);
+}

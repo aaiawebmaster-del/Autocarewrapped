@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { animate } from 'motion/react';
 import { AwdaCommunityLogoMark } from './AwdaCommunityLogoMark';
 import { ImportVehicleCommunityLogoMark } from './ImportVehicleCommunityLogoMark';
-import { showDualCommunityLogos } from '@/lib/communityLogos';
+import { hasSingleCommunity, showDualCommunityLogos } from '@/lib/communityLogos';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 
 type CommunityLogoGaugeProps = {
@@ -111,6 +111,7 @@ export function CommunityLogoGauge({
   const onCountCompleteRef = useRef(onCountComplete);
   onCountCompleteRef.current = onCountComplete;
   const dualLogos = showDualCommunityLogos(communities);
+  const singleCommunity = hasSingleCommunity(communities);
   const showEmptyShell = target === 0;
 
   const displayValue =
@@ -138,6 +139,7 @@ export function CommunityLogoGauge({
     'community-logo-gauge',
     showEmptyShell ? 'community-logo-gauge--empty' : '',
     dualLogos ? 'community-logo-gauge--dual' : '',
+    singleCommunity ? 'community-logo-gauge--single' : '',
     className,
   ]
     .filter(Boolean)

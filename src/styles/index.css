@@ -3,7 +3,20 @@
 @import './theme.css';
 @import './map-responsive.css';
 @import './browser-compat.css';
-@import './browser-compat.css';
+
+:root {
+  --brand-primary: #f3901d;
+  --brand-primary-tint: #ffb057;
+  --brand-primary-shade: #e37f0d;
+  --brand-primary-rgb: 243, 144, 29;
+  --gps-map-direction-accent: #007ac3;
+  --gps-map-direction-accent-bright: #00a8e8;
+  --gps-map-direction-accent-rgb: 0, 122, 195;
+  --gps-map-direction-accent-bright-rgb: 0, 168, 232;
+  --aapex-brand-blue: #00aeef;
+  --aapex-brand-blue-deep: #0094c9;
+  --aapex-brand-blue-rgb: 0, 174, 239;
+}
 
 /* Hide scrollbars app-wide; scrolling still works via touch/wheel/trackpad */
 html,
@@ -47,7 +60,7 @@ body::-webkit-scrollbar {
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(243, 144, 29, 0.85);
+  color: rgba(var(--brand-primary-rgb), 0.85);
 }
 
 .auth-gate__title {
@@ -70,7 +83,7 @@ body::-webkit-scrollbar {
   padding: 0.75rem 1.25rem;
   border: none;
   border-radius: 999px;
-  background: #f3901d;
+  background: var(--brand-primary);
   color: #0a0a0a;
   font-weight: 700;
   cursor: pointer;
@@ -79,6 +92,6 @@ body::-webkit-scrollbar {
 .auth-gate__link {
   display: block;
   margin-top: 1rem;
-  color: rgba(243, 144, 29, 0.9);
+  color: rgba(var(--brand-primary-rgb), 0.9);
   text-decoration: underline;
 }

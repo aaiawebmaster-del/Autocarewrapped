@@ -1,5 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { appendFeedbackEntry } from './feedback-store.mjs';
+import { appendFeedbackEntry, listFeedbackEntries } from './feedback-store.mjs';
+import { buildFeedbackSummary } from '../netlify/functions/lib/feedback-report.mjs';
+import { isReportingPasswordValid } from '../netlify/functions/lib/reporting-auth.mjs';
 import { getSampleReport } from '../src/mocks/sampleReports.ts';
 import type { WrappedReportScenario } from '../src/types/wrappedReport.ts';
 
@@ -54,6 +56,16 @@ export function handleMockWrappedApi(req: IncomingMessage, res: ServerResponse):
     return true;
   }
 
+  if (req.method === 'GET' && pathname === '/api/wrapped/reporting/feedback') {
+    if (!isReportingPasswordValid(req)) {
+      sendJson(res, 401, { error: 'Invalid reporting password' });
+      return true;
+    }
+
+    void handleReportingFeedback(res);
+    return true;
+  }
+
   if (req.method === 'GET' && pathname === '/api/wrapped/report') {
     if (!isAuthenticated(req)) {
       sendJson(res, 401, { error: 'Authentication required' });
@@ -101,5 +113,18 @@ async function handleFeedbackSubmit(req: IncomingMessage, res: ServerResponse) {
     sendJson(res, 201, { ok: true, id: entry.id });
   } catch {
     sendJson(res, 400, { error: 'Invalid JSON body' });
+  }
+}
+
+async function handleReportingFeedback(res: ServerResponse) {
+  try {
+    const entries = await listFeedbackEntries();
+    entries.sort((a, b) => Date.parse(b.submittedAt) - Date.parse(a.submittedAt));
+    sendJson(res, 200, {
+      entries,
+      summary: buildFeedbackSummary(entries),
+    });
+  } catch {
+    sendJson(res, 500, { error: 'Unable to load feedback report' });
   }
 }

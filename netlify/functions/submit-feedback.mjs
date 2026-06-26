@@ -1,4 +1,5 @@
 import { appendFeedbackEntry } from './lib/feedback-store.mjs';
+import { sendFeedbackSubmissionEmail } from './lib/feedback-report.mjs';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -68,6 +69,12 @@ export default async function handler(request) {
     recordNumber,
     reportYear,
   });
+
+  try {
+    await sendFeedbackSubmissionEmail(entry);
+  } catch (error) {
+    console.error('[submit-feedback] Failed to send notification email:', error);
+  }
 
   return jsonResponse(201, { ok: true, id: entry.id });
 }

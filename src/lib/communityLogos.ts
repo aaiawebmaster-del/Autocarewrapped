@@ -12,3 +12,7 @@ export function hasImportVehicleCommunity(communities: string[] | undefined): bo
 export function showDualCommunityLogos(communities: string[] | undefined): boolean {
   return hasAwdaCommunity(communities) && hasImportVehicleCommunity(communities);
 }
+
+export function hasSingleCommunity(communities: string[] | undefined): boolean {
+  return communities?.length === 1;
+}

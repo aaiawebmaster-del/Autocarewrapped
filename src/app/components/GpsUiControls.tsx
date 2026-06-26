@@ -2,25 +2,18 @@ import type { ReactNode } from 'react';
 import iconPlus from '../../assets/map-controls/plus-solid-full.png';
 import iconMinus from '../../assets/map-controls/minus-solid-full.png';
 
-type GpsUiControlButtonProps = {
-  label: string;
+type GpsUiControlDecorProps = {
   className?: string;
-  onClick?: () => void;
   children: ReactNode;
 };
 
-function GpsUiControlButton({ label, className, onClick, children }: GpsUiControlButtonProps) {
+function GpsUiControlDecor({ className, children }: GpsUiControlDecorProps) {
   return (
-    <button
-      type="button"
-      className={['gps-ui-controls__btn', className].filter(Boolean).join(' ')}
-      aria-label={label}
-      onClick={onClick}
-    >
+    <div className={['gps-ui-controls__btn', className].filter(Boolean).join(' ')} aria-hidden>
       <span className="gps-ui-controls__btn-glyph" aria-hidden>
         {children}
       </span>
-    </button>
+    </div>
   );
 }
 
@@ -48,21 +41,21 @@ export function GpsUiControls({ className }: GpsUiControlsProps) {
   return (
     <div
       className={['gps-ui-controls', className].filter(Boolean).join(' ')}
-      aria-label="GPS map controls"
+      aria-hidden
     >
       <div className="gps-ui-controls__cluster gps-ui-controls__cluster--top-left">
-        <GpsUiControlButton label="Search map" className="gps-ui-controls__btn--search">
+        <GpsUiControlDecor className="gps-ui-controls__btn--search">
           <GpsUiSearchIcon />
-        </GpsUiControlButton>
+        </GpsUiControlDecor>
       </div>
 
       <div className="gps-ui-controls__cluster gps-ui-controls__cluster--zoom">
-        <GpsUiControlButton label="Zoom in" className="gps-ui-controls__btn--zoom-in">
+        <GpsUiControlDecor className="gps-ui-controls__btn--zoom-in">
           <GpsUiControlIcon src={iconPlus} />
-        </GpsUiControlButton>
-        <GpsUiControlButton label="Zoom out" className="gps-ui-controls__btn--zoom-out">
+        </GpsUiControlDecor>
+        <GpsUiControlDecor className="gps-ui-controls__btn--zoom-out">
           <GpsUiControlIcon src={iconMinus} />
-        </GpsUiControlButton>
+        </GpsUiControlDecor>
       </div>
     </div>
   );

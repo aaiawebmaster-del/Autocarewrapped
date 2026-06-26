@@ -123,21 +123,69 @@ function getEasternOffsetMinutes(date) {
 }
 
 /**
+ * @param {StoredFeedbackEntry} entry
+ */
+export function formatFeedbackEntryForEmail(entry) {
+  const rating =
+    entry.rating === 'positive' ? 'Positive (thumbs up)' : 'Negative (thumbs down)';
+  const lines = [
+    'New Auto Care Wrapped feedback submission',
+    '',
+    `Date: ${formatReportDate(entry.submittedAt)} (America/New_York)`,
+    `Company: ${entry.companyName}`,
+    `Rating: ${rating}`,
+    `Company ID: ${entry.companyId}`,
+  ];
+
+  if (entry.recordNumber != null) {
+    lines.push(`Record Number: ${entry.recordNumber}`);
+  }
+
+  if (entry.reportYear != null) {
+    lines.push(`Report Year: ${entry.reportYear}`);
+  }
+
+  lines.push(`Submission ID: ${entry.id}`);
+  return lines.join('\n');
+}
+
+/**
+ * @param {StoredFeedbackEntry} entry
+ */
+export async function sendFeedbackSubmissionEmail(entry) {
+  const ratingLabel = entry.rating === 'positive' ? 'Positive' : 'Negative';
+  return sendResendEmail({
+    to: process.env.FEEDBACK_REPORT_TO ?? 'kyle.hardy@autocare.org',
+    subject: `Auto Care Wrapped Feedback — ${ratingLabel} — ${entry.companyName}`,
+    text: formatFeedbackEntryForEmail(entry),
+  });
+}
+
+/**
  * @param {{
  *   to: string;
  *   subject: string;
  *   text: string;
- *   csvFilename: string;
- *   csvContent: string;
+ *   csvFilename?: string;
+ *   csvContent?: string;
  * }} params
  */
-export async function sendFeedbackReportEmail(params) {
+async function sendResendEmail(params) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.FEEDBACK_REPORT_FROM ?? 'Auto Care Wrapped <onboarding@resend.dev>';
 
   if (!apiKey) {
     console.warn('[feedback-email] RESEND_API_KEY is not set; skipping email send.');
     return { sent: false, reason: 'missing_api_key' };
+  }
+
+  /** @type {{ filename: string; content: string }[]} */
+  const attachments = [];
+  if (params.csvFilename && params.csvContent) {
+    attachments.push({
+      filename: params.csvFilename,
+      content: Buffer.from(params.csvContent, 'utf8').toString('base64'),
+    });
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -151,12 +199,7 @@ export async function sendFeedbackReportEmail(params) {
       to: [params.to],
       subject: params.subject,
       text: params.text,
-      attachments: [
-        {
-          filename: params.csvFilename,
-          content: Buffer.from(params.csvContent, 'utf8').toString('base64'),
-        },
-      ],
+      ...(attachments.length > 0 ? { attachments } : {}),
     }),
   });
 
@@ -166,4 +209,17 @@ export async function sendFeedbackReportEmail(params) {
   }
 
   return { sent: true };
+}
+
+/**
+ * @param {{
+ *   to: string;
+ *   subject: string;
+ *   text: string;
+ *   csvFilename: string;
+ *   csvContent: string;
+ * }} params
+ */
+export async function sendFeedbackReportEmail(params) {
+  return sendResendEmail(params);
 }
