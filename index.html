@@ -15,11 +15,13 @@
           margin: 0;
           background: #000;
         }
+        /* Embed iframes have a fixed pixel height — fill that box, don't expand to outer 100dvh. */
         html.is-embedded,
         html.is-embedded body,
         html.is-embedded #root {
-          max-height: 100vh;
-          max-height: 100dvh;
+          height: 100%;
+          max-height: 100%;
+          min-height: 0;
           overflow: hidden;
         }
       </style>

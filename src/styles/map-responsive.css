@@ -433,8 +433,19 @@
 }
 
 .driving-view-root--embedded {
-  height: 100dvh;
-  max-height: 100dvh;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  html.is-embedded .driving-view-root {
+    /* Keep plate + start button + footer inside the iframe box on short mobile viewports. */
+    --landing-dashboard-height: min(
+      373px,
+      calc(100% - var(--driving-footer-height, 6rem) - clamp(120px, 24%, 200px))
+    );
+  }
 }
 
 @media (max-width: 768px) {
