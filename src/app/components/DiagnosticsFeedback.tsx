@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { submitExperienceFeedback } from '@/lib/api/feedback';
-import { buildEngagementReportFeedbackMailto } from '@/lib/feedbackContact';
+import { FormEvent, useState } from 'react';
+import { submitExperienceFeedback, submitFeedbackComment } from '@/lib/api/feedback';
 import type { FeedbackRating } from '@/types/feedback';
 import type { WrappedReport } from '@/types/wrappedReport';
+
+const MAX_COMMENT_LENGTH = 2000;
 
 function ThumbsUpIcon() {
   return (
@@ -37,6 +38,11 @@ type DiagnosticsFeedbackProps = {
 export function DiagnosticsFeedback({ report }: DiagnosticsFeedbackProps) {
   const [submitted, setSubmitted] = useState(false);
   const [pending, setPending] = useState<FeedbackRating | null>(null);
+  const [entryId, setEntryId] = useState<string | null>(null);
+  const [comment, setComment] = useState('');
+  const [commentSubmitted, setCommentSubmitted] = useState(false);
+  const [commentPending, setCommentPending] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   const handleRate = (rating: FeedbackRating) => {
     if (submitted || pending) return;
@@ -49,9 +55,32 @@ export function DiagnosticsFeedback({ report }: DiagnosticsFeedbackProps) {
       recordNumber: report.company.recordNumber,
       reportYear: report.reportYear,
       rating,
-    }).finally(() => {
-      setPending(null);
-    });
+    })
+      .then((result) => {
+        if (result.id) setEntryId(result.id);
+      })
+      .finally(() => {
+        setPending(null);
+      });
+  };
+
+  const handleCommentSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = comment.trim();
+    if (!trimmed || commentPending || commentSubmitted || !entryId) return;
+
+    setCommentPending(true);
+    setCommentError(null);
+    void submitFeedbackComment({ id: entryId, comment: trimmed })
+      .then(() => {
+        setCommentSubmitted(true);
+      })
+      .catch(() => {
+        setCommentError('Unable to send your feedback. Please try again.');
+      })
+      .finally(() => {
+        setCommentPending(false);
+      });
   };
 
   return (
@@ -59,9 +88,37 @@ export function DiagnosticsFeedback({ report }: DiagnosticsFeedbackProps) {
       {submitted ? (
         <div className="full-diagnostics__feedback-thanks-wrap">
           <p className="full-diagnostics__feedback-thanks">Thank you for your feedback!</p>
-          <a className="full-diagnostics__feedback-more" href={buildEngagementReportFeedbackMailto()}>
-            Tell us more!
-          </a>
+          {commentSubmitted ? (
+            <p className="full-diagnostics__feedback-comment-thanks">
+              Thanks — we received your message.
+            </p>
+          ) : (
+            <form className="full-diagnostics__feedback-comment" onSubmit={handleCommentSubmit}>
+              <label className="full-diagnostics__feedback-comment-label" htmlFor="feedback-comment">
+                Tell us more!
+              </label>
+              <textarea
+                id="feedback-comment"
+                className="full-diagnostics__feedback-comment-input"
+                rows={3}
+                maxLength={MAX_COMMENT_LENGTH}
+                placeholder="Share any thoughts about your experience…"
+                value={comment}
+                disabled={commentPending || !entryId}
+                onChange={(event) => setComment(event.target.value)}
+              />
+              {commentError ? (
+                <p className="full-diagnostics__feedback-comment-error">{commentError}</p>
+              ) : null}
+              <button
+                type="submit"
+                className="full-diagnostics__feedback-comment-submit"
+                disabled={commentPending || !entryId || !comment.trim()}
+              >
+                {commentPending ? 'Sending…' : 'Send feedback'}
+              </button>
+            </form>
+          )}
         </div>
       ) : (
         <>

@@ -1,8 +1,13 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FeedbackReportingError,
   fetchFeedbackReport,
 } from '@/lib/api/feedbackReporting';
+import {
+  buildFeedbackSummary,
+  entriesWithWrittenFeedback,
+  filterFeedbackEntriesByDateRange,
+} from '@/lib/feedbackReportingUtils';
 import type { FeedbackReportResponse } from '@/types/feedback';
 import '@/styles/reporting.css';
 
@@ -33,6 +38,8 @@ export default function ReportingPage() {
   const [report, setReport] = useState<FeedbackReportResponse | null>(null);
   const [loading, setLoading] = useState(Boolean(storedPassword));
   const [error, setError] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const loadReport = useCallback(async (password: string) => {
     setLoading(true);
@@ -82,9 +89,24 @@ export default function ReportingPage() {
     setReport(null);
     setPasswordInput('');
     setError(null);
+    setFromDate('');
+    setToDate('');
   };
 
+  const filteredEntries = useMemo(() => {
+    if (!report) return [];
+    return filterFeedbackEntriesByDateRange(report.entries, fromDate, toDate);
+  }, [report, fromDate, toDate]);
+
+  const filteredSummary = useMemo(() => buildFeedbackSummary(filteredEntries), [filteredEntries]);
+
+  const writtenFeedbackEntries = useMemo(
+    () => entriesWithWrittenFeedback(filteredEntries),
+    [filteredEntries],
+  );
+
   const isAuthenticated = Boolean(storedPassword);
+  const hasDateFilter = Boolean(fromDate || toDate);
 
   return (
     <main className="reporting-page">
@@ -97,23 +119,65 @@ export default function ReportingPage() {
             </p>
           </div>
           {isAuthenticated ? (
-            <div className="reporting-page__actions">
-              <button
-                type="button"
-                className="reporting-page__button"
-                disabled={loading}
-                onClick={() => void loadReport(storedPassword!)}
-              >
-                Refresh
-              </button>
-              <button
-                type="button"
-                className="reporting-page__button"
-                disabled={loading}
-                onClick={handleSignOut}
-              >
-                Sign out
-              </button>
+            <div className="reporting-page__header-tools">
+              <div className="reporting-page__date-range" aria-label="Filter by submission date">
+                <div className="reporting-page__date-field">
+                  <label className="reporting-page__date-label" htmlFor="reporting-from-date">
+                    From
+                  </label>
+                  <input
+                    id="reporting-from-date"
+                    className="reporting-page__date-input"
+                    type="date"
+                    value={fromDate}
+                    max={toDate || undefined}
+                    onChange={(event) => setFromDate(event.target.value)}
+                  />
+                </div>
+                <div className="reporting-page__date-field">
+                  <label className="reporting-page__date-label" htmlFor="reporting-to-date">
+                    To
+                  </label>
+                  <input
+                    id="reporting-to-date"
+                    className="reporting-page__date-input"
+                    type="date"
+                    value={toDate}
+                    min={fromDate || undefined}
+                    onChange={(event) => setToDate(event.target.value)}
+                  />
+                </div>
+                {hasDateFilter ? (
+                  <button
+                    type="button"
+                    className="reporting-page__button reporting-page__button--ghost"
+                    onClick={() => {
+                      setFromDate('');
+                      setToDate('');
+                    }}
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+              <div className="reporting-page__actions">
+                <button
+                  type="button"
+                  className="reporting-page__button"
+                  disabled={loading}
+                  onClick={() => void loadReport(storedPassword!)}
+                >
+                  Refresh
+                </button>
+                <button
+                  type="button"
+                  className="reporting-page__button"
+                  disabled={loading}
+                  onClick={handleSignOut}
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           ) : null}
         </header>
@@ -150,40 +214,37 @@ export default function ReportingPage() {
             {error ? <p className="reporting-page__error">{error}</p> : null}
             {report ? (
               <>
+                {hasDateFilter ? (
+                  <p className="reporting-page__filter-note">
+                    Showing submissions from{' '}
+                    {fromDate ? fromDate : 'the beginning'} through {toDate ? toDate : 'today'}.
+                  </p>
+                ) : null}
+
                 <div className="reporting-page__summary">
                   <div className="reporting-page__summary-card">
-                    <span className="reporting-page__summary-value">{report.summary.total}</span>
+                    <span className="reporting-page__summary-value">{filteredSummary.total}</span>
                     <span className="reporting-page__summary-label">Total responses</span>
                   </div>
                   <div className="reporting-page__summary-card">
-                    <span className="reporting-page__summary-value">{report.summary.positive}</span>
+                    <span className="reporting-page__summary-value">{filteredSummary.positive}</span>
                     <span className="reporting-page__summary-label">Positive</span>
                   </div>
                   <div className="reporting-page__summary-card">
-                    <span className="reporting-page__summary-value">{report.summary.negative}</span>
+                    <span className="reporting-page__summary-value">{filteredSummary.negative}</span>
                     <span className="reporting-page__summary-label">Negative</span>
                   </div>
                 </div>
 
-                <div className="reporting-page__table-wrap">
-                  {report.entries.length > 0 ? (
-                    <table className="reporting-page__table">
-                      <thead>
-                        <tr>
-                          <th scope="col">Date</th>
-                          <th scope="col">Company Name</th>
-                          <th scope="col">Rating</th>
-                          <th scope="col">Company ID</th>
-                          <th scope="col">Record Number</th>
-                          <th scope="col">Report Year</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {report.entries.map((entry) => (
-                          <tr key={entry.id}>
-                            <td>{formatFeedbackDate(entry.submittedAt)}</td>
-                            <td>{entry.companyName}</td>
-                            <td
+                <section className="reporting-page__section" aria-label="Written feedback">
+                  <h2 className="reporting-page__section-title">Written feedback</h2>
+                  {writtenFeedbackEntries.length > 0 ? (
+                    <ul className="reporting-page__comments">
+                      {writtenFeedbackEntries.map((entry) => (
+                        <li key={entry.id} className="reporting-page__comment">
+                          <div className="reporting-page__comment-meta">
+                            <span className="reporting-page__comment-company">{entry.companyName}</span>
+                            <span
                               className={
                                 entry.rating === 'positive'
                                   ? 'reporting-page__rating--positive'
@@ -191,18 +252,73 @@ export default function ReportingPage() {
                               }
                             >
                               {formatRating(entry.rating)}
-                            </td>
-                            <td>{entry.companyId}</td>
-                            <td>{entry.recordNumber ?? ''}</td>
-                            <td>{entry.reportYear ?? ''}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            </span>
+                            <time className="reporting-page__comment-date" dateTime={entry.submittedAt}>
+                              {formatFeedbackDate(entry.submittedAt)}
+                            </time>
+                          </div>
+                          <p className="reporting-page__comment-body">{entry.comment}</p>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <p className="reporting-page__empty">No feedback submissions yet.</p>
+                    <p className="reporting-page__empty">
+                      {hasDateFilter
+                        ? 'No written feedback in this date range.'
+                        : 'No written feedback yet.'}
+                    </p>
                   )}
-                </div>
+                </section>
+
+                <section className="reporting-page__section" aria-label="All submissions">
+                  <h2 className="reporting-page__section-title">All submissions</h2>
+                  <div className="reporting-page__table-wrap">
+                    {filteredEntries.length > 0 ? (
+                      <table className="reporting-page__table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Company Name</th>
+                            <th scope="col">Rating</th>
+                            <th scope="col">Written feedback</th>
+                            <th scope="col">Company ID</th>
+                            <th scope="col">Record Number</th>
+                            <th scope="col">Report Year</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredEntries.map((entry) => (
+                            <tr key={entry.id}>
+                              <td>{formatFeedbackDate(entry.submittedAt)}</td>
+                              <td>{entry.companyName}</td>
+                              <td
+                                className={
+                                  entry.rating === 'positive'
+                                    ? 'reporting-page__rating--positive'
+                                    : 'reporting-page__rating--negative'
+                                }
+                              >
+                                {formatRating(entry.rating)}
+                              </td>
+                              <td className="reporting-page__comment-cell">
+                                {entry.comment?.trim() ? entry.comment : '—'}
+                              </td>
+                              <td>{entry.companyId}</td>
+                              <td>{entry.recordNumber ?? ''}</td>
+                              <td>{entry.reportYear ?? ''}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="reporting-page__empty">
+                        {hasDateFilter
+                          ? 'No feedback submissions in this date range.'
+                          : 'No feedback submissions yet.'}
+                      </p>
+                    )}
+                  </div>
+                </section>
               </>
             ) : null}
           </>

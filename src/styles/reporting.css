@@ -21,6 +21,58 @@
   margin-bottom: 24px;
 }
 
+.reporting-page__header-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px 16px;
+  margin-left: auto;
+}
+
+.reporting-page__date-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.reporting-page__date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reporting-page__date-label {
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__date-input {
+  min-width: 148px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #f5f7fa;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color-scheme: dark;
+}
+
+.reporting-page__date-input:focus {
+  outline: 2px solid rgba(96, 165, 250, 0.45);
+  outline-offset: 1px;
+}
+
+.reporting-page__button--ghost {
+  background: transparent;
+}
+
 .reporting-page__title {
   margin: 0;
   font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
@@ -169,7 +221,7 @@
 .reporting-page__table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 920px;
 }
 
 .reporting-page__table th,
@@ -220,4 +272,73 @@
   font-family: 'Istok Web', sans-serif;
   font-size: 14px;
   color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__filter-note {
+  margin: 0 0 16px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__section {
+  margin-bottom: 24px;
+}
+
+.reporting-page__section-title {
+  margin: 0 0 12px;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.82);
+}
+
+.reporting-page__comments {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reporting-page__comment {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.reporting-page__comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 12px;
+}
+
+.reporting-page__comment-company {
+  font-weight: 600;
+  color: #f5f7fa;
+}
+
+.reporting-page__comment-date {
+  color: rgba(229, 231, 235, 0.62);
+}
+
+.reporting-page__comment-body {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(229, 231, 235, 0.9);
+  white-space: pre-wrap;
+}
+
+.reporting-page__comment-cell {
+  max-width: 280px;
+  white-space: pre-wrap;
 }

@@ -43,3 +43,18 @@ export async function listFeedbackEntriesBetween(startInclusive, endExclusive) {
     return submittedMs >= startMs && submittedMs < endMs;
   });
 }
+
+/**
+ * @param {string} id
+ * @param {Partial<import('./feedback-report.mjs').StoredFeedbackEntry>} patch
+ */
+export async function updateFeedbackEntry(id, patch) {
+  const store = getStore(STORE_NAME);
+  const key = entryKey(id);
+  const existing = await store.get(key, { type: 'json' });
+  if (!existing) return null;
+
+  const updated = { ...existing, ...patch };
+  await store.setJSON(key, updated);
+  return updated;
+}

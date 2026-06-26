@@ -8,9 +8,16 @@ export type FeedbackSubmission = {
   rating: FeedbackRating;
 };
 
+export type FeedbackCommentSubmission = {
+  id: string;
+  comment: string;
+};
+
 export type StoredFeedbackEntry = FeedbackSubmission & {
   id: string;
   submittedAt: string;
+  comment?: string;
+  commentSubmittedAt?: string;
 };
 
 export type FeedbackReportSummary = {

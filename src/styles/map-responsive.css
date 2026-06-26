@@ -222,7 +222,8 @@
 
 /* Landing screen — license plate hero over road, push to start in dashboard body */
 .driving-view-stage {
-  --landing-plate-gap: 15px;
+  --landing-plate-gap-top: max(20px, env(safe-area-inset-top, 0px));
+  --landing-plate-gap-bottom: 20px;
   --driving-content-gutter: clamp(12px, 3vw, 20px);
 }
 
@@ -502,8 +503,20 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  padding: 0 clamp(12px, 3vw, 24px);
+  padding:
+    var(--landing-plate-gap-top, 20px)
+    clamp(12px, 3vw, 24px)
+    var(--landing-plate-gap-bottom, 20px);
   box-sizing: border-box;
+  min-height: 0;
+}
+
+.landing-hero .license-plate {
+  --plate-max-width: 480px;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  width: min(var(--plate-max-width), 86vw, calc(100cqh * 251.1 / 102));
 }
 
 /* License plate hero — Pennsylvania template proportions (251.1 × 102) */
@@ -516,7 +529,7 @@
   --plate-band-ratio: 50%;
   --plate-caption-ratio: 24%;
   --plate-aspect: 251.1 / 102;
-  --plate-max-width: 560px;
+  --plate-max-width: 480px;
   --plate-sticker-hole-clearance: calc(3.27cqi + 5px);
   container-type: inline-size;
   container-name: license-plate;
@@ -659,7 +672,7 @@
 
 .license-plate__sticker-text {
   font-family: var(--plate-font);
-  font-size: clamp(9px, 7.8cqi, 18px);
+  font-size: clamp(8px, 7.2cqi, 16px);
   font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -699,7 +712,7 @@
   padding: 0 20% 0 calc(20% + 0.04em);
   box-sizing: border-box;
   font-family: 'License Plate', var(--plate-font);
-  font-size: clamp(18px, 16.5cqi, 68px);
+  font-size: clamp(16px, 14.8cqi, 58px);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -743,7 +756,7 @@
   width: 100%;
   box-sizing: border-box;
   font-family: var(--plate-font);
-  font-size: clamp(8px, 5.8cqi, 22px);
+  font-size: clamp(7px, 5.2cqi, 19px);
   font-weight: 700;
   letter-spacing: 0.16em;
   line-height: 1;
@@ -814,19 +827,47 @@
   right: 7%;
 }
 
+@container landing-hero (max-height: 240px) {
+  .landing-hero .license-plate {
+    --plate-max-width: 380px;
+  }
+
+  .license-plate__registration {
+    font-size: clamp(14px, 13.5cqi, 40px);
+  }
+
+  .license-plate__caption-text {
+    font-size: clamp(6px, 4.8cqi, 16px);
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (max-width: 640px) {
+  .driving-view-stage {
+    --landing-plate-gap-top: max(16px, env(safe-area-inset-top, 0px));
+    --landing-plate-gap-bottom: 16px;
+  }
+
+  .landing-hero .license-plate {
+    --plate-max-width: 420px;
+    width: min(var(--plate-max-width), 90vw, calc(100cqh * 251.1 / 102));
+  }
+}
+
 @media (max-width: 480px) {
-  .license-plate {
-    width: min(420px, 92vw, calc(40vh * 251.1 / 102));
+  .landing-hero .license-plate {
+    --plate-max-width: 360px;
+    width: min(var(--plate-max-width), 92vw, calc(100cqh * 251.1 / 102));
   }
 
   .license-plate__registration {
     letter-spacing: 0.03em;
     padding-left: calc(20% + 0.03em);
-    font-size: clamp(16px, 15cqi, 44px);
+    font-size: clamp(14px, 13.5cqi, 38px);
   }
 
   .license-plate__caption-text {
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
   }
 }
 
@@ -12808,7 +12849,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(6px, 1vh, 8px);
+  gap: clamp(8px, 1.2vh, 12px);
+  width: min(100%, 320px);
 }
 
 .full-diagnostics__feedback-thanks {
@@ -12819,17 +12861,90 @@
   color: var(--brand-primary);
 }
 
-.full-diagnostics__feedback-more {
+.full-diagnostics__feedback-comment {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(6px, 1vh, 8px);
+  width: 100%;
+}
+
+.full-diagnostics__feedback-comment-label {
   font-family: 'Istok Web', sans-serif;
   font-size: clamp(11px, 1.8vw, 14px);
   line-height: 1.4;
   color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
-.full-diagnostics__feedback-more:hover {
+.full-diagnostics__feedback-comment-input {
+  width: 100%;
+  min-height: 4.5rem;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
   color: #f5f7fa;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(11px, 1.7vw, 13px);
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.full-diagnostics__feedback-comment-input::placeholder {
+  color: rgba(229, 231, 235, 0.5);
+}
+
+.full-diagnostics__feedback-comment-input:focus {
+  outline: 2px solid rgba(96, 165, 250, 0.45);
+  outline-offset: 1px;
+}
+
+.full-diagnostics__feedback-comment-input:disabled {
+  opacity: 0.65;
+}
+
+.full-diagnostics__feedback-comment-error {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(10px, 1.6vw, 12px);
+  line-height: 1.4;
+  color: #f87171;
+}
+
+.full-diagnostics__feedback-comment-submit {
+  align-self: center;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(11px, 1.7vw, 13px);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.full-diagnostics__feedback-comment-submit:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.full-diagnostics__feedback-comment-submit:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.full-diagnostics__feedback-comment-thanks {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(11px, 1.8vw, 14px);
+  line-height: 1.4;
+  color: rgba(229, 231, 235, 0.88);
 }
 
 .full-diagnostics__social-row {

@@ -8,6 +8,8 @@
  *   recordNumber?: number;
  *   reportYear?: number;
  *   rating: FeedbackRating;
+ *   comment?: string;
+ *   commentSubmittedAt?: string;
  * }} StoredFeedbackEntry
  */
 
@@ -15,7 +17,15 @@
  * @param {StoredFeedbackEntry[]} entries
  */
 export function feedbackEntriesToCsv(entries) {
-  const header = ['Date', 'Company Name', 'Rating', 'Company ID', 'Record Number', 'Report Year'];
+  const header = [
+    'Date',
+    'Company Name',
+    'Rating',
+    'Written Feedback',
+    'Company ID',
+    'Record Number',
+    'Report Year',
+  ];
   const rows = entries.map((entry) => {
     const date = formatReportDate(entry.submittedAt);
     const rating = entry.rating === 'positive' ? 'Positive' : 'Negative';
@@ -23,6 +33,7 @@ export function feedbackEntriesToCsv(entries) {
       date,
       entry.companyName,
       rating,
+      entry.comment ?? '',
       entry.companyId,
       entry.recordNumber ?? '',
       entry.reportYear ?? '',
@@ -145,18 +156,29 @@ export function formatFeedbackEntryForEmail(entry) {
     lines.push(`Report Year: ${entry.reportYear}`);
   }
 
+  if (entry.comment) {
+    lines.push('');
+    lines.push('Written feedback:');
+    lines.push(entry.comment);
+    if (entry.commentSubmittedAt) {
+      lines.push(`Comment submitted: ${formatReportDate(entry.commentSubmittedAt)} (America/New_York)`);
+    }
+  }
+
   lines.push(`Submission ID: ${entry.id}`);
   return lines.join('\n');
 }
 
 /**
  * @param {StoredFeedbackEntry} entry
+ * @param {{ includeComment?: boolean }} [options]
  */
-export async function sendFeedbackSubmissionEmail(entry) {
+export async function sendFeedbackSubmissionEmail(entry, options = {}) {
   const ratingLabel = entry.rating === 'positive' ? 'Positive' : 'Negative';
+  const subjectSuffix = options.includeComment && entry.comment ? ' — with comment' : '';
   return sendResendEmail({
     to: process.env.FEEDBACK_REPORT_TO ?? 'kyle.hardy@autocare.org',
-    subject: `Auto Care Wrapped Feedback — ${ratingLabel} — ${entry.companyName}`,
+    subject: `Auto Care Wrapped Feedback — ${ratingLabel} — ${entry.companyName}${subjectSuffix}`,
     text: formatFeedbackEntryForEmail(entry),
   });
 }

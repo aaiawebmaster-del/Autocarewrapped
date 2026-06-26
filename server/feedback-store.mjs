@@ -14,6 +14,8 @@ const STORE_PATH = path.resolve(process.cwd(), 'data/feedback/submissions.json')
  *   recordNumber?: number;
  *   reportYear?: number;
  *   rating: FeedbackRating;
+ *   comment?: string;
+ *   commentSubmittedAt?: string;
  * }} StoredFeedbackEntry
  */
 
@@ -66,4 +68,18 @@ export async function listFeedbackEntriesBetween(startInclusive, endExclusive) {
     const submittedMs = Date.parse(entry.submittedAt);
     return submittedMs >= startMs && submittedMs < endMs;
   });
+}
+
+/**
+ * @param {string} id
+ * @param {Partial<StoredFeedbackEntry>} patch
+ */
+export async function updateFeedbackEntry(id, patch) {
+  const entries = await readEntries();
+  const index = entries.findIndex((entry) => entry.id === id);
+  if (index === -1) return null;
+
+  entries[index] = { ...entries[index], ...patch };
+  await writeEntries(entries);
+  return entries[index];
 }

@@ -1,5 +1,5 @@
 import { appConfig } from '@/lib/config';
-import type { FeedbackSubmission } from '@/types/feedback';
+import type { FeedbackCommentSubmission, FeedbackSubmission } from '@/types/feedback';
 
 export class FeedbackError extends Error {
   constructor(
@@ -11,9 +11,20 @@ export class FeedbackError extends Error {
   }
 }
 
+async function parseFeedbackError(response: Response): Promise<never> {
+  let message = 'Unable to submit feedback';
+  try {
+    const body = (await response.json()) as { error?: string };
+    if (body.error) message = body.error;
+  } catch {
+    // ignore parse errors
+  }
+  throw new FeedbackError(message, response.status);
+}
+
 export async function submitExperienceFeedback(
   submission: FeedbackSubmission,
-): Promise<void> {
+): Promise<{ id: string }> {
   const url = new URL(appConfig.feedbackEndpoint, window.location.origin);
 
   const response = await fetch(url.toString(), {
@@ -27,13 +38,27 @@ export async function submitExperienceFeedback(
   });
 
   if (!response.ok) {
-    let message = 'Unable to submit feedback';
-    try {
-      const body = (await response.json()) as { error?: string };
-      if (body.error) message = body.error;
-    } catch {
-      // ignore parse errors
-    }
-    throw new FeedbackError(message, response.status);
+    return parseFeedbackError(response);
+  }
+
+  const body = (await response.json()) as { id?: string };
+  return { id: body.id ?? '' };
+}
+
+export async function submitFeedbackComment(submission: FeedbackCommentSubmission): Promise<void> {
+  const url = new URL(appConfig.feedbackEndpoint, window.location.origin);
+
+  const response = await fetch(url.toString(), {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(submission),
+  });
+
+  if (!response.ok) {
+    return parseFeedbackError(response);
   }
 }

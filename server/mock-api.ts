@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { appendFeedbackEntry, listFeedbackEntries } from './feedback-store.mjs';
+import { appendFeedbackEntry, listFeedbackEntries, updateFeedbackEntry } from './feedback-store.mjs';
 import { buildFeedbackSummary } from '../netlify/functions/lib/feedback-report.mjs';
 import { isReportingPasswordValid } from '../netlify/functions/lib/reporting-auth.mjs';
 import { getSampleReport } from '../src/mocks/sampleReports.ts';
@@ -53,6 +53,11 @@ export function handleMockWrappedApi(req: IncomingMessage, res: ServerResponse):
 
   if (req.method === 'POST' && pathname === '/api/wrapped/feedback') {
     void handleFeedbackSubmit(req, res);
+    return true;
+  }
+
+  if (req.method === 'PATCH' && pathname === '/api/wrapped/feedback') {
+    void handleFeedbackComment(req, res);
     return true;
   }
 
@@ -111,6 +116,45 @@ async function handleFeedbackSubmit(req: IncomingMessage, res: ServerResponse) {
     });
 
     sendJson(res, 201, { ok: true, id: entry.id });
+  } catch {
+    sendJson(res, 400, { error: 'Invalid JSON body' });
+  }
+}
+
+const MAX_COMMENT_LENGTH = 2000;
+
+async function handleFeedbackComment(req: IncomingMessage, res: ServerResponse) {
+  try {
+    const payload = (await readJsonBody(req)) as Record<string, unknown>;
+    const id = String(payload.id ?? '').trim();
+    const comment = String(payload.comment ?? '').trim();
+
+    if (!id) {
+      sendJson(res, 400, { error: 'id is required' });
+      return;
+    }
+
+    if (!comment) {
+      sendJson(res, 400, { error: 'comment is required' });
+      return;
+    }
+
+    if (comment.length > MAX_COMMENT_LENGTH) {
+      sendJson(res, 400, { error: `comment must be ${MAX_COMMENT_LENGTH} characters or fewer` });
+      return;
+    }
+
+    const entry = await updateFeedbackEntry(id, {
+      comment,
+      commentSubmittedAt: new Date().toISOString(),
+    });
+
+    if (!entry) {
+      sendJson(res, 404, { error: 'Feedback submission not found' });
+      return;
+    }
+
+    sendJson(res, 200, { ok: true, id: entry.id });
   } catch {
     sendJson(res, 400, { error: 'Invalid JSON body' });
   }
