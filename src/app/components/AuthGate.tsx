@@ -1,4 +1,5 @@
 import { DrivingView } from '@/app/components/DrivingView';
+import { AnalyticsTracker } from '@/app/components/AnalyticsTracker';
 import { appConfig, buildSsoLoginRedirect } from '@/lib/config';
 import {
   redirectToSsoLogin,
@@ -79,6 +80,7 @@ function AuthGateInner() {
 export function AuthGate() {
   return (
     <WrappedReportProvider>
+      <AnalyticsTracker />
       <AuthGateInner />
     </WrappedReportProvider>
   );

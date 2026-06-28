@@ -1,6 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { appendFeedbackEntry, listFeedbackEntries, updateFeedbackEntry } from './feedback-store.mjs';
+import { appendAnalyticsEvent, listAnalyticsEvents } from './analytics-store.mjs';
 import { buildFeedbackSummary } from '../netlify/functions/lib/feedback-report.mjs';
+import { buildUsageReport, filterAnalyticsEventsByDateRange, parseAnalyticsEventPayload } from '../netlify/functions/lib/analytics-report.mjs';
 import { isReportingPasswordValid } from '../netlify/functions/lib/reporting-auth.mjs';
 import { getSampleReport } from '../src/mocks/sampleReports.ts';
 import type { WrappedReportScenario } from '../src/types/wrappedReport.ts';
@@ -67,7 +69,12 @@ export function handleMockWrappedApi(req: IncomingMessage, res: ServerResponse):
       return true;
     }
 
-    void handleReportingFeedback(res);
+    void handleReportingFeedback(req, res);
+    return true;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/wrapped/analytics') {
+    void handleAnalyticsSubmit(req, res);
     return true;
   }
 
@@ -160,15 +167,40 @@ async function handleFeedbackComment(req: IncomingMessage, res: ServerResponse) 
   }
 }
 
-async function handleReportingFeedback(res: ServerResponse) {
+async function handleReportingFeedback(req: IncomingMessage, res: ServerResponse) {
   try {
+    const parsed = new URL(req.url ?? '/', 'http://localhost');
+    const fromDate = parsed.searchParams.get('fromDate') ?? '';
+    const toDate = parsed.searchParams.get('toDate') ?? '';
+
     const entries = await listFeedbackEntries();
     entries.sort((a, b) => Date.parse(b.submittedAt) - Date.parse(a.submittedAt));
+
+    const analyticsEvents = await listAnalyticsEvents();
+    const filteredAnalytics = filterAnalyticsEventsByDateRange(analyticsEvents, fromDate, toDate);
+
     sendJson(res, 200, {
       entries,
       summary: buildFeedbackSummary(entries),
+      usage: buildUsageReport(filteredAnalytics),
     });
   } catch {
     sendJson(res, 500, { error: 'Unable to load feedback report' });
+  }
+}
+
+async function handleAnalyticsSubmit(req: IncomingMessage, res: ServerResponse) {
+  try {
+    const payload = (await readJsonBody(req)) as Record<string, unknown>;
+    const parsed = parseAnalyticsEventPayload(payload);
+    if ('error' in parsed) {
+      sendJson(res, 400, { error: parsed.error });
+      return;
+    }
+
+    const entry = await appendAnalyticsEvent(parsed.event);
+    sendJson(res, 201, { ok: true, id: entry.id });
+  } catch {
+    sendJson(res, 400, { error: 'Invalid JSON body' });
   }
 }

@@ -3,11 +3,18 @@ import {
   FeedbackReportingError,
   fetchFeedbackReport,
 } from '@/lib/api/feedbackReporting';
+import { formatCtaLabel } from '@/lib/analytics/ctaLabels';
 import {
   buildFeedbackSummary,
   entriesWithWrittenFeedback,
   filterFeedbackEntriesByDateRange,
 } from '@/lib/feedbackReportingUtils';
+import {
+  formatDurationMs,
+  sortCtaEntries,
+  sumUsageTotals,
+} from '@/lib/usageReportingUtils';
+import type { CompanyUsageMetrics } from '@/types/analytics';
 import type { FeedbackReportResponse } from '@/types/feedback';
 import '@/styles/reporting.css';
 
@@ -29,6 +36,110 @@ function formatRating(rating: 'positive' | 'negative'): string {
   return rating === 'positive' ? 'Positive' : 'Negative';
 }
 
+function formatPercent(value: number, total: number): string {
+  if (total <= 0) return '0%';
+  return `${Math.round((value / total) * 100)}%`;
+}
+
+function CompanyUsageRow({ company }: { company: CompanyUsageMetrics }) {
+  const ctaEntries = sortCtaEntries(company.ctaClicks);
+  const funnel = company.funnel;
+  const started = funnel.sessionsStarted;
+
+  return (
+    <details className="reporting-page__usage-company">
+      <summary className="reporting-page__usage-company-summary">
+        <span className="reporting-page__usage-company-name">{company.companyName}</span>
+        <span className="reporting-page__usage-company-stats">
+          <span>{company.totalVisitors} visitors</span>
+          <span>{company.totalSessions} sessions</span>
+          <span>{company.totalCompletions} completions</span>
+        </span>
+      </summary>
+      <div className="reporting-page__usage-company-body">
+        <dl className="reporting-page__usage-metrics">
+          <div>
+            <dt>Total visitors</dt>
+            <dd>{company.totalVisitors}</dd>
+          </div>
+          <div>
+            <dt>Sessions started</dt>
+            <dd>{company.totalSessions}</dd>
+          </div>
+          <div>
+            <dt>Completions</dt>
+            <dd>{company.totalCompletions}</dd>
+          </div>
+          <div>
+            <dt>Shares</dt>
+            <dd>{company.totalShares}</dd>
+          </div>
+          <div>
+            <dt>Avg. time on report</dt>
+            <dd>{formatDurationMs(company.avgTimeSpentMs)}</dd>
+          </div>
+          <div>
+            <dt>Record #</dt>
+            <dd>{company.recordNumber ?? '—'}</dd>
+          </div>
+        </dl>
+
+        <div className="reporting-page__usage-subsection">
+          <h3 className="reporting-page__usage-subtitle">Funnel (partial completions)</h3>
+          <ul className="reporting-page__funnel-list">
+            <li>
+              <span>Sessions started</span>
+              <strong>{funnel.sessionsStarted}</strong>
+              <span>{formatPercent(funnel.sessionsStarted, started)}</span>
+            </li>
+            <li>
+              <span>Reached Your Journey</span>
+              <strong>{funnel.reachedJourney}</strong>
+              <span>{formatPercent(funnel.reachedJourney, started)}</span>
+            </li>
+            <li>
+              <span>Reached Under the Hood</span>
+              <strong>{funnel.reachedHood}</strong>
+              <span>{formatPercent(funnel.reachedHood, started)}</span>
+            </li>
+            <li>
+              <span>Reached Kick the Tires</span>
+              <strong>{funnel.reachedTires}</strong>
+              <span>{formatPercent(funnel.reachedTires, started)}</span>
+            </li>
+            <li>
+              <span>Reached Full Diagnostics</span>
+              <strong>{funnel.reachedDiagnostics}</strong>
+              <span>{formatPercent(funnel.reachedDiagnostics, started)}</span>
+            </li>
+            <li>
+              <span>Completed</span>
+              <strong>{funnel.completed}</strong>
+              <span>{formatPercent(funnel.completed, started)}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="reporting-page__usage-subsection">
+          <h3 className="reporting-page__usage-subtitle">CTA clicks</h3>
+          {ctaEntries.length > 0 ? (
+            <ul className="reporting-page__cta-list">
+              {ctaEntries.map(([ctaKey, count]) => (
+                <li key={ctaKey}>
+                  <span>{formatCtaLabel(ctaKey)}</span>
+                  <strong>{count}</strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="reporting-page__empty reporting-page__empty--inline">No CTA clicks yet.</p>
+          )}
+        </div>
+      </div>
+    </details>
+  );
+}
+
 export default function ReportingPage() {
   const [passwordInput, setPasswordInput] = useState('');
   const [storedPassword, setStoredPassword] = useState<string | null>(() => {
@@ -41,37 +152,43 @@ export default function ReportingPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const loadReport = useCallback(async (password: string) => {
-    setLoading(true);
-    setError(null);
+  const loadReport = useCallback(
+    async (password: string, range?: { fromDate: string; toDate: string }) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const nextReport = await fetchFeedbackReport(password);
-      setReport(nextReport);
-      sessionStorage.setItem(REPORTING_PASSWORD_STORAGE_KEY, password);
-      setStoredPassword(password);
-    } catch (err) {
-      const message =
-        err instanceof FeedbackReportingError
-          ? err.status === 401
-            ? 'Incorrect password.'
-            : err.message
-          : 'Unable to load feedback report.';
-      setError(message);
-      setReport(null);
-      if (err instanceof FeedbackReportingError && err.status === 401) {
-        sessionStorage.removeItem(REPORTING_PASSWORD_STORAGE_KEY);
-        setStoredPassword(null);
+      try {
+        const nextReport = await fetchFeedbackReport(password, {
+          fromDate: range?.fromDate || undefined,
+          toDate: range?.toDate || undefined,
+        });
+        setReport(nextReport);
+        sessionStorage.setItem(REPORTING_PASSWORD_STORAGE_KEY, password);
+        setStoredPassword(password);
+      } catch (err) {
+        const message =
+          err instanceof FeedbackReportingError
+            ? err.status === 401
+              ? 'Incorrect password.'
+              : err.message
+            : 'Unable to load feedback report.';
+        setError(message);
+        setReport(null);
+        if (err instanceof FeedbackReportingError && err.status === 401) {
+          sessionStorage.removeItem(REPORTING_PASSWORD_STORAGE_KEY);
+          setStoredPassword(null);
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!storedPassword) return;
-    void loadReport(storedPassword);
-  }, [storedPassword, loadReport]);
+    void loadReport(storedPassword, { fromDate, toDate });
+  }, [storedPassword, fromDate, toDate, loadReport]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,7 +197,7 @@ export default function ReportingPage() {
       setError('Enter the reporting password.');
       return;
     }
-    void loadReport(password);
+    void loadReport(password, { fromDate, toDate });
   };
 
   const handleSignOut = () => {
@@ -105,6 +222,9 @@ export default function ReportingPage() {
     [filteredEntries],
   );
 
+  const usageCompanies = report?.usage?.companies ?? [];
+  const usageTotals = useMemo(() => sumUsageTotals(usageCompanies), [usageCompanies]);
+
   const isAuthenticated = Boolean(storedPassword);
   const hasDateFilter = Boolean(fromDate || toDate);
 
@@ -115,7 +235,7 @@ export default function ReportingPage() {
           <div>
             <h1 className="reporting-page__title">Engagement Report Feedback</h1>
             <p className="reporting-page__subtitle">
-              Internal submissions from the Full Diagnostics feedback buttons.
+              Internal feedback submissions and usage metrics by company.
             </p>
           </div>
           {isAuthenticated ? (
@@ -165,7 +285,7 @@ export default function ReportingPage() {
                   type="button"
                   className="reporting-page__button"
                   disabled={loading}
-                  onClick={() => void loadReport(storedPassword!)}
+                  onClick={() => void loadReport(storedPassword!, { fromDate, toDate })}
                 >
                   Refresh
                 </button>
@@ -186,7 +306,7 @@ export default function ReportingPage() {
           <section className="reporting-page__gate" aria-label="Reporting password">
             <h2 className="reporting-page__gate-title">Internal access</h2>
             <p className="reporting-page__gate-copy">
-              Enter the reporting password to view submitted feedback.
+              Enter the reporting password to view submitted feedback and usage metrics.
             </p>
             <form onSubmit={handleSubmit}>
               <div className="reporting-page__field">
@@ -210,16 +330,54 @@ export default function ReportingPage() {
           </section>
         ) : (
           <>
-            {loading ? <p className="reporting-page__status">Loading feedback…</p> : null}
+            {loading ? <p className="reporting-page__status">Loading report…</p> : null}
             {error ? <p className="reporting-page__error">{error}</p> : null}
             {report ? (
               <>
                 {hasDateFilter ? (
                   <p className="reporting-page__filter-note">
-                    Showing submissions from{' '}
-                    {fromDate ? fromDate : 'the beginning'} through {toDate ? toDate : 'today'}.
+                    Showing data from {fromDate ? fromDate : 'the beginning'} through{' '}
+                    {toDate ? toDate : 'today'}.
                   </p>
                 ) : null}
+
+                <section className="reporting-page__section" aria-label="Usage by company">
+                  <h2 className="reporting-page__section-title">Usage by company</h2>
+                  <div className="reporting-page__summary reporting-page__summary--usage">
+                    <div className="reporting-page__summary-card">
+                      <span className="reporting-page__summary-value">{usageTotals.totalVisitors}</span>
+                      <span className="reporting-page__summary-label">Total visitors</span>
+                    </div>
+                    <div className="reporting-page__summary-card">
+                      <span className="reporting-page__summary-value">{usageTotals.totalSessions}</span>
+                      <span className="reporting-page__summary-label">Sessions started</span>
+                    </div>
+                    <div className="reporting-page__summary-card">
+                      <span className="reporting-page__summary-value">{usageTotals.totalCompletions}</span>
+                      <span className="reporting-page__summary-label">Completions</span>
+                    </div>
+                    <div className="reporting-page__summary-card">
+                      <span className="reporting-page__summary-value">{usageTotals.totalShares}</span>
+                      <span className="reporting-page__summary-label">Shares</span>
+                    </div>
+                  </div>
+                  {usageCompanies.length > 0 ? (
+                    <div className="reporting-page__usage-list">
+                      {usageCompanies.map((company) => (
+                        <CompanyUsageRow
+                          key={`${company.companyId}-${company.recordNumber ?? 'na'}`}
+                          company={company}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="reporting-page__empty">
+                      {hasDateFilter
+                        ? 'No usage data in this date range.'
+                        : 'No usage data yet — metrics appear after users visit embedded reports.'}
+                    </p>
+                  )}
+                </section>
 
                 <div className="reporting-page__summary">
                   <div className="reporting-page__summary-card">

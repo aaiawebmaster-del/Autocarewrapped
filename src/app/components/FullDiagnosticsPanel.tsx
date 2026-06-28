@@ -15,7 +15,10 @@ import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
 import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
-import { debugSessionLog } from '@/lib/debugSessionLog';
+import {
+  reportToAnalyticsContext,
+  trackAnalyticsEvent,
+} from '@/lib/analytics/trackEvent';
 import { DiagnosticsFeedback } from './DiagnosticsFeedback';
 import tireTrendlensImage from '../../assets/tire-trendlens.svg?url';
 import tireDemandindexImage from '../../assets/tire-demandindex.svg?url';
@@ -174,6 +177,7 @@ function DiagnosticsShareSlide({
   report: WrappedReport;
 }) {
   const handleShare = () => {
+    trackAnalyticsEvent('share_clicked', reportToAnalyticsContext(report));
     const reportPageUrl = companyReportPageUrl(
       report.company.recordNumber ?? report.company.id,
     );
@@ -325,18 +329,6 @@ export function FullDiagnosticsPanel({
   const [topStep, setTopStep] = useState(0);
   const [shareReveal, setShareReveal] = useState(false);
 
-  // #region agent log
-  useEffect(() => {
-    debugSessionLog({
-      location: 'FullDiagnosticsPanel.tsx:mount',
-      message: 'FullDiagnosticsPanel mounted',
-      data: { companyId: report.company.id, topStep: 0 },
-      hypothesisId: 'A',
-      runId: 'post-fix',
-    });
-  }, [report.company.id]);
-  // #endregion
-
   useEffect(() => {
     if (topStep !== TOP_STEP_MAX) {
       setShareReveal(false);
@@ -364,7 +356,10 @@ export function FullDiagnosticsPanel({
     .filter(Boolean)
     .join(' ');
 
-  const handleComplete = () => setTopStep(TOP_STEP_MAX);
+  const handleComplete = () => {
+    trackAnalyticsEvent('diagnostics_completed', reportToAnalyticsContext(report));
+    setTopStep(TOP_STEP_MAX);
+  };
 
   return (
     <div className={panelClassName}>

@@ -342,3 +342,131 @@
   max-width: 280px;
   white-space: pre-wrap;
 }
+
+.reporting-page__summary--usage {
+  margin-bottom: 20px;
+}
+
+.reporting-page__usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reporting-page__usage-company {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.reporting-page__usage-company-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-family: 'Istok Web', sans-serif;
+}
+
+.reporting-page__usage-company-summary::-webkit-details-marker {
+  display: none;
+}
+
+.reporting-page__usage-company-name {
+  font-weight: 600;
+  color: #f5f7fa;
+}
+
+.reporting-page__usage-company-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__usage-company-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reporting-page__usage-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
+}
+
+.reporting-page__usage-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reporting-page__usage-metrics dt {
+  margin: 0;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.62);
+}
+
+.reporting-page__usage-metrics dd {
+  margin: 0;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f5f7fa;
+}
+
+.reporting-page__usage-subsection {
+  margin-top: 18px;
+}
+
+.reporting-page__usage-subtitle {
+  margin: 0 0 10px;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.78);
+}
+
+.reporting-page__funnel-list,
+.reporting-page__cta-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reporting-page__funnel-list li,
+.reporting-page__cta-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color: rgba(229, 231, 235, 0.88);
+}
+
+.reporting-page__funnel-list strong,
+.reporting-page__cta-list strong {
+  font-variant-numeric: tabular-nums;
+  color: #f5f7fa;
+}
+
+.reporting-page__empty--inline {
+  margin: 0;
+}

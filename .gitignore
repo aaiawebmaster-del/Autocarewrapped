@@ -6,3 +6,4 @@ dist/
 .DS_Store
 .vs/
 data/feedback/submissions.json
+data/analytics/events.json

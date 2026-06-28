@@ -33,10 +33,16 @@ import {
   playAapexArrivalAlertSound,
   playAapex2026RerouteAlertSound,
 } from '@/lib/journeyAapexSound';
+import { stopHoodStandardsDataProcessingBeep } from '@/lib/hoodStandardsClickSound';
 import { playUiClickSound, primeUiClickSoundSession } from '@/lib/uiClickSound';
 import { isAppAudioMuted, playAppAudio } from '@/lib/appAudio';
 import { loadDrivingAnimation } from '@/lib/lazyLottieData';
 import { useMobileViewport } from '@/lib/useMobileViewport';
+import {
+  reportToAnalyticsContext,
+  trackAnalyticsEvent,
+  trackAnalyticsEventOnce,
+} from '@/lib/analytics/trackEvent';
 import { DashboardPrndl } from './DashboardPrndl';
 import { DashboardWideDecor } from './DashboardWideDecor';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
@@ -58,7 +64,6 @@ import {
   scalePlaybackMs,
   scalePlaybackS,
 } from '@/lib/experienceAnimationTiming';
-import { debugSessionLog } from '@/lib/debugSessionLog';
 import type { WrappedReport } from '@/types/wrappedReport';
 import { LicensePlate } from './LicensePlate';
 
@@ -115,6 +120,11 @@ type DashboardPanelNavBridge = {
   canBack: boolean;
   canNext: boolean;
 };
+
+type RegisterDashboardNav = (
+  bridge: DashboardPanelNavBridge | null,
+  owner: object,
+) => void;
 
 type Screen = 'journey' | 'hood' | 'diagnostics';
 
@@ -174,16 +184,6 @@ function FullDiagnostics({
   onBackToStart: () => void;
   report: WrappedReport;
 }) {
-  // #region agent log
-  useEffect(() => {
-    debugSessionLog({
-      location: 'DrivingView.tsx:FullDiagnostics',
-      message: 'FullDiagnostics mounted',
-      data: { companyId: report.company.id },
-      hypothesisId: 'A',
-    });
-  }, [report.company.id]);
-  // #endregion
   return (
     <motion.div
       className="absolute inset-0 bg-black z-40 overflow-hidden"
@@ -662,9 +662,11 @@ const JOURNEY_END_GPS_PHASE = 4;
 
 const JOURNEY_MAP_PANEL_MAX_HEIGHT = 520;
 const DRIVING_FOOTER_HEIGHT_PX = 96;
-const DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX = 300;
-const DRIVING_DEFAULT_BACKDROP_BOTTOM_PX =
-  DRIVING_DEFAULT_DASHBOARD_HEIGHT_PX + DRIVING_FOOTER_HEIGHT_PX;
+const DRIVING_MOBILE_DASHBOARD_HEIGHT_PX = 373;
+
+function estimateMobileBackdropBottomPx(): number {
+  return DRIVING_FOOTER_HEIGHT_PX + DRIVING_MOBILE_DASHBOARD_HEIGHT_PX;
+}
 
 // ── GPS Nav sequence ───────────────────────────────────────────────────────────
 
@@ -835,7 +837,7 @@ function GpsNavSection({
     exit: { opacity: number };
     transition: typeof JOURNEY_SCENE_TRANSITION;
   };
-  registerDashboardNav?: (bridge: DashboardPanelNavBridge | null) => void;
+  registerDashboardNav?: RegisterDashboardNav;
 }) {
   const attendanceTarget = eventsMetrics.attendancePct;
   const webinarTarget = eventsMetrics.webinarCount;
@@ -1131,6 +1133,8 @@ function GpsNavSection({
     setArrivalStep(initialArrivalStep);
   }, [phase, initialArrivalStep]);
 
+  const mapNavBridgeOwnerRef = useRef({});
+
   useEffect(() => {
     if (!registerDashboardNav) return;
 
@@ -1156,9 +1160,9 @@ function GpsNavSection({
       },
       canBack: mapCanBack,
       canNext: mapCanNext,
-    });
+    }, mapNavBridgeOwnerRef.current);
 
-    return () => registerDashboardNav(null);
+    return () => registerDashboardNav(null, mapNavBridgeOwnerRef.current);
   }, [
     registerDashboardNav,
     leavingForHood,
@@ -1533,10 +1537,11 @@ function YourJourney({
   journeySections: JourneySection[];
   eventsMetrics: EventsMetrics;
   communities?: string[];
-  registerDashboardNav?: (bridge: DashboardPanelNavBridge | null) => void;
+  registerDashboardNav?: RegisterDashboardNav;
 }) {
   const [sectionIdx, setSectionIdx] = useState(initialSectionIdx);
   const isCounterMobile = useIsCounterMobile();
+  const counterNavBridgeOwnerRef = useRef({});
 
   const changeSectionIdx = useCallback(
     (updater: number | ((prev: number) => number)) => {
@@ -1582,9 +1587,9 @@ function YourJourney({
       next: goToNextJourneySection,
       canBack: sectionIdx > 0,
       canNext: sectionIdx < journeySections.length - 1,
-    });
+    }, counterNavBridgeOwnerRef.current);
 
-    return () => registerDashboardNav(null);
+    return () => registerDashboardNav(null, counterNavBridgeOwnerRef.current);
   }, [
     registerDashboardNav,
     section.type,
@@ -1807,9 +1812,16 @@ function DashboardPanel({
   const journeyPanelActive = isJourney && (isCounterScene || isMapScene);
   const journeyPanelHeight = journeyPanelActive ? mapPanelHeight : undefined;
   const journeyNavBridgeRef = useRef<DashboardPanelNavBridge | null>(null);
+  const journeyNavOwnerRef = useRef<object | null>(null);
   const [journeyNavCaps, setJourneyNavCaps] = useState({ canBack: false, canNext: false });
 
-  const registerJourneyNav = useCallback((bridge: DashboardPanelNavBridge | null) => {
+  const registerJourneyNav = useCallback((bridge: DashboardPanelNavBridge | null, owner: object) => {
+    if (bridge === null) {
+      if (journeyNavOwnerRef.current !== owner) return;
+      journeyNavOwnerRef.current = null;
+    } else {
+      journeyNavOwnerRef.current = owner;
+    }
     journeyNavBridgeRef.current = bridge;
     setJourneyNavCaps({
       canBack: bridge?.canBack ?? false,
@@ -2063,14 +2075,6 @@ function DashboardPanel({
       transition={panelTransition}
       onAnimationComplete={() => {
         if (dashboardExitingRef.current) {
-          // #region agent log
-          debugSessionLog({
-            location: 'DrivingView.tsx:DashboardPanel.onAnimationComplete',
-            message: 'Panel animation complete: dashboard exiting',
-            data: { isJourney, isHood, hoodEntryPhase },
-            hypothesisId: 'B',
-          });
-          // #endregion
           dashboardExitingRef.current = false;
           onDashboardExitComplete?.();
           return;
@@ -2229,37 +2233,74 @@ function DashboardPanel({
 }
 
 // ── Main DrivingView ──────────────────────────────────────────────────────────
-function useDashboardPinnedBackdropBottom(
+function useBackdropLayoutEpoch(
   rootRef: React.RefObject<HTMLDivElement | null>,
   panelRef: React.RefObject<HTMLDivElement | null>,
   enabled: boolean,
+  pinToDashboard: boolean,
   panelMounted: boolean,
-) {
-  const [bottomPx, setBottomPx] = useState(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
-  const bottomPxRef = useRef(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
+  isMobileViewport: boolean,
+): number {
+  const [layoutEpoch, setLayoutEpoch] = useState(0);
+  const lastSignatureRef = useRef('');
 
   useLayoutEffect(() => {
+    const root = rootRef.current;
+
     if (!enabled) {
-      bottomPxRef.current = DRIVING_DEFAULT_BACKDROP_BOTTOM_PX;
-      setBottomPx(DRIVING_DEFAULT_BACKDROP_BOTTOM_PX);
+      root?.style.removeProperty('--driving-measured-backdrop-bottom');
+      lastSignatureRef.current = '';
+      setLayoutEpoch(0);
       return;
+    }
+
+    if (pinToDashboard && isMobileViewport) {
+      root?.style.setProperty(
+        '--driving-measured-backdrop-bottom',
+        `${estimateMobileBackdropBottomPx()}px`,
+      );
+    } else if (!pinToDashboard) {
+      root?.style.removeProperty('--driving-measured-backdrop-bottom');
     }
 
     let rafId = 0;
 
     const measure = () => {
-      const root = rootRef.current;
-      if (!root) return;
+      const rootEl = rootRef.current;
+      if (!rootEl) return;
 
-      const rootRect = root.getBoundingClientRect();
+      const rootRect = rootEl.getBoundingClientRect();
+      const backdrop = rootEl.querySelector('.driving-view-backdrop');
+      const lottie = rootEl.querySelector('.driving-view-backdrop__lottie');
       const panel = panelRef.current;
-      const nextBottom = panel
-        ? Math.max(DRIVING_FOOTER_HEIGHT_PX, rootRect.bottom - panel.getBoundingClientRect().top)
-        : DRIVING_DEFAULT_BACKDROP_BOTTOM_PX;
+      const backdropRect = backdrop?.getBoundingClientRect();
+      const lottieRect = lottie?.getBoundingClientRect();
 
-      if (nextBottom === bottomPxRef.current) return;
-      bottomPxRef.current = nextBottom;
-      setBottomPx(nextBottom);
+      if (pinToDashboard && panel) {
+        const measuredBottom = Math.max(
+          DRIVING_FOOTER_HEIGHT_PX,
+          rootRect.bottom - panel.getBoundingClientRect().top,
+        );
+        rootEl.style.setProperty(
+          '--driving-measured-backdrop-bottom',
+          `${measuredBottom}px`,
+        );
+      }
+
+      const signature = [
+        Math.round(rootRect.width),
+        Math.round(rootRect.height),
+        backdropRect ? Math.round(backdropRect.width) : 0,
+        backdropRect ? Math.round(backdropRect.height) : 0,
+        lottieRect ? Math.round(lottieRect.width) : 0,
+        lottieRect ? Math.round(lottieRect.height) : 0,
+        panel ? Math.round(panel.getBoundingClientRect().top) : 0,
+        pinToDashboard ? rootEl.style.getPropertyValue('--driving-measured-backdrop-bottom') : '',
+      ].join('|');
+
+      if (signature === lastSignatureRef.current) return;
+      lastSignatureRef.current = signature;
+      setLayoutEpoch((epoch) => epoch + 1);
     };
 
     const scheduleMeasure = () => {
@@ -2273,20 +2314,30 @@ function useDashboardPinnedBackdropBottom(
     measure();
 
     const observer = new ResizeObserver(scheduleMeasure);
-    const root = rootRef.current;
     if (root) observer.observe(root);
-    if (panelRef.current) observer.observe(panelRef.current);
+
+    const backdrop = root?.querySelector('.driving-view-backdrop');
+    if (backdrop instanceof Element) observer.observe(backdrop);
+
+    const lottie = root?.querySelector('.driving-view-backdrop__lottie');
+    if (lottie instanceof Element) observer.observe(lottie);
+
+    const panel = panelRef.current;
+    if (panel) observer.observe(panel);
 
     window.addEventListener('resize', scheduleMeasure);
+    window.visualViewport?.addEventListener('resize', scheduleMeasure);
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
       observer.disconnect();
       window.removeEventListener('resize', scheduleMeasure);
+      window.visualViewport?.removeEventListener('resize', scheduleMeasure);
+      root?.style.removeProperty('--driving-measured-backdrop-bottom');
     };
-  }, [enabled, panelMounted, rootRef, panelRef]);
+  }, [enabled, pinToDashboard, panelMounted, isMobileViewport, rootRef, panelRef]);
 
-  return bottomPx;
+  return layoutEpoch;
 }
 
 export function DrivingView({
@@ -2313,6 +2364,8 @@ export function DrivingView({
   const [skyRunId, setSkyRunId] = useState(0);
   const [dashboardEpoch, setDashboardEpoch] = useState(0);
   const pendingCheckpointRef = useRef<NavCheckpoint | null>(null);
+  const hoodNavBusyRef = useRef(false);
+  const hoodCrossNavCooldownUntilRef = useRef(0);
   const lastTirePhaseRef = useRef<TirePhase>(getInitialTirePhase(report));
   const drivingRootRef = useRef<HTMLDivElement>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
@@ -2342,6 +2395,24 @@ export function DrivingView({
     setHoodEntryPhase(null);
     setCurrentScreen('hood');
   }, [report]);
+
+  const canStartHoodCrossNav = useCallback(() => {
+    return Date.now() >= hoodCrossNavCooldownUntilRef.current;
+  }, []);
+
+  const markHoodCrossNavCooldown = useCallback(() => {
+    hoodCrossNavCooldownUntilRef.current = Date.now() + 500;
+  }, []);
+
+  const markHoodNavBusy = useCallback(() => {
+    hoodNavBusyRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (hoodNavTransition == null && hoodEntryPhase == null) {
+      hoodNavBusyRef.current = false;
+    }
+  }, [hoodNavTransition, hoodEntryPhase]);
 
   const saveJourneyResumeForNav = useCallback(() => {
     setJourneyResumeSectionIdx(journeyNavSectionIndex);
@@ -2411,6 +2482,13 @@ export function DrivingView({
 
   const handleSkip = () => {
     playUiClickSound();
+    trackAnalyticsEventOnce('intro_skipped', reportToAnalyticsContext(report));
+    trackAnalyticsEventOnce(
+      'checkpoint_reached',
+      reportToAnalyticsContext(report),
+      { checkpoint: 'journey' },
+      'checkpoint:journey',
+    );
     setCurrentSlide(null);
     setCurrentScreen('journey');
     skyProgress.set(1);
@@ -2430,6 +2508,12 @@ export function DrivingView({
     if (isEnteringJourney) {
       playUiClickSound();
       skyProgress.set(1);
+      trackAnalyticsEventOnce(
+        'checkpoint_reached',
+        reportToAnalyticsContext(report),
+        { checkpoint: 'journey' },
+        'checkpoint:journey',
+      );
       setCurrentSlide(null);
       setCurrentScreen('journey');
       return;
@@ -2445,25 +2529,21 @@ export function DrivingView({
     setJourneyResumeSectionIdx(undefined);
     setJourneyResumeGpsPhase(undefined);
     setHoodPhase('standards');
-    setHoodSession((n) => n + 1);
-    setCurrentScreen('hood');
+    setCurrentScreen((prev) => {
+      if (prev !== 'hood') {
+        setHoodSession((n) => n + 1);
+      }
+      return 'hood';
+    });
   };
 
   const goToCheckpoint = (checkpoint: NavCheckpoint) => {
-    // #region agent log
-    debugSessionLog({
-      location: 'DrivingView.tsx:goToCheckpoint',
-      message: 'goToCheckpoint called',
-      data: { checkpoint, activeNav, currentScreen, hoodPhase, hoodEntryPhase, hoodNavTransition, currentSlide },
-      hypothesisId: 'D',
-    });
-    // #endregion
+    if (currentScreen === 'hood') {
+      stopHoodStandardsDataProcessingBeep();
+    }
     if (checkpoint === activeNav) {
       if (checkpoint === 'journey') {
         resetJourneyToStartForNav();
-      }
-      if (checkpoint === 'tires') {
-        resetTiresToStartForNav();
       }
       return;
     }
@@ -2471,26 +2551,30 @@ export function DrivingView({
     const onHood = currentScreen === 'hood';
     const onStandards = onHood && hoodPhase === 'standards';
     const onTires = onHood && isTirePhase(hoodPhase);
+    const hoodTransitionActive =
+      hoodNavBusyRef.current || hoodNavTransition != null || hoodEntryPhase != null;
+
+    if (hoodTransitionActive && !(onHood && (checkpoint === 'journey' || checkpoint === 'diagnostics'))) {
+      return;
+    }
+
     const leavingHoodForMainSection =
       onHood && (checkpoint === 'journey' || checkpoint === 'diagnostics');
     const hoodEntryBlocksNavigation =
       hoodEntryPhase === 'sliding-dashboard' || hoodEntryPhase === 'fading-to-black';
 
     if (
-      (hoodEntryPhase || hoodNavTransition) &&
+      hoodTransitionActive &&
       leavingHoodForMainSection &&
       !hoodEntryBlocksNavigation
     ) {
-      // #region agent log
-      debugSessionLog({
-        location: 'DrivingView.tsx:goToCheckpoint',
-        message: 'goToCheckpoint superseding hood transition to leave',
-        data: { checkpoint, hoodEntryPhase, hoodNavTransition, hoodPhase },
-        hypothesisId: 'A,D',
-      });
-      // #endregion
+      if (hoodEntryPhase === 'hood-panel-falling') {
+        return;
+      }
       if (!isStarted) setIsStarted(true);
       setCurrentSlide(null);
+      markHoodCrossNavCooldown();
+      markHoodNavBusy();
       setHoodNavTransition(null);
       setHoodPhase('standards');
       pendingCheckpointRef.current = checkpoint;
@@ -2498,15 +2582,7 @@ export function DrivingView({
       return;
     }
 
-    if (hoodEntryPhase || hoodNavTransition) {
-      // #region agent log
-      debugSessionLog({
-        location: 'DrivingView.tsx:goToCheckpoint',
-        message: 'goToCheckpoint blocked by in-flight transition',
-        data: { checkpoint, hoodEntryPhase, hoodNavTransition, activeNav },
-        hypothesisId: 'A,D',
-      });
-      // #endregion
+    if (hoodTransitionActive) {
       return;
     }
 
@@ -2514,19 +2590,27 @@ export function DrivingView({
     setCurrentSlide(null);
 
     if (onTires && checkpoint === 'hood') {
-      // #region agent log
-      fetch('http://127.0.0.1:7309/ingest/e37df176-7b34-48f2-acb9-bbc0f91681a3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dacadc'},body:JSON.stringify({sessionId:'dacadc',location:'DrivingView.tsx:goToCheckpoint.tiresToHood',message:'Footer nav tires to hood',data:{hoodPhase,hoodNavTransition,hoodEntryPhase},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
+      if (!canStartHoodCrossNav()) {
+        return;
+      }
+      markHoodNavBusy();
       setHoodNavTransition('tire-to-standards');
+      markHoodCrossNavCooldown();
       return;
     }
     if (onStandards && checkpoint === 'tires') {
+      if (!canStartHoodCrossNav()) {
+        return;
+      }
       lastTirePhaseRef.current = getInitialTirePhase(report);
+      markHoodNavBusy();
       setHoodNavTransition('standards-to-tire');
+      markHoodCrossNavCooldown();
       return;
     }
     if (onHood && (checkpoint === 'journey' || checkpoint === 'diagnostics')) {
       pendingCheckpointRef.current = checkpoint;
+      markHoodNavBusy();
       setHoodEntryPhase('hood-panel-falling');
       return;
     }
@@ -2534,6 +2618,7 @@ export function DrivingView({
     if (checkpoint === 'journey') {
       if (onHood) {
         pendingCheckpointRef.current = 'journey';
+        markHoodNavBusy();
         setHoodEntryPhase('hood-panel-falling');
         return;
       }
@@ -2548,24 +2633,32 @@ export function DrivingView({
         handleGoToHood();
       } else {
         enterHoodScreen();
+        markHoodNavBusy();
         setHoodEntryPhase('hood-panel-rising');
       }
       return;
     }
     if (checkpoint === 'tires') {
+      if (onHood && isTirePhase(hoodPhase)) {
+        return;
+      }
       setJourneyResumeSectionIdx(undefined);
       setJourneyResumeGpsPhase(undefined);
       const initialTirePhase = getInitialTirePhase(report);
       lastTirePhaseRef.current = initialTirePhase;
       if (currentScreen === 'journey') {
         pendingCheckpointRef.current = 'tires';
+        markHoodNavBusy();
         setHoodEntryPhase('sliding-dashboard');
         return;
       }
       setHoodPhase(initialTirePhase);
-      setHoodSession((n) => n + 1);
+      if (currentScreen !== 'hood') {
+        setHoodSession((n) => n + 1);
+      }
       setCurrentScreen('hood');
       if (!onHood) {
+        markHoodNavBusy();
         setHoodEntryPhase('hood-panel-rising');
       }
       return;
@@ -2599,27 +2692,12 @@ export function DrivingView({
   };
 
   const handleDashboardExitComplete = useCallback(() => {
-    // #region agent log
-    debugSessionLog({
-      location: 'DrivingView.tsx:handleDashboardExitComplete',
-      message: 'Dashboard exit complete',
-      data: { currentScreen, pendingCheckpoint: pendingCheckpointRef.current },
-      hypothesisId: 'B',
-    });
-    // #endregion
+    markHoodNavBusy();
     setHoodEntryPhase('fading-to-black');
-  }, []);
+  }, [markHoodNavBusy]);
 
   const handleBackdropFadeComplete = useCallback(() => {
     const pending = pendingCheckpointRef.current;
-    // #region agent log
-    debugSessionLog({
-      location: 'DrivingView.tsx:handleBackdropFadeComplete',
-      message: 'Backdrop fade complete',
-      data: { pending, currentScreen },
-      hypothesisId: 'B',
-    });
-    // #endregion
     pendingCheckpointRef.current = null;
     if (pending === 'tires') {
       if (!isStarted) setIsStarted(true);
@@ -2634,8 +2712,9 @@ export function DrivingView({
     } else {
       enterHoodScreen();
     }
+    markHoodNavBusy();
     setHoodEntryPhase('hood-panel-rising');
-  }, []);
+  }, [markHoodNavBusy, report]);
 
   const handleHoodPanelRiseComplete = useCallback(() => {
     setHoodEntryPhase(null);
@@ -2643,14 +2722,6 @@ export function DrivingView({
 
   const handleHoodPanelFallComplete = useCallback(() => {
     const pending = pendingCheckpointRef.current;
-    // #region agent log
-    debugSessionLog({
-      location: 'DrivingView.tsx:handleHoodPanelFallComplete',
-      message: 'Hood panel fall complete',
-      data: { pending, currentScreen },
-      hypothesisId: 'B',
-    });
-    // #endregion
     pendingCheckpointRef.current = null;
     setHoodEntryPhase(null);
     if (pending === 'journey') {
@@ -2665,14 +2736,6 @@ export function DrivingView({
   }, [resetJourneyToStartForNav]);
 
   const handleHoodNavTransitionMidpoint = useCallback(() => {
-    // #region agent log
-    debugSessionLog({
-      location: 'DrivingView.tsx:handleHoodNavTransitionMidpoint',
-      message: 'Hood nav transition midpoint',
-      data: { hoodNavTransition, hoodPhase },
-      hypothesisId: 'A',
-    });
-    // #endregion
     if (hoodNavTransition === 'tire-to-standards') {
       setHoodPhase('standards');
       return;
@@ -2685,31 +2748,27 @@ export function DrivingView({
   }, [hoodNavTransition, report]);
 
   const handleHoodNavTransitionComplete = useCallback(() => {
-    // #region agent log
-    debugSessionLog({
-      location: 'DrivingView.tsx:handleHoodNavTransitionComplete',
-      message: 'Hood nav transition complete',
-      data: { hoodNavTransition },
-      hypothesisId: 'A',
-    });
-    // #endregion
+    markHoodCrossNavCooldown();
     setHoodNavTransition(null);
-  }, [hoodNavTransition]);
+  }, [markHoodCrossNavCooldown]);
 
   const beginStandardsToTireTransition = useCallback(() => {
-    if (hoodEntryPhase || hoodNavTransition) return;
+    if (hoodNavBusyRef.current || hoodEntryPhase || hoodNavTransition) return;
     lastTirePhaseRef.current = getInitialTirePhase(report);
+    markHoodNavBusy();
     setHoodNavTransition('standards-to-tire');
-  }, [hoodEntryPhase, hoodNavTransition, report]);
+  }, [hoodEntryPhase, hoodNavTransition, markHoodNavBusy, report]);
 
   const beginTireToStandardsTransition = useCallback(() => {
-    if (hoodEntryPhase || hoodNavTransition) return;
+    if (hoodNavBusyRef.current || hoodEntryPhase || hoodNavTransition) return;
+    markHoodNavBusy();
     setHoodNavTransition('tire-to-standards');
-  }, [hoodEntryPhase, hoodNavTransition]);
+  }, [hoodEntryPhase, hoodNavTransition, markHoodNavBusy]);
 
   const handleGoToHood = useCallback(() => {
+    markHoodNavBusy();
     setHoodEntryPhase('sliding-dashboard');
-  }, []);
+  }, [markHoodNavBusy]);
 
   const handleBackToJourneyEnd = useCallback(() => {
     saveJourneyResumeForNav();
@@ -2725,10 +2784,51 @@ export function DrivingView({
   const handleStart = useCallback(() => {
     primeUiClickSoundSession();
     playCarStartSound();
+    trackAnalyticsEvent('session_started', reportToAnalyticsContext(report));
     setIsStarted(true);
     setCurrentSlide(0);
     setSkyRunId((n) => n + 1);
-  }, [playCarStartSound]);
+  }, [playCarStartSound, report]);
+
+  useEffect(() => {
+    if (!isStarted) return;
+    const company = reportToAnalyticsContext(report);
+    if (currentScreen === 'journey') {
+      trackAnalyticsEventOnce(
+        'checkpoint_reached',
+        company,
+        { checkpoint: 'journey' },
+        'checkpoint:journey',
+      );
+      return;
+    }
+    if (currentScreen === 'diagnostics') {
+      trackAnalyticsEventOnce(
+        'checkpoint_reached',
+        company,
+        { checkpoint: 'diagnostics' },
+        'checkpoint:diagnostics',
+      );
+      return;
+    }
+    if (currentScreen === 'hood') {
+      if (isTirePhase(hoodPhase)) {
+        trackAnalyticsEventOnce(
+          'checkpoint_reached',
+          company,
+          { checkpoint: 'tires' },
+          'checkpoint:tires',
+        );
+      } else {
+        trackAnalyticsEventOnce(
+          'checkpoint_reached',
+          company,
+          { checkpoint: 'hood' },
+          'checkpoint:hood',
+        );
+      }
+    }
+  }, [isStarted, currentScreen, hoodPhase, report]);
 
   const isHoodScreen = currentScreen === 'hood';
   const isDiagnosticsScreen = currentScreen === 'diagnostics';
@@ -2742,70 +2842,45 @@ export function DrivingView({
   const showSkyAndRoad =
     showLandingBackdrop || showDrivingBackdrop || isBackdropFadingToBlack;
 
-  const showRoadLottie = showDrivingBackdrop && !prefersReducedMotion();
-  const showFooterNav = isStarted && diagnosticsStage === 'full';
-  const isMobileViewport = useMobileViewport();
   const useFixedDrivingBand = showSkyAndRoad;
   const isDrivingBackdropExiting =
     hoodEntryPhase === 'sliding-dashboard' || hoodEntryPhase === 'fading-to-black';
   const showDashboardPanel =
     !isDiagnosticsFlow &&
     (!isStarted || currentSlide !== null || currentScreen === 'journey' || currentScreen === 'hood');
-
-  // #region agent log
-  useEffect(() => {
-    const onError = (event: ErrorEvent) => {
-      debugSessionLog({
-        location: 'DrivingView.tsx:window.error',
-        message: 'Uncaught error',
-        data: { message: event.message, filename: event.filename, lineno: event.lineno, colno: event.colno },
-        hypothesisId: 'E',
-      });
-    };
-    const onRejection = (event: PromiseRejectionEvent) => {
-      debugSessionLog({
-        location: 'DrivingView.tsx:unhandledrejection',
-        message: 'Unhandled rejection',
-        data: { reason: String(event.reason) },
-        hypothesisId: 'E',
-      });
-    };
-    window.addEventListener('error', onError);
-    window.addEventListener('unhandledrejection', onRejection);
-    return () => {
-      window.removeEventListener('error', onError);
-      window.removeEventListener('unhandledrejection', onRejection);
-    };
-  }, []);
-
-  useEffect(() => {
-    debugSessionLog({
-      location: 'DrivingView.tsx:renderState',
-      message: 'DrivingView render state',
-      data: {
-        currentScreen,
-        currentSlide,
-        hoodPhase,
-        hoodEntryPhase,
-        hoodNavTransition,
-        diagnosticsStage,
-        showDashboardPanel,
-        showFooterNav,
-        isBackdropFadingToBlack,
-        isDiagnosticsFlow,
-        activeNav,
-        pendingCheckpoint: pendingCheckpointRef.current,
-      },
-      hypothesisId: 'B,C,D',
-    });
-  }, [currentScreen, currentSlide, hoodPhase, hoodEntryPhase, hoodNavTransition, diagnosticsStage, showDashboardPanel, showFooterNav, isBackdropFadingToBlack, isDiagnosticsFlow, activeNav]);
-  // #endregion
+  const isMobileViewport = useMobileViewport();
+  const pinBackdropToDashboard =
+    useFixedDrivingBand &&
+    showDrivingBackdrop &&
+    showDashboardPanel &&
+    (currentScreen === 'journey' || isMobileViewport);
+  const showRoadLottie = showDrivingBackdrop && !prefersReducedMotion();
+  const backdropLayoutEpoch = useBackdropLayoutEpoch(
+    drivingRootRef,
+    dashboardPanelRef,
+    showRoadLottie || showSkyAndRoad,
+    pinBackdropToDashboard,
+    dashboardPanelMounted,
+    isMobileViewport,
+  );
+  const roadLottiePreserveAspectRatio = 'xMidYMax slice';
+  const showFooterNav = isStarted && diagnosticsStage === 'full';
+  const footerNavLocked = hoodNavTransition != null || hoodEntryPhase != null;
+  const pinnedBackdropStyle =
+    pinBackdropToDashboard && isMobileViewport
+      ? ({
+          '--driving-measured-backdrop-bottom': `${estimateMobileBackdropBottomPx()}px`,
+        } as React.CSSProperties)
+      : undefined;
 
   return (
     <div
+      ref={drivingRootRef}
+      style={pinnedBackdropStyle}
       className={[
         'driving-view-root relative w-full h-full overflow-hidden bg-black',
         useFixedDrivingBand ? 'driving-view-root--driving-band' : '',
+        pinBackdropToDashboard ? 'driving-view-root--backdrop-pinned' : '',
         currentScreen === 'journey' ? 'driving-view-root--journey' : '',
         embedded ? 'driving-view-root--embedded' : '',
       ]
@@ -2886,18 +2961,17 @@ export function DrivingView({
               </div>
               {showRoadLottie && (
                 <>
-                  {!isMobileViewport && (
-                    <LazyLottie
-                      loadAnimation={loadDrivingAnimation}
-                      active={showRoadLottie}
-                      loop
-                      autoplay
-                      playbackSpeed={DRIVING_LOTTIE_PLAYBACK_SPEED}
-                      className="driving-view-backdrop__lottie-cutout"
-                      style={{ width: '100%', height: '100%' }}
-                      rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
-                    />
-                  )}
+                  <LazyLottie
+                    loadAnimation={loadDrivingAnimation}
+                    active={showRoadLottie}
+                    loop
+                    autoplay
+                    playbackSpeed={DRIVING_LOTTIE_PLAYBACK_SPEED}
+                    className="driving-view-backdrop__lottie-cutout"
+                    style={{ width: '100%' }}
+                    layoutEpoch={backdropLayoutEpoch}
+                    rendererSettings={{ preserveAspectRatio: roadLottiePreserveAspectRatio }}
+                  />
                   <LazyLottie
                     loadAnimation={loadDrivingAnimation}
                     active={showRoadLottie}
@@ -2905,8 +2979,9 @@ export function DrivingView({
                     autoplay
                     playbackSpeed={DRIVING_LOTTIE_PLAYBACK_SPEED}
                     className="driving-view-backdrop__lottie"
-                    style={{ width: '100%', height: '100%' }}
-                    rendererSettings={{ preserveAspectRatio: 'xMidYMax slice' }}
+                    style={{ width: '100%' }}
+                    layoutEpoch={backdropLayoutEpoch}
+                    rendererSettings={{ preserveAspectRatio: roadLottiePreserveAspectRatio }}
                   />
                 </>
               )}
@@ -2944,11 +3019,19 @@ export function DrivingView({
         <div className="driving-view-footer__nav-slot">
           {showFooterNav && (
             <>
-              <nav className="driving-view-footer__nav driving-view-footer__nav--labels" aria-label="Main sections">
+              <nav
+                className={[
+                  'driving-view-footer__nav driving-view-footer__nav--labels',
+                  footerNavLocked ? 'driving-view-footer__nav--locked' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                aria-label="Main sections"
+              >
                 <button
                   type="button"
                   onClick={goToPrev}
-                  disabled={currentIdx <= 0}
+                  disabled={footerNavLocked || currentIdx <= 0}
                   className="driving-view-footer__nav-arrow"
                   aria-label="Previous section"
                 >
@@ -2961,6 +3044,7 @@ export function DrivingView({
                     key={item.id}
                     type="button"
                     onClick={() => goToCheckpoint(item.id)}
+                    disabled={footerNavLocked}
                     className={[
                       'driving-view-footer__nav-label',
                       activeNav === item.id ? 'is-active' : '',
@@ -2974,7 +3058,7 @@ export function DrivingView({
                 <button
                   type="button"
                   onClick={goToNext}
-                  disabled={currentIdx < 0 || currentIdx === screenOrder.length - 1}
+                  disabled={footerNavLocked || currentIdx < 0 || currentIdx === screenOrder.length - 1}
                   className="driving-view-footer__nav-arrow"
                   aria-label="Next section"
                 >
@@ -2985,7 +3069,12 @@ export function DrivingView({
               </nav>
 
               <nav
-                className="driving-view-footer__nav driving-view-footer__nav--dots"
+                className={[
+                  'driving-view-footer__nav driving-view-footer__nav--dots',
+                  footerNavLocked ? 'driving-view-footer__nav--locked' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 aria-label="Main sections"
               >
                 <div className="driving-view-footer__progress-track">
@@ -3004,6 +3093,7 @@ export function DrivingView({
                       )}
                       <button
                         type="button"
+                        disabled={footerNavLocked}
                         className={[
                           'driving-view-footer__progress-dot',
                           activeNav === item.id ? 'is-active' : '',

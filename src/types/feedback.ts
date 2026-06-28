@@ -1,3 +1,5 @@
+import type { UsageReportResponse } from '@/types/analytics';
+
 export type FeedbackRating = 'positive' | 'negative';
 
 export type FeedbackSubmission = {
@@ -29,4 +31,5 @@ export type FeedbackReportSummary = {
 export type FeedbackReportResponse = {
   entries: StoredFeedbackEntry[];
   summary: FeedbackReportSummary;
+  usage?: UsageReportResponse;
 };
