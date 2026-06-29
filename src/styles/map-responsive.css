@@ -8528,7 +8528,8 @@
 }
 
 .journey-counter-panel__gauge .journey-counter-gauge__dial-slot--counter.journey-counter-gauge__dial-slot--community-logo:not(
-    .journey-counter-gauge__dial-slot--dual-logos
+    .journey-counter-gauge__dial-slot--dual-logos,
+    .journey-counter-gauge__dial-slot--community-stack
   ) {
   width: 100%;
   max-width: 100%;
@@ -8707,18 +8708,28 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
+.community-logo-gauge__face.community-logo-gauge__face--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .community-logo-gauge__empty-mark {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   color: #ef4444;
   animation: journey-gauge-warning-flash 0.7s ease-in-out infinite;
 }
 
 .community-logo-gauge__empty-mark-icon {
   display: block;
-  width: clamp(2.25rem, 42%, 3.75rem);
-  height: clamp(2.25rem, 42%, 3.75rem);
+  width: clamp(1.75rem, 38%, 3.5rem);
+  height: clamp(1.75rem, 38%, 3.5rem);
+  flex-shrink: 0;
   filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.85));
 }
 
@@ -8969,6 +8980,18 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   box-sizing: border-box;
 }
 
+.journey-counter-gauge__dial-slot--community-stack {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  flex: 0 1 auto;
+  max-height: 100%;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
 .journey-counter-panel__gauge .community-logo-gauge--grid {
   width: 100%;
   height: 100%;
@@ -8988,11 +9011,231 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 .full-diagnostics__stat-gauge--community-logos.full-diagnostics__stat-gauge--counter-only
   > .community-logo-gauge {
   min-height: 0;
-  height: 100%;
+  height: auto;
+  flex: 0 1 auto;
 }
 
 .full-diagnostics__stat-gauge--community-logos .community-logo-gauge__grid {
   min-height: var(--journey-counter-stat-min-h, clamp(3.75rem, 10vw, 5.25rem));
+}
+
+.full-diagnostics__stats-column--communities .full-diagnostics__stat-gauge--community-logos.journey-counter-panel__gauge {
+  --journey-counter-dial-height: min(100%, clamp(9rem, 32vw, 12.5rem));
+  --journey-counter-dial-width: min(100%, clamp(18rem, 64vw, 25rem));
+  --journey-counter-dial-size: var(--journey-counter-dial-height);
+  --journey-counter-dial-gap: clamp(0.5rem, 1.4vh, 0.875rem);
+  --dual-logo-gap: clamp(4px, 0.75vw, 8px);
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(4px, 0.6vh, 8px);
+  padding-top: clamp(8px, 1.2vh, 14px);
+  overflow: hidden;
+}
+
+.full-diagnostics__communities-heading {
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-family: 'Istok Web', sans-serif;
+  font-size: clamp(10px, 1.6vw, 12px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.full-diagnostics__stats-column--communities .full-diagnostics__stat-gauge--community-logos > .community-logo-gauge {
+  flex: 1 1 auto;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: visible;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  > .community-logo-gauge.community-logo-gauge--empty,
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  > .community-logo-gauge.community-logo-gauge--single:not(.community-logo-gauge--dual) {
+  --community-logo-mark-width: min(
+    calc(var(--journey-counter-dial-size, clamp(9rem, 32vw, 12.5rem)) * 1.47),
+    100%
+  );
+  --community-logo-mark-height: min(
+    calc(var(--community-logo-mark-width) * 126 / 300),
+    calc(var(--journey-counter-dial-size, clamp(9rem, 32vw, 12.5rem)) * 0.84)
+  );
+}
+
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--stack
+  .journey-counter-gauge__dial-slot--community-stack,
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--grid
+  .journey-counter-gauge__dial-slot--community-grid,
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--empty
+  .journey-counter-gauge__dial-slot--community-logo,
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--single
+  .journey-counter-gauge__dial-slot--community-logo {
+  padding-block: 0;
+  margin-bottom: 0;
+}
+
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--stack
+  .journey-counter-gauge__dial-slot--community-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--empty
+  .journey-counter-gauge__dial-slot--community-logo,
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--single
+  .journey-counter-gauge__dial-slot--community-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.full-diagnostics__stats-column--communities .community-logo-gauge__stack-scaler {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.full-diagnostics__stats-column--communities .community-logo-gauge__stack-scaler .community-logo-gauge__stack {
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(4px, 0.8vh, 8px);
+}
+
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--stack:not(:has(.community-logo-gauge__stack-scaler))
+  .community-logo-gauge__stack {
+  flex: 0 1 auto;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(4px, 0.8vh, 8px);
+}
+
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--stack
+  .community-logo-gauge__face {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .journey-counter-gauge__dial-slot--community-grid {
+  height: 100%;
+  flex: 1 1 auto;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.full-diagnostics__stats-column--communities .community-logo-gauge--grid {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.full-diagnostics__stats-column--communities .community-logo-gauge--grid .community-logo-gauge__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  gap: clamp(6px, 1vh, 10px);
+  align-items: center;
+  justify-items: stretch;
+  align-content: center;
+}
+
+.full-diagnostics__stats-column--communities .community-logo-gauge--grid .community-logo-gauge__button {
+  display: inline-flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  min-height: 0;
+  margin-inline: 0;
+  align-self: center;
+  justify-self: stretch;
+  box-sizing: border-box;
+}
+
+.full-diagnostics__stats-column--communities
+  .community-logo-gauge--grid
+  .community-logo-gauge__face {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+  flex: 0 0 auto;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge__grid {
+  min-height: 0;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos.full-diagnostics__stat-gauge--counter-only
+  > .community-logo-gauge {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .community-logo-gauge--dual {
@@ -9263,7 +9506,9 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 }
 
 .journey-counter-panel__gauge
-  .community-logo-gauge:not(.community-logo-gauge--dual):not(.community-logo-gauge--grid)
+  .community-logo-gauge:not(.community-logo-gauge--dual):not(.community-logo-gauge--grid):not(
+    .community-logo-gauge--stack
+  )
   .community-logo-gauge__button {
   display: block;
   width: var(--community-logo-mark-width);
@@ -9284,6 +9529,41 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   margin-inline: 0;
   padding: clamp(4px, 0.7vw, 7px);
   box-sizing: border-box;
+}
+
+.journey-counter-panel__gauge .community-logo-gauge--stack {
+  --community-logo-mark-width: min(
+    calc(var(--journey-counter-dial-size, var(--journey-counter-dial-height, 12rem)) * 0.84),
+    100%
+  );
+  --community-logo-mark-height: min(
+    calc(var(--community-logo-mark-width) * 126 / 300),
+    calc(var(--journey-counter-dial-size, var(--journey-counter-dial-height, 12rem)) * 0.48)
+  );
+}
+
+.journey-counter-panel__gauge .community-logo-gauge--stack .community-logo-gauge__button {
+  display: block;
+  width: var(--community-logo-mark-width);
+  height: auto;
+  max-width: var(--community-logo-mark-width);
+  margin-inline: auto;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: clamp(4px, 0.7vw, 7px);
+  border-radius: clamp(6px, 1vw, 10px);
+  overflow: visible;
+}
+
+.journey-counter-panel__gauge .community-logo-gauge--empty {
+  --community-logo-mark-width: min(
+    calc(var(--journey-counter-dial-size, var(--journey-counter-dial-height, 12rem)) * 1.47),
+    100%
+  );
+  --community-logo-mark-height: min(
+    calc(var(--community-logo-mark-width) * 126 / 300),
+    calc(var(--journey-counter-dial-size, var(--journey-counter-dial-height, 12rem)) * 0.84)
+  );
 }
 
 .journey-counter-panel__gauge .community-logo-gauge--empty .community-logo-gauge__button--empty {
@@ -12972,8 +13252,11 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   color: #9ca3af;
 }
 
-/* Top band — stats + tires (mobile); desktop uses body grid to place standards top-right */
+/* Top band — journey stats (left); tires/map/standards placed via body grid on desktop */
 .full-diagnostics__body {
+  --full-diagnostics-top-row-trim: 0px;
+  --full-diagnostics-top-row-h: clamp(168px, 26vh, 220px);
+  --full-diagnostics-bottom-quadrant-min-h: clamp(180px, 28vh, 260px);
   position: relative;
   z-index: 2;
   display: flex;
@@ -13003,6 +13286,11 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.full-diagnostics__upper-left {
+  height: var(--full-diagnostics-top-row-h);
+  max-height: var(--full-diagnostics-top-row-h);
 }
 
 .full-diagnostics__complete-wrap {
@@ -13427,6 +13715,72 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   align-items: stretch;
 }
 
+.full-diagnostics__stats-row--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(8px, 2vw, 16px);
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.full-diagnostics__stats-column--gauges {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 2vw, 12px);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  align-self: stretch;
+}
+
+.full-diagnostics__stats-column--gauges > .full-diagnostics__stat-gauge--counter-only {
+  flex: 1 1 0;
+  width: 100%;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.full-diagnostics__stats-column--gauges
+  .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
+  > .journey-speedometer-gauge,
+.full-diagnostics__stats-column--gauges
+  .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
+  > .journey-fuel-gauge,
+.full-diagnostics__stats-column--gauges
+  .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
+  > .journey-battery-gauge {
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+
+.full-diagnostics__stats-column--gauges
+  .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
+  .journey-speedometer-gauge__stat-below {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+}
+
+.full-diagnostics__stats-column--communities {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.full-diagnostics__stats-column--gauges > .full-diagnostics__stat-gauge--counter-only,
 .full-diagnostics__stats-row--counter-only > .full-diagnostics__stat-gauge--counter-only {
   grid-column: auto;
   grid-row: auto;
@@ -13446,12 +13800,12 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   justify-content: stretch;
   align-items: stretch;
   align-self: stretch;
+  width: 100%;
   min-height: var(--journey-counter-stat-min-h);
   height: auto;
   max-height: 100%;
 }
 
-.full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge > .community-logo-gauge,
 .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge > .journey-speedometer-gauge,
 .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge > .journey-fuel-gauge,
 .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge > .journey-battery-gauge {
@@ -13472,14 +13826,14 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   max-height: 100%;
   flex-flow: row nowrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   align-self: stretch;
-  gap: 0.35em;
-  padding-inline: clamp(6px, 1.2vw, 10px);
+  gap: clamp(6px, 1vw, 10px);
+  padding-inline: clamp(10px, 2vw, 16px);
   padding-block: clamp(4px, 0.6vh, 8px);
   overflow: hidden;
   box-sizing: border-box;
-  text-align: center;
+  text-align: left;
 }
 
 .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
@@ -13498,7 +13852,9 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   .journey-speedometer-gauge__stat-below
   .journey-speedometer-gauge__stat-value {
   flex: 0 0 auto;
-  max-width: 38%;
+  max-width: none;
+  width: auto;
+  text-align: left;
   font-size: var(--full-diagnostics-counter-value-size);
   line-height: 1.1;
   font-weight: 500;
@@ -13516,9 +13872,10 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   .journey-speedometer-gauge__stat-label {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 62%;
+  max-width: none;
   font-size: var(--full-diagnostics-counter-label-size);
-  padding-left: 0.2em;
+  padding-left: 0;
+  text-align: left;
   line-height: 1.15;
   color: rgba(232, 237, 242, 0.92);
   text-shadow:
@@ -13632,32 +13989,69 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge__button {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  margin: 0;
-  box-sizing: border-box;
   padding: clamp(3px, 0.55vw, 5px);
+  border-radius: clamp(6px, 0.9vw, 9px);
+  box-sizing: border-box;
 }
 
-.full-diagnostics__stat-gauge .community-logo-gauge--empty .community-logo-gauge__button--empty {
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--stack
+  .community-logo-gauge__button,
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--empty
+  .community-logo-gauge__button--empty,
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--single
+  .community-logo-gauge__button {
+  width: var(--community-logo-mark-width);
+  max-width: var(--community-logo-mark-width);
+  height: auto;
+  max-height: none;
+  margin: 0 auto;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--grid
+  .community-logo-gauge__button {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+
+.full-diagnostics__stat-gauge:not(.full-diagnostics__stat-gauge--community-logos)
+  .community-logo-gauge--empty
+  .community-logo-gauge__button--empty {
   width: 100%;
   height: 100%;
   max-width: 100%;
   max-height: 100%;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge__face:not(.community-logo-gauge__face--empty) {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.full-diagnostics__stat-gauge .community-logo-gauge__face--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--community-logo-mark-height, calc(var(--journey-counter-dial-size, 9rem) * 0.84));
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge--dual .community-logo-gauge__button {
   flex: 0 0 auto;
   padding: clamp(3px, 0.55vw, 5px);
-}
-
-.full-diagnostics__stat-gauge .community-logo-gauge__face {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
 }
 
 .full-diagnostics__stat-gauge.journey-counter-panel__gauge:not(
@@ -14305,7 +14699,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   padding-inline: clamp(4px, 0.7vw, 6px) clamp(8px, 1.4vw, 12px);
   margin-left: 0;
   box-sizing: border-box;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   overflow: hidden;
 }
@@ -14327,7 +14721,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   max-width: 100%;
   gap: clamp(4px, 0.9vh, 8px) clamp(4px, 0.7vw, 8px);
   grid-auto-rows: var(--hood-standards-database-icon-slot, clamp(24px, 5.2vh, 34px));
-  align-content: end;
+  align-content: start;
   justify-items: center;
   box-sizing: border-box;
   padding-inline: clamp(2px, 0.4vw, 4px);
@@ -14854,6 +15248,14 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     align-items: stretch;
   }
 
+  .full-diagnostics__stats-row--split {
+    gap: clamp(6px, 2vw, 12px);
+  }
+
+  .full-diagnostics__stats-column--gauges {
+    gap: clamp(6px, 2vw, 10px);
+  }
+
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge {
     --full-diagnostics-counter-value-size: clamp(13px, 3.2vw, 17px);
     --full-diagnostics-counter-label-size: clamp(10px, 2.4vw, 12px);
@@ -15190,15 +15592,26 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   }
 }
 
-/* Full Diagnostics desktop/tablet — 2×2 grid: stats | standards / tires | map */
+/* Full Diagnostics desktop/tablet — 2×2 grid: stats | map / standards | tires */
 @media (min-width: 481px) {
   .full-diagnostics__body {
+    --full-diagnostics-top-row-trim: 60px;
+    --full-diagnostics-top-row-h: clamp(
+      calc(200px - var(--full-diagnostics-top-row-trim)),
+      calc(34vh - var(--full-diagnostics-top-row-trim)),
+      calc(320px - var(--full-diagnostics-top-row-trim))
+    );
+    --full-diagnostics-bottom-quadrant-min-h: calc(180px + var(--full-diagnostics-top-row-trim));
+    --full-diagnostics-stat-card-trim: 20px; /* 60px / 3 journey stat cards */
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: minmax(clamp(200px, 34vh, 320px), auto) minmax(0, 1fr);
+    grid-template-rows: var(--full-diagnostics-top-row-h) minmax(
+        var(--full-diagnostics-bottom-quadrant-min-h),
+        1fr
+      );
     grid-template-areas:
-      'stats standards'
-      'tires map'
+      'stats map'
+      'standards tires'
       'complete complete';
     gap: clamp(12px, 2vh, 20px);
     align-content: stretch;
@@ -15219,67 +15632,46 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     grid-area: stats;
     min-height: 0;
     align-self: stretch;
+    height: 100%;
+    max-height: 100%;
+    justify-content: stretch;
   }
 
   .full-diagnostics__stats-row--counter-only {
     height: 100%;
+    max-height: 100%;
     align-self: stretch;
   }
 
+  .full-diagnostics__stats-row--split {
+    gap: clamp(10px, 1.6vw, 16px);
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .full-diagnostics__upper-left .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge {
+    --journey-counter-stat-min-h: 0;
+    min-height: 0;
+  }
+
+  .full-diagnostics__stats-column--gauges {
+    gap: clamp(6px, 0.8vh, 8px);
+    height: 100%;
+  }
+
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge {
-    --journey-counter-stat-min-h: clamp(4.5rem, 12vh, 6.5rem);
-    --full-diagnostics-counter-value-size: clamp(22px, 2.6vw, 30px);
-    --full-diagnostics-counter-label-size: clamp(13px, 1.6vw, 17px);
+    --journey-counter-stat-min-h: clamp(
+      calc(4.5rem - var(--full-diagnostics-stat-card-trim)),
+      calc(12vh - var(--full-diagnostics-stat-card-trim)),
+      calc(6.5rem - var(--full-diagnostics-stat-card-trim))
+    );
+    --full-diagnostics-counter-value-size: clamp(20px, 2.4vw, 28px);
+    --full-diagnostics-counter-label-size: clamp(12px, 1.4vw, 16px);
   }
 
   .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
     .journey-speedometer-gauge__stat-below {
-    flex-flow: column nowrap;
-    justify-content: center;
-    gap: clamp(4px, 0.6vh, 8px);
-    padding-inline: clamp(8px, 1.4vw, 14px);
-    padding-block: clamp(6px, 0.8vh, 10px);
-  }
-
-  .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
-    .journey-speedometer-gauge__stat-below
-    .journey-speedometer-gauge__stat-value {
-    max-width: 100%;
-    width: auto;
-    text-align: center;
-  }
-
-  .full-diagnostics__stat-gauge--counter-only.journey-counter-panel__gauge
-    .journey-speedometer-gauge__stat-below
-    .journey-speedometer-gauge__stat-label {
-    flex: 0 1 auto;
-    max-width: 100%;
-    width: auto;
-    padding-left: 0;
-    text-align: center;
-    overflow-wrap: normal;
-    word-break: normal;
-    hyphens: none;
-    text-wrap: pretty;
-  }
-
-  .full-diagnostics__upper-right {
-    grid-area: tires;
-    min-height: 0;
-    justify-content: center;
-    align-items: stretch;
-    overflow: hidden;
-  }
-
-  .full-diagnostics__standards-column {
-    grid-area: standards;
-    display: block;
-    flex: none;
-    width: auto;
-    max-width: none;
-    min-height: 0;
-    height: 100%;
-    align-self: stretch;
+    padding-block: clamp(4px, 0.5vh, 6px);
   }
 
   .full-diagnostics__map {
@@ -15289,18 +15681,44 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     width: auto;
     max-width: none;
     min-height: 0;
+    height: 100%;
+    max-height: 100%;
     align-self: stretch;
+  }
+
+  .full-diagnostics__map-shell,
+  .full-diagnostics__map-stage {
+    max-height: 100%;
   }
 
   .full-diagnostics__complete-wrap {
     grid-area: complete;
   }
 
+  .full-diagnostics__standards-column {
+    grid-area: standards;
+    display: block;
+    flex: none;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
+    align-self: stretch;
+  }
+
+  .full-diagnostics__upper-right {
+    grid-area: tires;
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
   .full-diagnostics__tires-roll {
     container-type: size;
     height: 100%;
     max-height: 100%;
-    min-height: 0;
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(2, minmax(0, 1fr));
     align-content: stretch;
@@ -15308,8 +15726,8 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   }
 
   .full-diagnostics__tire-roll-img {
-    max-width: min(46cqw, 108px);
-    max-height: min(44cqh, 96px);
+    max-width: min(48cqw, 124px);
+    max-height: min(50cqh, 124px);
   }
 
   .full-diagnostics__chevron {
@@ -15447,46 +15865,44 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     padding-bottom: clamp(12px, 2vh, 20px);
   }
 
-  .full-diagnostics__upper-band {
+  .full-diagnostics__upper-band,
+  .full-diagnostics__split {
     display: contents;
   }
 
   .full-diagnostics__upper-left {
     order: 1;
     width: 100%;
+    height: var(--full-diagnostics-top-row-h);
+    max-height: var(--full-diagnostics-top-row-h);
   }
 
-  .full-diagnostics__upper-right {
-    order: 2;
-    width: 100%;
-  }
-
-  .full-diagnostics__split {
-    order: 3;
-    flex-direction: column;
-    flex: none;
-    gap: clamp(16px, 3vh, 28px);
-  }
-
-  .full-diagnostics__complete-wrap {
-    order: 4;
-  }
-
-  .full-diagnostics__standards-column,
   .full-diagnostics__map {
+    order: 2;
     flex: 0 0 auto;
     width: 100%;
     max-width: 100%;
     display: flex !important;
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
   }
 
   .full-diagnostics__standards-column {
-    min-height: clamp(180px, 28vh, 260px);
+    order: 3;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    display: flex !important;
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
     align-items: stretch;
   }
 
-  .full-diagnostics__map {
-    min-height: clamp(180px, 28vh, 260px);
+  .full-diagnostics__upper-right {
+    order: 4;
+    width: 100%;
+  }
+
+  .full-diagnostics__complete-wrap {
+    order: 5;
   }
 
   .full-diagnostics__map-shell {
@@ -15494,12 +15910,12 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     inset: auto;
     flex: 1 1 auto;
     width: 100%;
-    min-height: clamp(180px, 28vh, 260px);
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
     padding: 0;
   }
 
   .full-diagnostics__map-stage {
-    min-height: clamp(180px, 28vh, 260px);
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
   }
 
   .full-diagnostics__standards-tablet-wrap {
@@ -15510,7 +15926,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     align-items: stretch;
     width: 100%;
     padding: 0;
-    min-height: clamp(180px, 28vh, 260px);
+    min-height: var(--full-diagnostics-bottom-quadrant-min-h);
     margin-bottom: clamp(8px, 1.5vh, 14px);
   }
 
@@ -15526,6 +15942,10 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     row-gap: clamp(8px, 2vh, 14px);
     column-gap: clamp(8px, 2vw, 14px);
     max-width: 100%;
+  }
+
+  .full-diagnostics__stats-row--split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .full-diagnostics__tires-roll {
@@ -15606,6 +16026,10 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 @media (max-width: 768px) {
   .journey-nav-map-cluster {
     padding: 8px 0;
+  }
+
+  .journey-nav-attendance-bar__route-fill-tip {
+    transform: translate(calc(42% - 7px), -50%);
   }
 
   /* Keep the left edge of the map visible; clip overflow on the right. */

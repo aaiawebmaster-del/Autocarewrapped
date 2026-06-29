@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { motion } from 'motion/react';
 import {
   HoodStandardsSummaryDevice,
@@ -12,6 +12,8 @@ import { JourneyNavMapAnimation } from './JourneyNavMapAnimation';
 import { JourneyNavDriverMarker } from './JourneyNavDriverMarker';
 import { GpsPopupContent, GpsAttendanceRoutePanel } from './GpsNavPopupContent';
 import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
+import { resolveCommunityLogos } from '@/lib/communityLogos';
+import { fitDiagnosticsCommunityDialSize } from '@/lib/fitDiagnosticsCommunityDialSize';
 import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
@@ -49,59 +51,300 @@ const TIRE_ROLL_IMAGES: Record<TirePhase, string> = {
 /** Rise into the same vertical band as the top stats / tires carousel */
 const DIAG_STANDARDS_RISE_OFFSET = 36;
 
-function DiagnosticsJourneyStatsRow({
-  report,
-  counterOnly = false,
+function DiagnosticsStatGauge({
+  stat,
+  counterOnly,
 }: {
-  report: WrappedReport;
-  counterOnly?: boolean;
+  stat: ReturnType<typeof buildDiagnosticsCounterStats>[number];
+  counterOnly: boolean;
 }) {
-  const journeyCounterStats = buildDiagnosticsCounterStats(report);
-
   return (
-    <div
+    <section
       className={[
-        'full-diagnostics__stats-row',
-        counterOnly ? 'full-diagnostics__stats-row--counter-only' : '',
+        'journey-counter-panel__gauge',
+        'full-diagnostics__stat-gauge',
+        counterOnly ? 'full-diagnostics__stat-gauge--counter-only' : '',
       ]
         .filter(Boolean)
         .join(' ')}
+      aria-label={stat.label}
     >
-      {journeyCounterStats.map((stat) => (
-        <section
-          key={stat.animationKey}
-          className={[
-            'journey-counter-panel__gauge',
-            'full-diagnostics__stat-gauge',
-            counterOnly ? 'full-diagnostics__stat-gauge--counter-only' : '',
-            stat.gaugeVariant === 'community-logo'
-              ? 'full-diagnostics__stat-gauge--community-logos'
-              : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          aria-label={stat.label}
+      <JourneyCounterGauge
+        target={stat.target}
+        label={stat.label}
+        animationKey={stat.animationKey}
+        delay={stat.delay}
+        readoutMode="below"
+        circleSize="100%"
+        counterDialBox
+        variant={stat.gaugeVariant}
+      />
+    </section>
+  );
+}
+
+function DiagnosticsJourneyStatsRow({
+  report,
+  counterOnly = false,
+  bandRootRef,
+}: {
+  report: WrappedReport;
+  counterOnly?: boolean;
+  bandRootRef?: RefObject<HTMLDivElement | null>;
+}) {
+  const journeyCounterStats = buildDiagnosticsCounterStats(report);
+  const numericStats = journeyCounterStats.filter(
+    (stat) => stat.gaugeVariant !== 'community-logo',
+  );
+  const splitRef = useRef<HTMLDivElement>(null);
+  const gaugesRef = useRef<HTMLDivElement>(null);
+  const communityGaugeRef = useRef<HTMLElement>(null);
+  const logos = resolveCommunityLogos(report.journey.communities);
+  const logoCount = logos.length;
+  const useLogoGrid = logoCount === 4;
+
+  useLayoutEffect(() => {
+    if (!counterOnly || !bandRootRef?.current) return;
+    const bandRootEl = bandRootRef.current;
+    const communityGaugeEl = communityGaugeRef.current;
+    if (!communityGaugeEl) return;
+
+    let syncAttempts = 0;
+
+    const syncLogoDialSize = () => {
+      const useSingleSlot = !useLogoGrid && logoCount <= 1;
+
+      const logoGaugeEl = communityGaugeEl.querySelector<HTMLElement>('.community-logo-gauge');
+      const dialSlotEl = communityGaugeEl.querySelector<HTMLElement>(
+        useLogoGrid
+          ? '.journey-counter-gauge__dial-slot--community-grid'
+          : useSingleSlot
+            ? '.journey-counter-gauge__dial-slot--community-logo'
+            : '.journey-counter-gauge__dial-slot--community-stack',
+      );
+      const stackScalerEl = communityGaugeEl.querySelector<HTMLElement>(
+        '.community-logo-gauge__stack-scaler',
+      );
+      const stackEl = communityGaugeEl.querySelector<HTMLElement>('.community-logo-gauge__stack');
+      if (!logoGaugeEl || !dialSlotEl) return;
+      if (!useLogoGrid && logoCount > 1 && !stackEl) return;
+
+      const fitContainerEl = stackScalerEl ?? dialSlotEl;
+      const columnWidth = Math.max(
+        logoGaugeEl.clientWidth,
+        dialSlotEl.clientWidth,
+        communityGaugeEl.clientWidth,
+        1,
+      );
+      const containerHeight = Math.max(
+        48,
+        fitContainerEl.clientHeight,
+        communityGaugeEl.clientHeight > 0 ? communityGaugeEl.clientHeight - 28 : 0,
+        bandRootEl.clientHeight > 0 ? bandRootEl.clientHeight * 0.45 : 0,
+      );
+
+      if (columnWidth < 48 || containerHeight < 48) {
+        if (syncAttempts < 12) {
+          syncAttempts += 1;
+          requestAnimationFrame(syncLogoDialSize);
+        }
+        return;
+      }
+
+      syncAttempts = 0;
+
+      const applyDialVars = (size: number, mode: 'stack' | 'grid' | 'single' = 'stack') => {
+        const markWidth = Math.min(size * (mode === 'single' ? 1.47 : 0.84), columnWidth);
+        const markHeight = Math.min(
+          markWidth * (126 / 300),
+          size * (mode === 'single' ? 0.84 : 0.48),
+        );
+        const dialVars = {
+          '--journey-counter-dial-size': `${size}px`,
+          '--journey-counter-dial-height': `${size}px`,
+          '--community-logo-mark-width': `${markWidth}px`,
+          '--community-logo-mark-height': `${markHeight}px`,
+        } as const;
+        for (const el of [
+          communityGaugeEl,
+          logoGaugeEl,
+          dialSlotEl,
+          ...(stackEl ? [stackEl] : []),
+        ]) {
+          for (const [key, value] of Object.entries(dialVars)) {
+            el.style.setProperty(key, value);
+          }
+        }
+        logoGaugeEl
+          .querySelectorAll<HTMLElement>('.community-logo-gauge__button, .community-logo-gauge__button--empty')
+          .forEach((button) => {
+            if (useLogoGrid) return;
+            if (markWidth >= 48) {
+              button.style.width = `${markWidth}px`;
+              button.style.maxWidth = `${markWidth}px`;
+            } else {
+              button.style.removeProperty('width');
+              button.style.removeProperty('max-width');
+            }
+          });
+      };
+
+      if (useSingleSlot) {
+        const sampleButton = logoGaugeEl.querySelector<HTMLElement>(
+          '.community-logo-gauge__button, .community-logo-gauge__button--empty',
+        );
+        const buttonPaddingY = sampleButton
+          ? Number.parseFloat(getComputedStyle(sampleButton).paddingTop) +
+            Number.parseFloat(getComputedStyle(sampleButton).paddingBottom)
+          : undefined;
+
+        const dialSize = fitDiagnosticsCommunityDialSize({
+          bandHeight: containerHeight,
+          columnWidth,
+          logoCount: 1,
+          gap: 0,
+          layout: 'single',
+          buttonPaddingY,
+        });
+
+        applyDialVars(dialSize, 'single');
+        return;
+      }
+
+      if (!useLogoGrid && stackEl) {
+        stackEl.style.zoom = '1';
+        stackEl.style.removeProperty('zoom');
+        stackEl.style.setProperty('--community-stack-scale', '1');
+
+        const logoContainer = stackEl;
+        const gap =
+          Number.parseFloat(getComputedStyle(logoContainer).rowGap) ||
+          Number.parseFloat(getComputedStyle(logoContainer).gap) ||
+          6;
+        const sampleButton = stackEl.querySelector<HTMLElement>('.community-logo-gauge__button');
+        const buttonPaddingY = sampleButton
+          ? Number.parseFloat(getComputedStyle(sampleButton).paddingTop) +
+            Number.parseFloat(getComputedStyle(sampleButton).paddingBottom)
+          : undefined;
+
+        const dialSize = fitDiagnosticsCommunityDialSize({
+          bandHeight: containerHeight,
+          columnWidth,
+          logoCount,
+          gap,
+          layout: 'stack',
+          buttonPaddingY,
+        });
+
+        applyDialVars(dialSize, 'stack');
+
+        const buttons = stackEl.querySelectorAll<HTMLElement>('.community-logo-gauge__button');
+        let renderedHeight = 0;
+        buttons.forEach((button, index) => {
+          renderedHeight += button.offsetHeight;
+          if (index > 0) renderedHeight += gap;
+        });
+
+        if (renderedHeight > containerHeight && renderedHeight > 0) {
+          const zoom = containerHeight / renderedHeight;
+          stackEl.style.zoom = String(zoom);
+          stackEl.style.setProperty('--community-stack-scale', String(zoom));
+        }
+
+        return;
+      }
+
+      const sampleButton = communityGaugeEl.querySelector<HTMLElement>('.community-logo-gauge__button');
+      const buttonPaddingY = sampleButton
+        ? Number.parseFloat(getComputedStyle(sampleButton).paddingTop) +
+          Number.parseFloat(getComputedStyle(sampleButton).paddingBottom)
+        : undefined;
+
+      const logoContainer = communityGaugeEl.querySelector(
+        useLogoGrid ? '.community-logo-gauge__grid' : '.community-logo-gauge__stack',
+      );
+      const gap = logoContainer
+        ? Number.parseFloat(getComputedStyle(logoContainer).rowGap) ||
+          Number.parseFloat(getComputedStyle(logoContainer).gap) ||
+          6
+        : 6;
+
+      const dialSize = fitDiagnosticsCommunityDialSize({
+        bandHeight: containerHeight,
+        columnWidth,
+        logoCount,
+        gap,
+        layout: 'grid',
+        buttonPaddingY,
+      });
+
+      applyDialVars(dialSize);
+    };
+
+    syncLogoDialSize();
+    requestAnimationFrame(syncLogoDialSize);
+    const observer = new ResizeObserver(syncLogoDialSize);
+    observer.observe(bandRootEl);
+    observer.observe(communityGaugeEl);
+    const logoGaugeEl = communityGaugeEl.querySelector('.community-logo-gauge');
+    if (logoGaugeEl) observer.observe(logoGaugeEl);
+    const stackScalerEl = communityGaugeEl.querySelector('.community-logo-gauge__stack-scaler');
+    if (stackScalerEl) observer.observe(stackScalerEl);
+    const dialSlotEl = communityGaugeEl.querySelector('.journey-counter-gauge__dial-slot');
+    if (dialSlotEl) observer.observe(dialSlotEl);
+    return () => observer.disconnect();
+  }, [bandRootRef, counterOnly, logoCount, useLogoGrid]);
+
+  if (counterOnly) {
+    return (
+      <div
+        ref={splitRef}
+        className="full-diagnostics__stats-row full-diagnostics__stats-row--counter-only full-diagnostics__stats-row--split"
+      >
+        <div
+          ref={gaugesRef}
+          className="full-diagnostics__stats-column full-diagnostics__stats-column--gauges"
         >
-          {stat.gaugeVariant === 'community-logo' ? (
+          {numericStats.map((stat) => (
+            <DiagnosticsStatGauge key={stat.animationKey} stat={stat} counterOnly />
+          ))}
+        </div>
+        <aside
+          className="full-diagnostics__stats-column full-diagnostics__stats-column--communities"
+          aria-label="Communities"
+        >
+          <section
+            ref={communityGaugeRef}
+            className="journey-counter-panel__gauge full-diagnostics__stat-gauge full-diagnostics__stat-gauge--counter-only full-diagnostics__stat-gauge--community-logos"
+          >
+            <h3 className="full-diagnostics__communities-heading">Community Membership</h3>
             <CommunityLogoGauge
               communities={report.journey.communities}
               counterDialBox
+              bandConstrained
+              logoLayout={useLogoGrid ? 'grid' : 'stack'}
             />
-          ) : (
-            <JourneyCounterGauge
-              target={stat.target}
-              label={stat.label}
-              animationKey={stat.animationKey}
-              delay={stat.delay}
-              readoutMode="below"
-              circleSize="100%"
-              counterDialBox
-              wideSemicircle
-              variant={stat.gaugeVariant}
-            />
-          )}
-        </section>
-      ))}
+          </section>
+        </aside>
+      </div>
+    );
+  }
+
+  return (
+    <div className="full-diagnostics__stats-row">
+      {journeyCounterStats.map((stat) =>
+        stat.gaugeVariant === 'community-logo' ? (
+          <section
+            key={stat.animationKey}
+            className="journey-counter-panel__gauge full-diagnostics__stat-gauge full-diagnostics__stat-gauge--community-logos"
+            aria-label={stat.label}
+          >
+            <CommunityLogoGauge communities={report.journey.communities} counterDialBox />
+          </section>
+        ) : (
+          <DiagnosticsStatGauge key={stat.animationKey} stat={stat} counterOnly={false} />
+        ),
+      )}
     </div>
   );
 }
@@ -361,6 +604,8 @@ export function FullDiagnosticsPanel({
     setTopStep(TOP_STEP_MAX);
   };
 
+  const journeyBandRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className={panelClassName}>
       <header className="full-diagnostics__header">
@@ -371,8 +616,12 @@ export function FullDiagnosticsPanel({
       {showDashboard ? (
         <div className="full-diagnostics__body">
           <div className="full-diagnostics__upper-band">
-            <div className="full-diagnostics__upper-left">
-              <DiagnosticsJourneyStatsRow report={report} counterOnly />
+            <div ref={journeyBandRef} className="full-diagnostics__upper-left">
+              <DiagnosticsJourneyStatsRow
+                report={report}
+                counterOnly
+                bandRootRef={journeyBandRef}
+              />
             </div>
             <div className="full-diagnostics__upper-right">
               <DiagnosticsTiresRoll report={report} />

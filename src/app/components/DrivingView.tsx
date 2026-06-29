@@ -1741,6 +1741,7 @@ function DashboardPanel({
   journeyInitialSectionIdx,
   journeyInitialGpsPhase,
   onExitJourneyToIntro,
+  onJourneyMapExit,
   onPanelRef,
 }: {
   currentSlide: number | null;
@@ -1770,6 +1771,8 @@ function DashboardPanel({
   journeyInitialSectionIdx?: number;
   journeyInitialGpsPhase?: number;
   onExitJourneyToIntro?: () => void;
+  /** Fired when the user backs from the map into a counter slide (clears end-of-journey GPS resume). */
+  onJourneyMapExit?: () => void;
   onPanelRef?: (node: HTMLDivElement | null) => void;
 }) {
   const isFirstSlide = isLanding || currentSlide === 0;
@@ -1924,10 +1927,11 @@ function DashboardPanel({
         });
       } else if (exitingMap) {
         mapEntryDispatchedRef.current = false;
+        onJourneyMapExit?.();
       }
       setJourneySectionIdx(idx);
     },
-    [journeySectionIdx, beginJourneySceneSlide, journeySections, dispatchMapEnterComplete],
+    [journeySectionIdx, beginJourneySceneSlide, journeySections, dispatchMapEnterComplete, onJourneyMapExit],
   );
 
   useEffect(
@@ -2775,6 +2779,10 @@ export function DrivingView({
     setCurrentScreen('journey');
   }, [saveJourneyResumeForNav]);
 
+  const handleJourneyMapExit = useCallback(() => {
+    setJourneyResumeGpsPhase(undefined);
+  }, []);
+
   const handleExitJourneyToIntro = useCallback(() => {
     playUiClickSound();
     setCurrentScreen(null);
@@ -3183,6 +3191,7 @@ export function DrivingView({
               onRequestTireToStandardsTransition={beginTireToStandardsTransition}
               onFinishTireSequence={beginDiagnosticsFromTires}
               onBackToJourney={handleBackToJourneyEnd}
+              onJourneyMapExit={handleJourneyMapExit}
               onExitJourneyToIntro={handleExitJourneyToIntro}
               journeyInitialSectionIdx={journeyResumeSectionIdx}
               journeyInitialGpsPhase={journeyResumeGpsPhase}

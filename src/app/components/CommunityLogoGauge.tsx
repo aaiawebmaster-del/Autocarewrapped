@@ -11,6 +11,10 @@ type CommunityLogoGaugeProps = {
   communities?: string[];
   className?: string;
   counterDialBox?: boolean;
+  /** Shrink to fit a fixed-height diagnostics band instead of preserving intrinsic dial size. */
+  bandConstrained?: boolean;
+  /** Stack logos in one column instead of a 2-column grid. */
+  logoLayout?: 'grid' | 'stack';
   /** Retained for call-site compatibility — community logos no longer show a count. */
   target?: number;
   label?: string;
@@ -98,11 +102,14 @@ export function CommunityLogoGauge({
   communities,
   className,
   counterDialBox = false,
+  bandConstrained = false,
+  logoLayout = 'grid',
   circleSize = '100%',
   href: _href = EXTERNAL_CTA_LINKS.exploreAllCommunities,
 }: CommunityLogoGaugeProps) {
   const logos = resolveCommunityLogos(communities);
   const showEmptyShell = logos.length === 0;
+  const useStackLayout = logoLayout === 'stack' && logos.length > 1;
   const gridClassName = [
     'community-logo-gauge__grid',
     logos.length === 1 ? 'community-logo-gauge__grid--single' : '',
@@ -115,7 +122,8 @@ export function CommunityLogoGauge({
     'community-logo-gauge',
     showEmptyShell ? 'community-logo-gauge--empty' : '',
     logos.length === 1 ? 'community-logo-gauge--single' : '',
-    logos.length > 1 ? 'community-logo-gauge--grid' : '',
+    useStackLayout ? 'community-logo-gauge--stack' : '',
+    logos.length > 1 && !useStackLayout ? 'community-logo-gauge--grid' : '',
     className,
   ]
     .filter(Boolean)
@@ -125,7 +133,8 @@ export function CommunityLogoGauge({
     'journey-counter-gauge__dial-slot',
     counterDialBox ? 'journey-counter-gauge__dial-slot--counter' : '',
     counterDialBox ? 'journey-counter-gauge__dial-slot--community-logo' : '',
-    logos.length > 1 ? 'journey-counter-gauge__dial-slot--community-grid' : '',
+    useStackLayout ? 'journey-counter-gauge__dial-slot--community-stack' : '',
+    logos.length > 1 && !useStackLayout ? 'journey-counter-gauge__dial-slot--community-grid' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -136,8 +145,11 @@ export function CommunityLogoGauge({
       style={{
         width: '100%',
         maxWidth: circleSize,
-        ...(counterDialBox ? {} : { height: 'fit-content' as const }),
-        flexShrink: 0,
+        ...(bandConstrained
+          ? { flexShrink: 1, height: '100%', minHeight: 0 }
+          : counterDialBox
+            ? { flexShrink: 0 }
+            : { height: 'fit-content' as const, flexShrink: 0 }),
         margin: 0,
       }}
     >
@@ -146,6 +158,22 @@ export function CommunityLogoGauge({
           <CommunityLogoEmptyShell aspect="300 / 126" />
         ) : logos.length === 1 ? (
           <CommunityLogoButton asset={logos[0]} />
+        ) : useStackLayout ? (
+          bandConstrained ? (
+            <div className="community-logo-gauge__stack-scaler">
+              <div className="community-logo-gauge__stack">
+                {logos.map((asset) => (
+                  <CommunityLogoButton key={asset.id} asset={asset} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="community-logo-gauge__stack">
+              {logos.map((asset) => (
+                <CommunityLogoButton key={asset.id} asset={asset} />
+              ))}
+            </div>
+          )
         ) : (
           <div className={gridClassName}>
             {logos.map((asset) => (
