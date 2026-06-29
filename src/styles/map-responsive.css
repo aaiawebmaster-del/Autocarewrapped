@@ -9049,6 +9049,14 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   color: #9ca3af;
 }
 
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  > .community-logo-gauge.community-logo-gauge--stack {
+  --journey-counter-dial-size: 8rem;
+  --community-logo-mark-width: 6.5rem;
+  --community-logo-mark-height: calc(6.5rem * 126 / 300);
+}
+
 .full-diagnostics__stats-column--communities .full-diagnostics__stat-gauge--community-logos > .community-logo-gauge {
   flex: 1 1 auto;
   height: 100%;
@@ -14008,9 +14016,24 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   .community-logo-gauge__button {
   width: var(--community-logo-mark-width);
   max-width: var(--community-logo-mark-width);
+  min-width: var(--community-logo-mark-width);
   height: auto;
+  min-height: calc(var(--community-logo-mark-width) * 126 / 300 + 0.5rem);
   max-height: none;
   margin: 0 auto;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--stack
+  .community-logo-gauge__face {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+  aspect-ratio: var(--community-logo-aspect, 300 / 126);
 }
 
 .full-diagnostics__stats-column--communities
@@ -14178,15 +14201,15 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 
 .full-diagnostics__tire-check.hood-tire-check-badge,
 .full-diagnostics__tire-check .hood-tire-check-badge {
-  width: clamp(28px, 7vw, 44px);
-  height: clamp(28px, 7vw, 44px);
+  width: clamp(23px, 7vw, 39px);
+  height: clamp(23px, 7vw, 39px);
 }
 
 .full-diagnostics__tire-roll-img {
   display: block;
   width: auto;
   height: auto;
-  max-width: min(100%, clamp(52px, 12vw, 120px));
+  max-width: min(100%, clamp(57px, 12vw, 125px));
   max-height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
@@ -14705,8 +14728,8 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 }
 
 .full-diagnostics__standards-tablet .hood-standards-popup__database-panel .hood-standards-popup__database-label {
-  font-size: clamp(7px, 1.1vw, 10px);
-  letter-spacing: 0.04em;
+  font-size: clamp(9px, 1.4vw, 11px);
+  letter-spacing: 0.06em;
   text-align: center;
   white-space: normal;
   max-width: 100%;
@@ -15484,8 +15507,8 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   }
 
   .full-diagnostics__standards-tablet .hood-standards-popup__database-panel .hood-standards-popup__database-label {
-    font-size: clamp(6px, 1.6vw, 9px);
-    letter-spacing: 0.03em;
+    font-size: clamp(9px, 1.4vw, 11px);
+    letter-spacing: 0.06em;
   }
 
   .full-diagnostics__standards-tablet .hood-standards-popup__database-grid {
@@ -15726,8 +15749,8 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   }
 
   .full-diagnostics__tire-roll-img {
-    max-width: min(48cqw, 124px);
-    max-height: min(50cqh, 124px);
+    max-width: min(48cqw, 129px);
+    max-height: min(50cqh, 129px);
   }
 
   .full-diagnostics__chevron {
@@ -15958,7 +15981,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 
   .full-diagnostics__tire-roll-img {
     max-width: 100%;
-    max-height: min(22vw, 72px);
+    max-height: min(22vw, 77px);
   }
 }
 
