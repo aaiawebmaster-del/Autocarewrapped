@@ -14,6 +14,7 @@ import {
   sortCtaEntries,
   sumUsageTotals,
 } from '@/lib/usageReportingUtils';
+import { downloadReportingSpreadsheet } from '@/lib/reportingExport';
 import type { CompanyUsageMetrics } from '@/types/analytics';
 import type { FeedbackReportResponse } from '@/types/feedback';
 import '@/styles/reporting.css';
@@ -151,6 +152,7 @@ export default function ReportingPage() {
   const [error, setError] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const loadReport = useCallback(
     async (password: string, range?: { fromDate: string; toDate: string }) => {
@@ -225,6 +227,27 @@ export default function ReportingPage() {
   const usageCompanies = report?.usage?.companies ?? [];
   const usageTotals = useMemo(() => sumUsageTotals(usageCompanies), [usageCompanies]);
 
+  const handleExport = async () => {
+    if (!report || exporting) return;
+
+    setExporting(true);
+    setError(null);
+    try {
+      await downloadReportingSpreadsheet({
+        fromDate,
+        toDate,
+        feedbackSummary: filteredSummary,
+        feedbackEntries: filteredEntries,
+        usageCompanies,
+        usageTotals,
+      });
+    } catch {
+      setError('Unable to export spreadsheet. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const isAuthenticated = Boolean(storedPassword);
   const hasDateFilter = Boolean(fromDate || toDate);
 
@@ -281,6 +304,14 @@ export default function ReportingPage() {
                 ) : null}
               </div>
               <div className="reporting-page__actions">
+                <button
+                  type="button"
+                  className="reporting-page__button"
+                  disabled={loading || exporting || !report}
+                  onClick={() => void handleExport()}
+                >
+                  {exporting ? 'Exporting…' : 'Export spreadsheet'}
+                </button>
                 <button
                   type="button"
                   className="reporting-page__button"

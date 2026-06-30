@@ -48,7 +48,7 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
     },
     {
       type: 'counter',
-      subtitle: 'Community Membership',
+      subtitle: 'Community Participation',
       target: journey.communityMembers,
       label: 'community members',
       gaugeVariant: 'community-logo',
@@ -61,9 +61,9 @@ export function buildJourneySections(report: WrappedReport): JourneySection[] {
     },
     {
       type: 'counter',
-      subtitle: 'Committee Membership',
+      subtitle: 'Committee Leadership',
       target: journey.committeeMembers,
-      label: 'committee members',
+      label: 'leaders',
       gaugeVariant: 'battery',
       footerMessage: getCommitteeFooterMessage(journey.committeeMembers),
       footerButton: {
@@ -164,7 +164,7 @@ export function buildDiagnosticsCounterStats(report: WrappedReport) {
     },
     {
       target: journey.committeeMembers,
-      label: 'committee members',
+      label: 'leaders',
       animationKey: 'diag-committee',
       delay: 600,
       gaugeVariant: 'battery' as const,

@@ -13,7 +13,7 @@ import { JourneyNavDriverMarker } from './JourneyNavDriverMarker';
 import { GpsPopupContent, GpsAttendanceRoutePanel } from './GpsNavPopupContent';
 import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
 import { resolveCommunityLogos } from '@/lib/communityLogos';
-import { fitDiagnosticsCommunityDialSize } from '@/lib/fitDiagnosticsCommunityDialSize';
+import { fitDiagnosticsCommunityDialSize, STACK_MARK_HEIGHT_TRIM } from '@/lib/fitDiagnosticsCommunityDialSize';
 import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
@@ -154,11 +154,15 @@ function DiagnosticsJourneyStatsRow({
       );
 
       const applyDialVars = (size: number, mode: 'stack' | 'grid' | 'single' = 'stack') => {
-        const markWidth = Math.min(size * (mode === 'single' ? 1.47 : 0.84), columnWidth);
-        const markHeight = Math.min(
+        let markWidth = Math.min(size * (mode === 'single' ? 1.47 : 0.84), columnWidth);
+        let markHeight = Math.min(
           markWidth * (126 / 300),
           size * (mode === 'single' ? 0.84 : 0.48),
         );
+        if (mode === 'stack') {
+          markHeight = Math.max(markHeight - STACK_MARK_HEIGHT_TRIM, 24);
+          markWidth = Math.min(markHeight * (300 / 126), columnWidth);
+        }
         const dialVars = {
           '--journey-counter-dial-size': `${size}px`,
           '--journey-counter-dial-height': `${size}px`,

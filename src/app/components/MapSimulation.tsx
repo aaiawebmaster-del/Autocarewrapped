@@ -172,7 +172,7 @@ const TIRE_CTA_CONFIG: Partial<Record<TirePhase, TireCtaConfig>> = {
   },
   demandindex: {
     message:
-      'See the full list of product groups to see what your company is eligible to subscribe to.',
+      "See which product category trend data you're eligible to subscribe to.",
     linkLabel: 'Learn More',
     href: EXTERNAL_CTA_LINKS.demandIndexLearnMore,
     nextTarget: 'factbook',

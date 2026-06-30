@@ -9053,8 +9053,8 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   .full-diagnostics__stat-gauge--community-logos
   > .community-logo-gauge.community-logo-gauge--stack {
   --journey-counter-dial-size: 8rem;
-  --community-logo-mark-width: 6.5rem;
-  --community-logo-mark-height: calc(6.5rem * 126 / 300);
+  --community-logo-mark-height: calc(6.5rem * 126 / 300 - 4px);
+  --community-logo-mark-width: calc(var(--community-logo-mark-height) * 300 / 126);
 }
 
 .full-diagnostics__stats-column--communities .full-diagnostics__stat-gauge--community-logos > .community-logo-gauge {
@@ -14018,7 +14018,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   max-width: var(--community-logo-mark-width);
   min-width: var(--community-logo-mark-width);
   height: auto;
-  min-height: calc(var(--community-logo-mark-width) * 126 / 300 + 0.5rem);
+  min-height: calc(var(--community-logo-mark-height) + 0.5rem);
   max-height: none;
   margin: 0 auto;
   flex: 0 0 auto;
@@ -14028,11 +14028,25 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 .full-diagnostics__stats-column--communities
   .full-diagnostics__stat-gauge--community-logos
   .community-logo-gauge--stack
+  .community-logo-gauge__button {
+  padding: clamp(2px, 0.55vw, 4px);
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--stack
+  .community-logo-gauge__chrome {
+  inset: clamp(3px, 0.7vw, 5px);
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--stack
   .community-logo-gauge__face {
   width: 100%;
   height: auto;
   max-width: 100%;
-  max-height: none;
+  max-height: var(--community-logo-mark-height);
   aspect-ratio: var(--community-logo-aspect, 300 / 126);
 }
 
@@ -15113,6 +15127,10 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 }
 
 /* Last carousel slide — arch exits, content + radial glow center on screen */
+.full-diagnostics--share-focus {
+  --full-diagnostics-share-header-reserve: clamp(68px, 11vh, 92px);
+}
+
 .full-diagnostics--share-focus .full-diagnostics__header {
   position: relative;
   z-index: 12;
@@ -15127,12 +15145,12 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: var(--full-diagnostics-share-header-reserve);
   bottom: 0;
   flex: 1 1 auto;
   min-height: 0;
   z-index: 8;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .full-diagnostics--share-focus .full-diagnostics__top--share-focus {
@@ -15160,28 +15178,41 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 
 .full-diagnostics--share-focus .full-diagnostics__top-carousel {
   position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
+  inset: 0;
+  display: flex;
+  align-items: safe center;
+  justify-content: center;
   min-height: 0;
   opacity: 1;
-  transform: translateY(-50%);
+  transform: none;
+  padding: clamp(8px, 1.6vh, 16px) clamp(8px, 2vw, 16px);
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   transition:
-    transform 0.85s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.5s ease 0.1s;
 }
 
 .full-diagnostics--share-focus .full-diagnostics__top-carousel-stage {
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 /* Share scene — centered message (dashboard body unmounts before reveal) */
 .full-diagnostics--share-focus .full-diagnostics__share-slide {
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   gap: clamp(16px, 2.5vh, 24px);
-  max-width: min(92%, 480px);
+  width: 100%;
+  max-width: 100%;
+  padding-inline: 0;
   text-align: center;
 }
 
@@ -15194,6 +15225,12 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   line-height: 1.5;
 }
 
+.full-diagnostics--share-focus .full-diagnostics__share-side {
+  width: 100%;
+  max-width: min(100%, 360px);
+  align-self: center;
+}
+
 .full-diagnostics--share-focus .full-diagnostics__share-actions {
   width: 100%;
   flex-direction: row;
@@ -15203,9 +15240,13 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   gap: clamp(10px, 2vw, 14px);
 }
 
-.full-diagnostics--share-focus .full-diagnostics__share-side {
-  width: 100%;
-  max-width: min(100%, 360px);
+.full-diagnostics--share-focus .full-diagnostics__feedback-thanks-wrap {
+  width: min(100%, 320px);
+}
+
+.full-diagnostics--share-focus .full-diagnostics__feedback-comment-input {
+  max-height: min(8rem, 28vh);
+  resize: none;
 }
 
 .full-diagnostics--share-focus .full-diagnostics__map {
@@ -15230,6 +15271,10 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 }
 
 @media (max-width: 768px) {
+  .full-diagnostics--share-focus {
+    --full-diagnostics-share-header-reserve: clamp(60px, 10vh, 80px);
+  }
+
   .full-diagnostics__top-carousel {
     column-gap: 6px;
     padding-inline: 0;
@@ -15257,7 +15302,8 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   }
 
   .full-diagnostics--share-focus .full-diagnostics__share-slide {
-    max-width: min(94%, 360px);
+    width: 100%;
+    max-width: 100%;
   }
 
   .full-diagnostics__share-actions {

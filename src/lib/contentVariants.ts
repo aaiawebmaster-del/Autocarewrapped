@@ -284,7 +284,8 @@ export function buildTireReadoutConfig(
     trendlens: {
       measuring: 'measuring trendlens usage..',
       primaryValue: products.trendLensUsers,
-      primaryLabel: 'TrendLens® Users',
+      primaryLabel:
+        products.trendLensUsers === 1 ? 'TrendLens® User' : 'TrendLens® Users',
       secondary: {
         type: 'percent',
         value: products.trendLensContactPct,

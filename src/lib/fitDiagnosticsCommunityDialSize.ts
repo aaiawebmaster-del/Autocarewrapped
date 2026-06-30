@@ -4,6 +4,9 @@ const MARK_HEIGHT_SCALE = 0.48;
 const SINGLE_MARK_WIDTH_SCALE = 1.47;
 const SINGLE_MARK_HEIGHT_SCALE = 0.84;
 const BUTTON_PADDING_Y = 10;
+const STACK_MARK_HEIGHT_TRIM = 4;
+
+export { STACK_MARK_HEIGHT_TRIM };
 
 function measureStackHeight(
   dialSize: number,
@@ -14,8 +17,9 @@ function measureStackHeight(
 ): number {
   const markWidth = Math.min(dialSize * MARK_WIDTH_SCALE, columnWidth);
   const markHeight = Math.min(markWidth * LOGO_FACE_RATIO, dialSize * MARK_HEIGHT_SCALE);
+  const adjustedMarkHeight = Math.max(markHeight - STACK_MARK_HEIGHT_TRIM, 24);
   const chromeFudge = 3;
-  const perLogo = markHeight + buttonPaddingY + chromeFudge;
+  const perLogo = adjustedMarkHeight + buttonPaddingY + chromeFudge;
   return logoCount * perLogo + Math.max(0, logoCount - 1) * gap;
 }
 
