@@ -1852,7 +1852,7 @@ function HoodTireHubReadout({
   const nextTirePhase = getNextTirePhaseForReport(tirePhase, report);
 
   const handleCtaNext = () => {
-    const target = ctaConfig?.nextTarget;
+    const target = getNextTirePhaseForReport(tirePhase, report);
     if (target) onNavigateToTire?.(target);
     else onFinishTireSequence?.();
   };
@@ -2052,7 +2052,7 @@ function HoodTireHubReadout({
                 onNext={showCta ? handleCtaNext : handleStatsNext}
                 nextDisabled={
                   showCta
-                    ? !ctaConfig?.nextTarget && !onFinishTireSequence
+                    ? !getNextTirePhaseForReport(tirePhase, report) && !onFinishTireSequence
                     : !hasCta && !nextTirePhase && !onFinishTireSequence
                 }
               />

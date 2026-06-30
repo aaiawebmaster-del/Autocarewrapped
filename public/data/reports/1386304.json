@@ -3,7 +3,8 @@
   "company": {
     "id": "1386304",
     "name": "Batteries Plus, LLC",
-    "recordNumber": 1386304
+    "recordNumber": 1386304,
+    "marketSegment": "retailer"
   },
   "journey": {
     "membershipTenureYears": 6,

@@ -14008,10 +14008,6 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   .community-logo-gauge__button,
 .full-diagnostics__stats-column--communities
   .full-diagnostics__stat-gauge--community-logos
-  .community-logo-gauge--empty
-  .community-logo-gauge__button--empty,
-.full-diagnostics__stats-column--communities
-  .full-diagnostics__stat-gauge--community-logos
   .community-logo-gauge--single
   .community-logo-gauge__button {
   width: var(--community-logo-mark-width);
@@ -14074,6 +14070,46 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   height: 100%;
   max-width: 100%;
   max-height: 100%;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--empty
+  .community-logo-gauge__button--empty {
+  width: var(--community-logo-mark-width);
+  max-width: var(--community-logo-mark-width);
+  min-width: var(--community-logo-mark-width);
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+  flex: 1 1 auto;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--empty
+  .journey-counter-gauge__dial-slot--community-logo {
+  align-items: stretch;
+}
+
+.full-diagnostics__stats-column--communities
+  .full-diagnostics__stat-gauge--community-logos
+  .community-logo-gauge--empty
+  .community-logo-gauge__face--empty {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .full-diagnostics__stat-gauge .community-logo-gauge__face--empty {
@@ -14203,13 +14239,23 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   height: 100%;
 }
 
+/* Retailer flow (3 tires) — lone slot on the second row sits centered */
+.full-diagnostics__tires-roll:has(> .full-diagnostics__tire-roll-slot:nth-child(3):last-child)
+  > .full-diagnostics__tire-roll-slot:nth-child(3) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
+}
+
 .full-diagnostics__tire-check {
   position: absolute;
-  inset: 0;
+  top: clamp(6px, 1vh, 10px);
+  left: clamp(6px, 1vh, 10px);
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-start;
   pointer-events: none;
 }
 
@@ -15968,6 +16014,26 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   .full-diagnostics__upper-right {
     order: 4;
     width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .full-diagnostics__tires-roll {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    gap: clamp(8px, 2.5vw, 14px);
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+  }
+
+  .full-diagnostics__tire-roll-slot {
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
   }
 
   .full-diagnostics__complete-wrap {
@@ -16022,6 +16088,24 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     grid-template-rows: minmax(0, 1fr);
     row-gap: 0;
     column-gap: clamp(4px, 1.5vw, 10px);
+    max-width: 100%;
+  }
+
+  .full-diagnostics__tires-roll:has(> .full-diagnostics__tire-roll-slot:nth-child(3):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    row-gap: clamp(4px, 1.2vh, 10px);
+    column-gap: clamp(4px, 1.5vw, 10px);
+    max-width: min(100%, 280px);
+    margin-inline: auto;
+    justify-items: center;
+  }
+
+  .full-diagnostics__tires-roll:has(> .full-diagnostics__tire-roll-slot:nth-child(3):last-child)
+    > .full-diagnostics__tire-roll-slot:nth-child(3) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: auto;
     max-width: 100%;
   }
 

@@ -1,4 +1,5 @@
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
+import { shouldSkipDemandIndexPhase } from '@/lib/companyTireRules';
 import {
   getStandardsDatabaseAccessIcons,
   getStandardsProtocolLogos,
@@ -222,26 +223,42 @@ export function shouldSkipTrendlensPhase(_report: WrappedReport): boolean {
 }
 
 export function getInitialTirePhase(report: WrappedReport): TirePhase {
-  return shouldSkipTrendlensPhase(report) ? 'demandindex' : 'trendlens';
+  return getTirePhasesForReport(report)[0] ?? 'trendlens';
 }
 
 export function resolveTirePhaseForReport(
   report: WrappedReport,
   phase: TirePhase,
 ): TirePhase {
-  if (shouldSkipTrendlensPhase(report) && phase === 'trendlens') {
-    return 'demandindex';
+  const order = getTirePhasesForReport(report);
+  if (order.includes(phase)) return phase;
+
+  const skippedIndex = ALL_TIRE_PHASES.indexOf(phase);
+  if (skippedIndex < 0) return order[0] ?? 'trendlens';
+
+  for (let i = skippedIndex + 1; i < ALL_TIRE_PHASES.length; i += 1) {
+    const candidate = ALL_TIRE_PHASES[i];
+    if (order.includes(candidate)) return candidate;
   }
-  return phase;
+  for (let i = skippedIndex - 1; i >= 0; i -= 1) {
+    const candidate = ALL_TIRE_PHASES[i];
+    if (order.includes(candidate)) return candidate;
+  }
+
+  return order[0] ?? 'trendlens';
 }
 
 const ALL_TIRE_PHASES: TirePhase[] = ['trendlens', 'demandindex', 'factbook', 'academy'];
 
 export function getTirePhasesForReport(report: WrappedReport): TirePhase[] {
+  let phases = ALL_TIRE_PHASES;
   if (shouldSkipTrendlensPhase(report)) {
-    return ALL_TIRE_PHASES.filter((phase) => phase !== 'trendlens');
+    phases = phases.filter((phase) => phase !== 'trendlens');
   }
-  return ALL_TIRE_PHASES;
+  if (shouldSkipDemandIndexPhase(report)) {
+    phases = phases.filter((phase) => phase !== 'demandindex');
+  }
+  return phases;
 }
 
 export function getNextTirePhaseForReport(

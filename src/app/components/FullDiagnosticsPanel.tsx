@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import {
   HoodStandardsSummaryDevice,
   HoodTireCheckBadge,
-  TIRE_PHASE_ORDER,
   type TirePhase,
 } from './MapSimulation';
 import { JourneyCounterGauge } from './JourneyCounterGauge';
@@ -14,7 +13,7 @@ import { GpsPopupContent, GpsAttendanceRoutePanel } from './GpsNavPopupContent';
 import { buildDiagnosticsCounterStats } from '@/lib/buildJourneySections';
 import { resolveCommunityLogos } from '@/lib/communityLogos';
 import { fitDiagnosticsCommunityDialSize, STACK_MARK_HEIGHT_TRIM } from '@/lib/fitDiagnosticsCommunityDialSize';
-import { getHoodStandardsMessages, isTirePhaseEmpty } from '@/lib/contentVariants';
+import { getHoodStandardsMessages, getTirePhasesForReport, isTirePhaseEmpty } from '@/lib/contentVariants';
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
 import { buildShareMailtoUrl, companyReportPageUrl } from '@/lib/embedConfig';
 import {
@@ -367,9 +366,11 @@ function DiagnosticsJourneyStatsRow({
 }
 
 function DiagnosticsTiresRoll({ report }: { report: WrappedReport }) {
+  const tirePhases = useMemo(() => getTirePhasesForReport(report), [report]);
+
   return (
     <div className="full-diagnostics__tires-roll">
-      {TIRE_PHASE_ORDER.map((phase, i) => (
+      {tirePhases.map((phase, i) => (
         <motion.div
           key={phase}
           className="full-diagnostics__tire-roll-slot"

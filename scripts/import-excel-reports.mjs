@@ -19,6 +19,9 @@ const DEMAND_INDEX_EXCLUDED = new Set([
   'Product Plus (includes 4 products)',
 ]);
 
+/** Retailers skip DemandIndex in Kick the Tires and Full Diagnostics. */
+const RETAILER_RECORD_NUMBERS = new Set([1386304]);
+
 /** Manual community lists per Impexium record until CRM export is authoritative. */
 const COMMUNITY_LIST_OVERRIDES = {
   '1101050': [
@@ -220,6 +223,9 @@ function buildReports(workbook) {
         id: recordNumber,
         name,
         recordNumber: org.RECORDNUMBER,
+        ...(RETAILER_RECORD_NUMBERS.has(org.RECORDNUMBER)
+          ? { marketSegment: 'retailer' }
+          : {}),
       },
       journey: {
         membershipTenureYears: Number(tenure.YearsActive ?? 0),

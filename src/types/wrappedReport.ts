@@ -6,6 +6,8 @@ export type WrappedReport = {
     name: string;
     /** Impexium / CRM record number — matches /engagement/{recordNumber} pages. */
     recordNumber?: number;
+    /** Retailers omit DemandIndex from Kick the Tires and Full Diagnostics. */
+    marketSegment?: 'retailer';
   };
   journey: {
     membershipTenureYears: number;
