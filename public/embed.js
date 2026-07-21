@@ -136,18 +136,32 @@
   }
 
   // The Query Content shortcode may be injected after this script runs. Watch the
-  // DOM and poll briefly until at least one org id appears, then mount.
+  // DOM and poll until an org id appears. Once the page has finished loading we only
+  // wait a short grace period before concluding the user has no organization, so the
+  // fallback message appears quickly instead of after a long fixed timeout.
   var settled = false;
   var observer = null;
   var timer = null;
+  var startedAt = Date.now();
+  var loadedAt = document.readyState === 'complete' ? startedAt : null;
 
-  function tryResolve() {
+  if (loadedAt === null) {
+    window.addEventListener('load', function () {
+      if (loadedAt === null) loadedAt = Date.now();
+    });
+  }
+
+  function cleanup() {
+    if (timer) clearInterval(timer);
+    if (observer) observer.disconnect();
+  }
+
+  function mountIfFound() {
     if (settled) return true;
     var found = collectRecords();
     if (found.length > 0) {
       settled = true;
-      if (timer) clearInterval(timer);
-      if (observer) observer.disconnect();
+      cleanup();
       renderIframe(found);
       return true;
     }
@@ -155,7 +169,7 @@
   }
 
   if (window.MutationObserver) {
-    observer = new MutationObserver(tryResolve);
+    observer = new MutationObserver(mountIfFound);
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
@@ -163,19 +177,20 @@
     });
   }
 
-  var attempts = 0;
-  var maxAttempts = 40; // ~10s at 250ms
+  var GRACE_AFTER_LOAD_MS = 1500; // wait a bit past full load for async component render
+  var HARD_TIMEOUT_MS = 8000; // absolute cap in case the load event never fires
+
   timer = setInterval(function () {
-    attempts += 1;
-    if (tryResolve()) return;
-    if (attempts >= maxAttempts) {
-      if (settled) return;
+    if (mountIfFound()) return;
+    var now = Date.now();
+    var pastGrace = loadedAt !== null && now - loadedAt >= GRACE_AFTER_LOAD_MS;
+    var pastHardCap = now - startedAt >= HARD_TIMEOUT_MS;
+    if (pastGrace || pastHardCap) {
       settled = true;
-      clearInterval(timer);
-      if (observer) observer.disconnect();
+      cleanup();
       showMessage(
         'Your Year In Review: we couldn\u2019t find your organization ID. Please make sure you\u2019re signed in and try again.',
       );
     }
-  }, 250);
+  }, 200);
 })();
