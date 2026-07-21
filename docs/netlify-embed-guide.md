@@ -3,13 +3,14 @@
 ## Overview
 
 1. **Netlify** hosts the React app, static JSON reports, and `embed.js`
-2. **my.autocare.org** pages at `/engagement/{recordNumber}` include a short script snippet
-3. The snippet loads an iframe; the app loads JSON for that record number
+2. **my.autocare.org** has one unified page at `/engagement` with the embed snippet
+3. A re:Members Query Content component renders the logged-in user's Organization ID
+   via `{{RelatedOrganizationRecordNumber}}`; `embed.js` reads it and loads that report
 
 ```
-my.autocare.org/engagement/1101050
+my.autocare.org/engagement   (logged-in user → org id 1101050)
         │
-        └── embed.js reads path → iframe → Netlify app ?record=1101050
+        └── embed.js reads {{RelatedOrganizationRecordNumber}} → iframe → Netlify app ?record=1101050
                                               └── /data/reports/1101050.json
 ```
 
@@ -54,16 +55,20 @@ Override source path: `WRAPPED_XLSX=/path/to/workbook.xlsx npm run import:report
 | `standards.subscribedProducts` | Unique Standards subscription names |
 | `factbook`, `trendLens` | Not in workbook — 0 until separate APIs |
 
-## Embed on Impexium pages
+## Embed on the my.autocare.org `/engagement` page
 
-See **[impexium-page-snippets.md](./impexium-page-snippets.md)** for copy-paste HTML per company.
+See **[engagement-page-snippet.md](./engagement-page-snippet.md)** for the full copy-paste HTML.
 
 ```html
+<!-- Query Content component renders the logged-in user's Organization ID here -->
+<div id="autocare-record" style="display:none">{{RelatedOrganizationRecordNumber}}</div>
+
 <div id="autocare-wrapped"></div>
 <script
   src="https://YOUR-NETLIFY-URL/embed.js"
   data-app-url="https://YOUR-NETLIFY-URL"
   data-target="autocare-wrapped"
+  data-record-selector="#autocare-record"
 ></script>
 ```
 

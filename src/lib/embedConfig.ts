@@ -38,6 +38,9 @@ export function staticReportUrl(recordNumber: string): string {
 
 const ENGAGEMENT_PAGE_ORIGIN = 'https://my.autocare.org';
 
+/** Unified my.autocare.org page where colleagues view a company's Wrapped report. */
+export const ENGAGEMENT_PAGE_PATH = '/engagement';
+
 /** Public my.autocare.org page where colleagues view a company's Wrapped report. */
 export function companyReportPageUrl(recordNumber?: string | number | null): string {
   const record =
@@ -46,7 +49,7 @@ export function companyReportPageUrl(recordNumber?: string | number | null): str
       : getEmbedConfig().recordNumber;
 
   if (record) {
-    return `${ENGAGEMENT_PAGE_ORIGIN}/engagement/${encodeURIComponent(record)}`;
+    return `${ENGAGEMENT_PAGE_ORIGIN}${ENGAGEMENT_PAGE_PATH}?record=${encodeURIComponent(record)}`;
   }
 
   if (typeof window === 'undefined') return '';

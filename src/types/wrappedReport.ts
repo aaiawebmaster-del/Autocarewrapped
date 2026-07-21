@@ -4,7 +4,7 @@ export type WrappedReport = {
   company: {
     id: string;
     name: string;
-    /** Impexium / CRM record number — matches /engagement/{recordNumber} pages. */
+    /** re:Members / CRM record number — the {{RelatedOrganizationRecordNumber}} shown on /engagement. */
     recordNumber?: number;
     /** Retailers omit DemandIndex from Kick the Tires and Full Diagnostics. */
     marketSegment?: 'retailer';

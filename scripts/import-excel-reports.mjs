@@ -322,7 +322,7 @@ function main() {
         recordNumber: report.company.recordNumber,
         id: report.company.id,
         name: report.company.name,
-        pagePath: `/engagement/${report.company.id}`,
+        pagePath: `/engagement?record=${report.company.id}`,
       })),
       null,
       2,
