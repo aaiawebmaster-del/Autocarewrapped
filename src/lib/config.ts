@@ -8,7 +8,10 @@ const mockScenario =
   (import.meta.env.VITE_MOCK_REPORT_SCENARIO as 'default' | 'zero-events' | 'high-engagement') ??
   'default';
 
-const embed = typeof window !== 'undefined' ? getEmbedConfig() : { isEmbedded: false, recordNumber: null };
+const embed =
+  typeof window !== 'undefined'
+    ? getEmbedConfig()
+    : { isEmbedded: false, recordNumber: null, recordNumbers: [] as string[] };
 
 export const appConfig = {
   apiBaseUrl,
@@ -18,6 +21,7 @@ export const appConfig = {
   mockScenario,
   embedMode: embed.isEmbedded,
   embedRecordNumber: embed.recordNumber,
+  embedRecordNumbers: embed.recordNumbers,
   reportEndpoint: `${apiBaseUrl}/api/wrapped/report`,
   healthEndpoint: `${apiBaseUrl}/api/wrapped/health`,
   feedbackEndpoint: `${apiBaseUrl}/api/wrapped/feedback`,

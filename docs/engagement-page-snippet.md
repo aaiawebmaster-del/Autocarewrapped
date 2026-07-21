@@ -11,24 +11,27 @@ Replace `YOUR-NETLIFY-URL` with your Netlify site (no trailing slash).
 
 ---
 
-## The snippet (paste once on `/engagement`)
+## The snippet (paste once on the page)
+
+The Query Content component renders the logged-in user's related Organization ID(s),
+e.g. as a `<ul class="list-results">` with one or more `<li class="list-result">`
+items. Point `data-record-selector` at those items:
 
 ```html
-<!-- 1) Query Content component renders the logged-in user's Organization ID here -->
-<div id="autocare-record" style="display:none">{{RelatedOrganizationRecordNumber}}</div>
-
-<!-- 2) Wrapped mount + loader -->
 <div id="autocare-wrapped"></div>
 <script
   src="https://YOUR-NETLIFY-URL/embed.js"
   data-app-url="https://YOUR-NETLIFY-URL"
   data-target="autocare-wrapped"
-  data-record-selector="#autocare-record"
+  data-record-selector=".list-results .list-result"
 ></script>
 ```
 
-- `#autocare-record` must be inside (or rendered by) the Query Content component so
-  the shortcode is substituted with the real Organization ID when the page loads.
+- `data-record-selector` should match the element(s) the Query Content component
+  renders the Organization ID(s) into. The loader reads **every** match, so if a user
+  belongs to multiple organizations it collects them all.
+- The app then loads the first of those organizations that actually has a Wrapped
+  report (only launch companies have reports today; others show "Report not available").
 - The loader waits for the shortcode to resolve (it ignores the literal
   `{{RelatedOrganizationRecordNumber}}` until re:Members replaces it), so it works
   whether the value is rendered server-side or injected by the component's script.

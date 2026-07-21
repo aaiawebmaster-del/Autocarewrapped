@@ -1,12 +1,26 @@
 /** Resolve company record number from embed URL or my.autocare.org page path. */
 export type EmbedConfig = {
   isEmbedded: boolean;
+  /** First candidate record number, kept for backwards compatibility. */
   recordNumber: string | null;
+  /**
+   * All candidate record numbers, in priority order. The Query Content component can
+   * return multiple related organizations; only some have a Wrapped report, so the app
+   * tries each in turn.
+   */
+  recordNumbers: string[];
 };
 
 function readSearchParams(): URLSearchParams {
   if (typeof window === 'undefined') return new URLSearchParams();
   return new URLSearchParams(window.location.search);
+}
+
+/** Extract the first 5-9 digit record number from an arbitrary string. */
+function extractRecord(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const match = value.match(/\d{5,9}/);
+  return match ? match[0] : null;
 }
 
 export function getRecordNumberFromPath(pathname = window.location.pathname): string | null {
@@ -18,17 +32,27 @@ export function getRecordNumberFromPath(pathname = window.location.pathname): st
 
 export function getEmbedConfig(): EmbedConfig {
   const params = readSearchParams();
-  const fromQuery =
-    params.get('record')?.trim() ||
-    params.get('company')?.trim() ||
-    params.get('companyId')?.trim() ||
-    null;
-  const fromPath = typeof window !== 'undefined' ? getRecordNumberFromPath() : null;
-  const recordNumber = fromQuery || fromPath;
+
+  const ordered: string[] = [];
+  const push = (value: string | null | undefined) => {
+    const record = extractRecord(value);
+    if (record && !ordered.includes(record)) ordered.push(record);
+  };
+
+  // Comma-separated list from embed.js (may contain several related organizations).
+  for (const part of (params.get('records') ?? '').split(',')) {
+    push(part);
+  }
+  push(params.get('record'));
+  push(params.get('company'));
+  push(params.get('companyId'));
+  if (typeof window !== 'undefined') push(getRecordNumberFromPath());
+
+  const recordNumber = ordered[0] ?? null;
   const embedFlag = params.get('embed');
   const isEmbedded = embedFlag === '1' || embedFlag === 'true' || recordNumber !== null;
 
-  return { isEmbedded, recordNumber };
+  return { isEmbedded, recordNumber, recordNumbers: ordered };
 }
 
 export function staticReportUrl(recordNumber: string): string {

@@ -26,7 +26,19 @@ async function fetchStaticCompanyReport(recordNumber: string): Promise<WrappedRe
     throw new WrappedReportError('Unable to load company report', response.status);
   }
 
-  const report = (await response.json()) as WrappedReport;
+  // A missing report file is served as index.html (HTTP 200) by the Netlify SPA
+  // catch-all, so guard against parsing HTML as JSON and treat it as "no report".
+  const raw = await response.text();
+  let report: WrappedReport;
+  try {
+    if (raw.trimStart().startsWith('<')) {
+      throw new Error('non-json-response');
+    }
+    report = JSON.parse(raw) as WrappedReport;
+  } catch {
+    throw new WrappedReportError('Report not available for this company', 404);
+  }
+
   if (report.company?.id !== recordNumber) {
     throw new WrappedReportError('Report not available for this company', 404);
   }
@@ -34,7 +46,31 @@ async function fetchStaticCompanyReport(recordNumber: string): Promise<WrappedRe
   return report;
 }
 
+/** Try each candidate record number and return the first one that has a report. */
+async function fetchFirstAvailableReport(recordNumbers: string[]): Promise<WrappedReport> {
+  let lastError: unknown = null;
+
+  for (const recordNumber of recordNumbers) {
+    try {
+      return await fetchStaticCompanyReport(recordNumber);
+    } catch (error) {
+      lastError = error;
+      // A 404 just means this organization has no report yet — try the next one.
+      if (error instanceof WrappedReportError && error.status === 404) continue;
+      // Surface unexpected/transient errors (network, 5xx) immediately.
+      throw error;
+    }
+  }
+
+  if (lastError instanceof WrappedReportError) throw lastError;
+  throw new WrappedReportError('Report not available for your organization', 404);
+}
+
 export async function fetchWrappedReport(): Promise<WrappedReport> {
+  if (appConfig.embedRecordNumbers.length > 0) {
+    return fetchFirstAvailableReport(appConfig.embedRecordNumbers);
+  }
+
   if (appConfig.embedRecordNumber) {
     return fetchStaticCompanyReport(appConfig.embedRecordNumber);
   }
