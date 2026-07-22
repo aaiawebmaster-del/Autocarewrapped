@@ -24,6 +24,7 @@ const RETAILER_RECORD_NUMBERS = new Set([1386304]);
 
 /** Manual community lists per Impexium record until CRM export is authoritative. */
 const COMMUNITY_LIST_OVERRIDES = {
+  '1100433': ['AWDA Community'],
   '1101050': [
     'Automotive Communications Council',
     'AWDA Community',
@@ -42,6 +43,29 @@ const COMMUNITY_LIST_OVERRIDES = {
 
 /** Manual Kick the Tires / Factbook values until TrendLens & Factbook APIs are wired. */
 const REPORT_PRODUCT_OVERRIDES = {
+  '1100433': {
+    journey: {
+      membershipTenureYears: 50,
+      activeContacts: 73,
+      communityMembers: 32,
+      committeeMembers: 0,
+    },
+    events: {
+      inPersonAttended: 1,
+      attendancePct: 13,
+      webinarCount: 22,
+    },
+    products: {
+      trendLensUsers: 3,
+      demandIndexGroups: 7,
+      demandIndexGroupsTotal: 200,
+      academyUsers: 3,
+      academyCoursesCompleted: 3,
+    },
+    factbook: {
+      users: 0,
+    },
+  },
   '1101050': {
     journey: {
       activeContacts: 88,

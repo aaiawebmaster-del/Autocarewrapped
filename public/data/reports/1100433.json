@@ -1,0 +1,43 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1100433",
+    "name": "East Penn Manufacturing Company",
+    "recordNumber": 1100433
+  },
+  "journey": {
+    "membershipTenureYears": 50,
+    "activeContacts": 73,
+    "communityMembers": 32,
+    "communities": [
+      "AWDA Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 1,
+    "inPersonTotal": 8,
+    "attendancePct": 13,
+    "webinarCount": 22
+  },
+  "products": {
+    "trendLensUsers": 3,
+    "trendLensContactPct": 4,
+    "demandIndexGroups": 7,
+    "demandIndexGroupsTotal": 200,
+    "academyUsers": 3,
+    "academyCoursesCompleted": 3
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 2,
+    "subscribedProducts": [
+      "PAdb - Product Attribute database",
+      "VCdb - (North America) Light Duty & Powersports"
+    ],
+    "subscribedPct": 67
+  }
+}

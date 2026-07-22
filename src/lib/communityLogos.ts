@@ -94,6 +94,7 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
 
 /** Manual community lists per Impexium record until CRM export is authoritative. */
 export const COMMUNITY_LIST_OVERRIDES: Record<string, string[]> = {
+  '1100433': ['AWDA Community'],
   '1101050': [
     'Automotive Communications Council',
     'AWDA Community',

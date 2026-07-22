@@ -76,6 +76,7 @@ This is what the in-app "Share" button generates.
 |---------|----------|
 | Batteries Plus, LLC | 1386304 |
 | Dayco Incorporated | 1101050 |
+| East Penn Manufacturing Company | 1100433 |
 | ElringKlinger AG | 1376049 |
 | EnerSys Batteries | 1351167 |
 | Nissan North America | 1257307 |
