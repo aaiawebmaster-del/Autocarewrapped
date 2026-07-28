@@ -21,8 +21,8 @@
     "webinarCount": 2
   },
   "products": {
-    "trendLensUsers": 0,
-    "trendLensContactPct": 0,
+    "trendLensUsers": 2,
+    "trendLensContactPct": 3,
     "demandIndexGroups": 0,
     "demandIndexGroupsTotal": 200,
     "academyUsers": 0,

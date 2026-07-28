@@ -83,6 +83,7 @@ const REPORT_PRODUCT_OVERRIDES = {
       webinarCount: 5,
     },
     products: {
+      trendLensUsers: 1,
       academyUsers: 1,
       academyCoursesCompleted: 1,
     },
@@ -100,6 +101,9 @@ const REPORT_PRODUCT_OVERRIDES = {
       webinarCount: 5,
       aapexAttended: false,
     },
+    products: {
+      trendLensUsers: 2,
+    },
   },
   '1252576': {
     journey: {
@@ -112,6 +116,9 @@ const REPORT_PRODUCT_OVERRIDES = {
       inPersonAttended: 3,
       attendancePct: 38,
       webinarCount: 2,
+    },
+    products: {
+      trendLensUsers: 2,
     },
   },
   '1361271': {
@@ -127,6 +134,7 @@ const REPORT_PRODUCT_OVERRIDES = {
       webinarCount: 5,
     },
     products: {
+      trendLensUsers: 5,
       academyUsers: 3,
       academyCoursesCompleted: 3,
     },
