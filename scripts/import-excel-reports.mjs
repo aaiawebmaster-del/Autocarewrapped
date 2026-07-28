@@ -31,6 +31,9 @@ const COMMUNITY_LIST_OVERRIDES = {
     'Women in Auto Care',
     'YANG Membership',
   ],
+  '1101623': ['AWDA Community'],
+  '1252425': ['AWDA Community'],
+  '1252576': ['AWDA Community'],
   '1376049': [
     'Automotive Content Professionals Network',
     'AWDA Community',
@@ -65,6 +68,80 @@ const REPORT_PRODUCT_OVERRIDES = {
     },
     factbook: {
       users: 0,
+    },
+  },
+  '1101623': {
+    journey: {
+      membershipTenureYears: 43,
+      activeContacts: 31,
+      communityMembers: 30,
+      committeeMembers: 0,
+    },
+    events: {
+      inPersonAttended: 3,
+      attendancePct: 38,
+      webinarCount: 5,
+    },
+    products: {
+      academyUsers: 1,
+      academyCoursesCompleted: 1,
+    },
+  },
+  '1252425': {
+    journey: {
+      membershipTenureYears: 23,
+      activeContacts: 40,
+      communityMembers: 40,
+      committeeMembers: 0,
+    },
+    events: {
+      inPersonAttended: 4,
+      attendancePct: 50,
+      webinarCount: 5,
+      aapexAttended: false,
+    },
+  },
+  '1252576': {
+    journey: {
+      membershipTenureYears: 25,
+      activeContacts: 78,
+      communityMembers: 78,
+      committeeMembers: 0,
+    },
+    events: {
+      inPersonAttended: 3,
+      attendancePct: 38,
+      webinarCount: 2,
+    },
+  },
+  '1361271': {
+    journey: {
+      membershipTenureYears: 12,
+      activeContacts: 66,
+      communityMembers: 0,
+      committeeMembers: 0,
+    },
+    events: {
+      inPersonAttended: 3,
+      attendancePct: 38,
+      webinarCount: 5,
+    },
+    products: {
+      academyUsers: 3,
+      academyCoursesCompleted: 3,
+    },
+  },
+  '1381305': {
+    journey: {
+      membershipTenureYears: 4,
+      activeContacts: 12,
+      communityMembers: 0,
+      committeeMembers: 0,
+    },
+    events: {
+      inPersonAttended: 0,
+      attendancePct: 0,
+      webinarCount: 0,
     },
   },
   '1101050': {

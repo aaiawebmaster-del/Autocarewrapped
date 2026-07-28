@@ -1,0 +1,43 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1252576",
+    "name": "Interstate Batteries",
+    "recordNumber": 1252576
+  },
+  "journey": {
+    "membershipTenureYears": 25,
+    "activeContacts": 78,
+    "communityMembers": 78,
+    "communities": [
+      "AWDA Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 3,
+    "inPersonTotal": 8,
+    "attendancePct": 38,
+    "webinarCount": 2
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 200,
+    "academyUsers": 0,
+    "academyCoursesCompleted": 0
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 2,
+    "subscribedProducts": [
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 67
+  }
+}

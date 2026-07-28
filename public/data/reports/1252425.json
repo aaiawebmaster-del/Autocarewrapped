@@ -1,0 +1,47 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1252425",
+    "name": "SKF Automotive Division",
+    "recordNumber": 1252425
+  },
+  "journey": {
+    "membershipTenureYears": 23,
+    "activeContacts": 40,
+    "communityMembers": 40,
+    "communities": [
+      "AWDA Community"
+    ],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 4,
+    "inPersonTotal": 8,
+    "attendancePct": 50,
+    "webinarCount": 5,
+    "aapexAttended": false
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 200,
+    "academyUsers": 0,
+    "academyCoursesCompleted": 0
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 5,
+    "subscribedProducts": [
+      "PAdb - Product Attribute database",
+      "Translation Reference Databases (Spanish)",
+      "VCdb - Latin America",
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 100
+  }
+}

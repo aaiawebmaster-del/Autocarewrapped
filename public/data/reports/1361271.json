@@ -1,0 +1,40 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1361271",
+    "name": "Dana Incorporated",
+    "recordNumber": 1361271
+  },
+  "journey": {
+    "membershipTenureYears": 12,
+    "activeContacts": 66,
+    "communityMembers": 0,
+    "communities": [],
+    "committeeMembers": 0
+  },
+  "events": {
+    "inPersonAttended": 3,
+    "inPersonTotal": 8,
+    "attendancePct": 38,
+    "webinarCount": 5
+  },
+  "products": {
+    "trendLensUsers": 0,
+    "trendLensContactPct": 0,
+    "demandIndexGroups": 0,
+    "demandIndexGroupsTotal": 200,
+    "academyUsers": 3,
+    "academyCoursesCompleted": 3
+  },
+  "factbook": {
+    "users": 0,
+    "contactPct": 0
+  },
+  "standards": {
+    "subscribedCount": 1,
+    "subscribedProducts": [
+      "Enterprise"
+    ],
+    "subscribedPct": 0
+  }
+}

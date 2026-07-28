@@ -75,12 +75,17 @@ This is what the in-app "Share" button generates.
 | Company | Record # |
 |---------|----------|
 | Batteries Plus, LLC | 1386304 |
+| Dana Incorporated | 1361271 |
 | Dayco Incorporated | 1101050 |
 | East Penn Manufacturing Company | 1100433 |
 | ElringKlinger AG | 1376049 |
 | EnerSys Batteries | 1351167 |
+| Interstate Batteries | 1252576 |
 | Nissan North America | 1257307 |
 | Recochem Inc. | 1255413 |
+| SKF Automotive Division | 1252425 |
+| Stryten Energy | 1101623 |
+| Zoro Tools | 1381305 |
 
 ---
 
