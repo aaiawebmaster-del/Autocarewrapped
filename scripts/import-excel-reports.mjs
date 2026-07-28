@@ -45,22 +45,23 @@ const COMMUNITY_LIST_OVERRIDES = {
 const REPORT_PRODUCT_OVERRIDES = {
   '1100433': {
     journey: {
-      membershipTenureYears: 50,
-      activeContacts: 73,
-      communityMembers: 32,
-      committeeMembers: 0,
+      membershipTenureYears: 49,
+      activeContacts: 57,
+      communityMembers: 1,
+      committeeMembers: 2,
     },
     events: {
-      inPersonAttended: 1,
-      attendancePct: 13,
-      webinarCount: 22,
+      inPersonAttended: 4,
+      attendancePct: 50,
+      webinarCount: 6,
+      aapexAttended: false,
     },
     products: {
-      trendLensUsers: 3,
-      demandIndexGroups: 7,
+      trendLensUsers: 0,
+      demandIndexGroups: 6,
       demandIndexGroupsTotal: 200,
-      academyUsers: 3,
-      academyCoursesCompleted: 3,
+      academyUsers: 1,
+      academyCoursesCompleted: 1,
     },
     factbook: {
       users: 0,
