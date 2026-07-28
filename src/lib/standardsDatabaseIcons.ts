@@ -87,19 +87,36 @@ function normalizeSubscribedProducts(
 }
 
 function hasVcdbSubscription(subscribedProducts: string[]): boolean {
-  return subscribedProducts.some((name) => /^vcdb\b/i.test(name));
+  return (
+    hasEnterpriseSubscription(subscribedProducts) ||
+    subscribedProducts.some((name) => /^vcdb\b/i.test(name))
+  );
 }
 
 function hasPadbSubscription(subscribedProducts: string[]): boolean {
-  return subscribedProducts.some((name) => /^padb\b/i.test(name));
+  return (
+    hasEnterpriseSubscription(subscribedProducts) ||
+    subscribedProducts.some((name) => /^padb\b/i.test(name))
+  );
 }
 
 function hasBrandTableSubscription(subscribedProducts: string[]): boolean {
-  return subscribedProducts.some((name) => /brand table/i.test(name));
+  return (
+    hasEnterpriseSubscription(subscribedProducts) ||
+    subscribedProducts.some((name) => /brand table/i.test(name))
+  );
 }
 
 function hasBestPracticesSubscription(subscribedProducts: string[]): boolean {
-  return subscribedProducts.some((name) => /best practice/i.test(name));
+  return (
+    hasEnterpriseSubscription(subscribedProducts) ||
+    subscribedProducts.some((name) => /best practice/i.test(name))
+  );
+}
+
+/** Highest Standards package — unlocks the full subscription catalog (100%). */
+function hasEnterpriseSubscription(subscribedProducts: string[]): boolean {
+  return subscribedProducts.some((name) => /\benterprise\b/i.test(name));
 }
 
 /** VCdb unlocks ACES (VCdb + PCdb + Qdb). PAdb unlocks PIES (PAdb + PCdb). */
@@ -139,6 +156,14 @@ function getDerivedDatabaseAccessIds(
   const products = normalizeSubscribedProducts(subscribedProducts);
   const access = new Set<string>();
 
+  if (hasEnterpriseSubscription(products)) {
+    for (const id of STANDARDS_COVERAGE_DATABASES) {
+      access.add(id);
+    }
+    access.add('digital-assets');
+    return access;
+  }
+
   if (hasVcdbSubscription(products)) {
     access.add('vcdb');
     access.add('pcdb');
@@ -166,6 +191,8 @@ export function getStandardsSubscribedPct(
   subscribedProducts: string[] | undefined,
 ): number {
   const products = normalizeSubscribedProducts(subscribedProducts);
+  if (hasEnterpriseSubscription(products)) return 100;
+
   const available = new Set<string>();
 
   if (hasVcdbSubscription(products)) {
