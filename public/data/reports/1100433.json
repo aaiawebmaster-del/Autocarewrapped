@@ -22,8 +22,8 @@
     "aapexAttended": false
   },
   "products": {
-    "trendLensUsers": 0,
-    "trendLensContactPct": 0,
+    "trendLensUsers": 3,
+    "trendLensContactPct": 5,
     "demandIndexGroups": 6,
     "demandIndexGroupsTotal": 200,
     "academyUsers": 1,

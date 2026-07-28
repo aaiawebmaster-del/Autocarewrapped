@@ -60,7 +60,7 @@ const REPORT_PRODUCT_OVERRIDES = {
       aapexAttended: false,
     },
     products: {
-      trendLensUsers: 0,
+      trendLensUsers: 3,
       demandIndexGroups: 6,
       demandIndexGroupsTotal: 200,
       academyUsers: 1,
