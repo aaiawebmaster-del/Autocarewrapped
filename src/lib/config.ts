@@ -16,6 +16,8 @@ const embed =
         recordNumber: null,
         recordNumbers: [] as string[],
         isImpersonating: false,
+        section: null,
+        sectionOnly: false,
       };
 
 export const appConfig = {
@@ -29,6 +31,10 @@ export const appConfig = {
   embedRecordNumbers: embed.recordNumbers,
   /** Skip usage analytics when re:Members admin is impersonating a member. */
   isImpersonating: embed.isImpersonating,
+  /** Footer checkpoint for Netlify section-only embeds (`?section=`). */
+  embedSection: embed.section,
+  /** When true, jump into `embedSection` and block leaving that checkpoint. */
+  sectionOnly: embed.sectionOnly,
   reportEndpoint: `${apiBaseUrl}/api/wrapped/report`,
   healthEndpoint: `${apiBaseUrl}/api/wrapped/health`,
   feedbackEndpoint: `${apiBaseUrl}/api/wrapped/feedback`,

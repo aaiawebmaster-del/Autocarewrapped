@@ -1,4 +1,6 @@
 /** Resolve company record number from embed URL or my.autocare.org page path. */
+export type EmbedSection = 'journey' | 'hood' | 'tires' | 'diagnostics';
+
 export type EmbedConfig = {
   isEmbedded: boolean;
   /** First candidate record number, kept for backwards compatibility. */
@@ -14,6 +16,13 @@ export type EmbedConfig = {
    * Usage analytics must not be recorded for these sessions.
    */
   isImpersonating: boolean;
+  /**
+   * When set, the Netlify app jumps straight into this footer checkpoint and stays there
+   * (section-only embed). Null means the full multi-section experience.
+   */
+  section: EmbedSection | null;
+  /** True when a valid `?section=` value is present. */
+  sectionOnly: boolean;
 };
 
 function readSearchParams(): URLSearchParams {
@@ -26,6 +35,31 @@ function extractRecord(value: string | null | undefined): string | null {
   if (!value) return null;
   const match = value.match(/\d{5,9}/);
   return match ? match[0] : null;
+}
+
+/** Normalize `?section=` aliases to a footer checkpoint id. */
+export function normalizeEmbedSection(
+  raw: string | null | undefined,
+): EmbedSection | null {
+  if (!raw) return null;
+  const value = raw.trim().toLowerCase();
+  switch (value) {
+    case 'journey':
+      return 'journey';
+    case 'hood':
+    case 'standards':
+    case 'under-the-hood':
+      return 'hood';
+    case 'tires':
+    case 'kick-the-tires':
+      return 'tires';
+    case 'diagnostics':
+    case 'report':
+    case 'full-diagnostics':
+      return 'diagnostics';
+    default:
+      return null;
+  }
 }
 
 export function getRecordNumberFromPath(pathname = window.location.pathname): string | null {
@@ -58,8 +92,16 @@ export function getEmbedConfig(): EmbedConfig {
   const isEmbedded = embedFlag === '1' || embedFlag === 'true' || recordNumber !== null;
   const impersonatingFlag = params.get('impersonating');
   const isImpersonating = impersonatingFlag === '1' || impersonatingFlag === 'true';
+  const section = normalizeEmbedSection(params.get('section'));
 
-  return { isEmbedded, recordNumber, recordNumbers: ordered, isImpersonating };
+  return {
+    isEmbedded,
+    recordNumber,
+    recordNumbers: ordered,
+    isImpersonating,
+    section,
+    sectionOnly: section !== null,
+  };
 }
 
 export function staticReportUrl(recordNumber: string): string {

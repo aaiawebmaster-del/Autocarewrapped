@@ -49,6 +49,8 @@ import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import { BRAND_PRIMARY } from '@/lib/brandColors';
 import { buildJourneySections, type JourneySection } from '@/lib/buildJourneySections';
 import { getAapex2026DetailMessage, getInitialTirePhase } from '@/lib/contentVariants';
+import { appConfig } from '@/lib/config';
+import type { EmbedSection } from '@/lib/embedConfig';
 import {
   JOURNEY_CALCULATING_HOLD_MS,
   JOURNEY_NAV_MAP_ENTER_EVENT,
@@ -826,6 +828,7 @@ function GpsNavSection({
   uiSceneMotion,
   eventsMetrics,
   registerDashboardNav,
+  allowLeaveToHood = true,
 }: {
   onGoToHood: () => void;
   onGoBack: () => void;
@@ -838,6 +841,8 @@ function GpsNavSection({
     transition: typeof JOURNEY_SCENE_TRANSITION;
   };
   registerDashboardNav?: RegisterDashboardNav;
+  /** When false (section-only journey embed), the final arrival screen has Back only. */
+  allowLeaveToHood?: boolean;
 }) {
   const attendanceTarget = eventsMetrics.attendancePct;
   const webinarTarget = eventsMetrics.webinarCount;
@@ -1097,6 +1102,7 @@ function GpsNavSection({
       setArrivalStep('rerouting');
       return;
     }
+    if (!allowLeaveToHood) return;
     playUiClickSound();
     handleGoToHoodWithTransition();
   };
@@ -1141,7 +1147,9 @@ function GpsNavSection({
     const mapCanBack = !leavingForHood && (showArrivalOverlay || phase >= 2);
     const mapCanNext =
       !leavingForHood &&
-      (showArrivalOverlay || (phase >= 2 && phase <= 3 && canAdvance));
+      (showArrivalOverlay
+        ? arrivalStep === 'arrived' || (arrivalStep === 'rerouting' && allowLeaveToHood)
+        : phase >= 2 && phase <= 3 && canAdvance);
 
     registerDashboardNav({
       back: () => {
@@ -1167,6 +1175,8 @@ function GpsNavSection({
     registerDashboardNav,
     leavingForHood,
     showArrivalOverlay,
+    arrivalStep,
+    allowLeaveToHood,
     phase,
     canAdvance,
     handleNavBack,
@@ -1326,7 +1336,11 @@ function GpsNavSection({
           onBack={showArrivalOverlay ? handleArrivalNavBack : handleNavBack}
           onNext={showArrivalOverlay ? handleArrivalNavNext : handleAdvance}
           nextLabel={showArrivalOverlay ? 'next' : advanceLabel}
-          nextDisabled={showArrivalOverlay ? false : !canAdvance}
+          nextDisabled={
+            showArrivalOverlay
+              ? arrivalStep === 'rerouting' && !allowLeaveToHood
+              : !canAdvance
+          }
         />
       )}
     </div>
@@ -1529,6 +1543,7 @@ function YourJourney({
   eventsMetrics,
   communities,
   registerDashboardNav,
+  allowLeaveToHood = true,
 }: {
   onSectionChange?: (idx: number) => void;
   onGoToHood: () => void;
@@ -1538,6 +1553,7 @@ function YourJourney({
   eventsMetrics: EventsMetrics;
   communities?: string[];
   registerDashboardNav?: RegisterDashboardNav;
+  allowLeaveToHood?: boolean;
 }) {
   const [sectionIdx, setSectionIdx] = useState(initialSectionIdx);
   const isCounterMobile = useIsCounterMobile();
@@ -1631,6 +1647,7 @@ function YourJourney({
               eventsMetrics={eventsMetrics}
               onGoToHood={onGoToHood}
               onGoBack={goToPrevJourneySection}
+              allowLeaveToHood={allowLeaveToHood}
               registerDashboardNav={registerDashboardNav}
               uiSceneMotion={{
                 initial: { opacity: 1 },
@@ -1743,6 +1760,7 @@ function DashboardPanel({
   onExitJourneyToIntro,
   onJourneyMapExit,
   onPanelRef,
+  allowLeaveToHood = true,
 }: {
   currentSlide: number | null;
   onBack: () => void;
@@ -1774,6 +1792,7 @@ function DashboardPanel({
   /** Fired when the user backs from the map into a counter slide (clears end-of-journey GPS resume). */
   onJourneyMapExit?: () => void;
   onPanelRef?: (node: HTMLDivElement | null) => void;
+  allowLeaveToHood?: boolean;
 }) {
   const isFirstSlide = isLanding || currentSlide === 0;
   const showPreJourney = isLanding || (!isJourney && currentSlide !== null);
@@ -2198,6 +2217,7 @@ function DashboardPanel({
                       key={`journey-${journeyInitialSectionIdx ?? 0}-${journeyInitialGpsPhase ?? 1}`}
                       onSectionChange={handleJourneySectionChange}
                       onGoToHood={onGoToHood}
+                      allowLeaveToHood={allowLeaveToHood}
                       initialSectionIdx={journeyInitialSectionIdx}
                       initialGpsPhase={journeyInitialGpsPhase}
                       journeySections={journeySections}
@@ -2351,15 +2371,24 @@ export function DrivingView({
   report: WrappedReport;
   embedded?: boolean;
 }) {
+  const sectionOnly = appConfig.sectionOnly;
+  const embedSection = appConfig.embedSection;
   const journeySections = buildJourneySections(report);
   const journeyNavSectionIndex = journeySections.length - 1;
   const [currentSlide, setCurrentSlide] = useState<number | null>(null);
-  const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
+  const [currentScreen, setCurrentScreen] = useState<Screen | null>(() => {
+    if (!sectionOnly || !embedSection) return null;
+    if (embedSection === 'diagnostics') return 'diagnostics';
+    if (embedSection === 'journey') return 'journey';
+    return 'hood';
+  });
   const [journeyResumeSectionIdx, setJourneyResumeSectionIdx] = useState<number | undefined>();
   const [journeyResumeGpsPhase, setJourneyResumeGpsPhase] = useState<number | undefined>();
-  const [hoodPhase, setHoodPhase] = useState<HoodPhase>('standards');
+  const [hoodPhase, setHoodPhase] = useState<HoodPhase>(() =>
+    sectionOnly && embedSection === 'tires' ? getInitialTirePhase(report) : 'standards',
+  );
   const [hoodSession, setHoodSession] = useState(0);
-  const [isStarted, setIsStarted] = useState(false);
+  const [isStarted, setIsStarted] = useState(() => sectionOnly);
   const [diagnosticsStage, setDiagnosticsStage] = useState<
     'full' | 'transition' | 'final'
   >('full');
@@ -2380,6 +2409,55 @@ export function DrivingView({
     const mounted = !!node;
     setDashboardPanelMounted((prev) => (prev === mounted ? prev : mounted));
   }, []);
+
+  const canLeaveLockedSection = useCallback(
+    (target: EmbedSection | NavCheckpoint) => {
+      if (!sectionOnly || !embedSection) return true;
+      return target === embedSection;
+    },
+    [sectionOnly, embedSection],
+  );
+
+  const enterSectionOnlyCheckpoint = useCallback(
+    (section: EmbedSection) => {
+      setIsStarted(true);
+      setCurrentSlide(null);
+      setDiagnosticsStage('full');
+      setHoodEntryPhase(null);
+      setHoodNavTransition(null);
+      pendingCheckpointRef.current = null;
+      if (section === 'journey') {
+        setJourneyResumeSectionIdx(0);
+        setJourneyResumeGpsPhase(1);
+        setHoodPhase('standards');
+        setCurrentScreen('journey');
+        return;
+      }
+      if (section === 'hood') {
+        setJourneyResumeSectionIdx(undefined);
+        setJourneyResumeGpsPhase(undefined);
+        setHoodPhase('standards');
+        setHoodSession((n) => n + 1);
+        setCurrentScreen('hood');
+        return;
+      }
+      if (section === 'tires') {
+        const initialTirePhase = getInitialTirePhase(report);
+        lastTirePhaseRef.current = initialTirePhase;
+        setJourneyResumeSectionIdx(undefined);
+        setJourneyResumeGpsPhase(undefined);
+        setHoodPhase(initialTirePhase);
+        setHoodSession((n) => n + 1);
+        setCurrentScreen('hood');
+        return;
+      }
+      setJourneyResumeSectionIdx(undefined);
+      setJourneyResumeGpsPhase(undefined);
+      setHoodPhase('standards');
+      setCurrentScreen('diagnostics');
+    },
+    [report],
+  );
 
   const screenOrder = NAV_ITEMS.map((n) => n.id);
   const activeNav = getActiveNavCheckpoint(currentScreen, hoodPhase);
@@ -2468,6 +2546,16 @@ export function DrivingView({
   }, []);
 
   const handleRestart = () => {
+    if (sectionOnly && embedSection) {
+      enterSectionOnlyCheckpoint(embedSection);
+      setDashboardEpoch((epoch) => epoch + 1);
+      if (embedSection === 'journey') {
+        skyProgress.set(1);
+      } else {
+        skyProgress.set(0);
+      }
+      return;
+    }
     setIsStarted(false);
     setCurrentSlide(null);
     setCurrentScreen(null);
@@ -2542,6 +2630,7 @@ export function DrivingView({
   };
 
   const goToCheckpoint = (checkpoint: NavCheckpoint) => {
+    if (!canLeaveLockedSection(checkpoint)) return;
     if (currentScreen === 'hood') {
       stopHoodStandardsDataProcessingBeep();
     }
@@ -2672,11 +2761,12 @@ export function DrivingView({
   };
 
   const beginDiagnosticsFromTires = useCallback(() => {
+    if (!canLeaveLockedSection('diagnostics')) return;
     if (!isStarted) setIsStarted(true);
     setCurrentSlide(null);
     setCurrentScreen('diagnostics');
     setDiagnosticsStage('transition');
-  }, [isStarted]);
+  }, [canLeaveLockedSection, isStarted]);
 
   useEffect(() => {
     if (diagnosticsStage !== 'transition') return;
@@ -2688,10 +2778,12 @@ export function DrivingView({
   }, [diagnosticsStage]);
 
   const goToPrev = () => {
+    if (sectionOnly) return;
     if (currentIdx > 0) goToCheckpoint(screenOrder[currentIdx - 1]);
   };
 
   const goToNext = () => {
+    if (sectionOnly) return;
     if (currentIdx < screenOrder.length - 1) goToCheckpoint(screenOrder[currentIdx + 1]);
   };
 
@@ -2757,46 +2849,67 @@ export function DrivingView({
   }, [markHoodCrossNavCooldown]);
 
   const beginStandardsToTireTransition = useCallback(() => {
+    if (!canLeaveLockedSection('tires')) return;
     if (hoodNavBusyRef.current || hoodEntryPhase || hoodNavTransition) return;
     lastTirePhaseRef.current = getInitialTirePhase(report);
     markHoodNavBusy();
     setHoodNavTransition('standards-to-tire');
-  }, [hoodEntryPhase, hoodNavTransition, markHoodNavBusy, report]);
+  }, [
+    canLeaveLockedSection,
+    hoodEntryPhase,
+    hoodNavTransition,
+    markHoodNavBusy,
+    report,
+  ]);
 
   const beginTireToStandardsTransition = useCallback(() => {
+    if (!canLeaveLockedSection('hood')) return;
     if (hoodNavBusyRef.current || hoodEntryPhase || hoodNavTransition) return;
     markHoodNavBusy();
     setHoodNavTransition('tire-to-standards');
-  }, [hoodEntryPhase, hoodNavTransition, markHoodNavBusy]);
+  }, [canLeaveLockedSection, hoodEntryPhase, hoodNavTransition, markHoodNavBusy]);
 
   const handleGoToHood = useCallback(() => {
+    if (!canLeaveLockedSection('hood')) return;
     markHoodNavBusy();
     setHoodEntryPhase('sliding-dashboard');
-  }, [markHoodNavBusy]);
+  }, [canLeaveLockedSection, markHoodNavBusy]);
 
   const handleBackToJourneyEnd = useCallback(() => {
+    if (!canLeaveLockedSection('journey')) return;
     saveJourneyResumeForNav();
     setCurrentScreen('journey');
-  }, [saveJourneyResumeForNav]);
+  }, [canLeaveLockedSection, saveJourneyResumeForNav]);
 
   const handleJourneyMapExit = useCallback(() => {
     setJourneyResumeGpsPhase(undefined);
   }, []);
 
   const handleExitJourneyToIntro = useCallback(() => {
+    if (sectionOnly) return;
     playUiClickSound();
     setCurrentScreen(null);
     setCurrentSlide(DRIVING_SLIDE_COUNT - 1);
-  }, []);
+  }, [sectionOnly]);
 
   const handleStart = useCallback(() => {
+    if (sectionOnly && embedSection) {
+      enterSectionOnlyCheckpoint(embedSection);
+      return;
+    }
     primeUiClickSoundSession();
     playCarStartSound();
     trackAnalyticsEvent('session_started', reportToAnalyticsContext(report));
     setIsStarted(true);
     setCurrentSlide(0);
     setSkyRunId((n) => n + 1);
-  }, [playCarStartSound, report]);
+  }, [
+    embedSection,
+    enterSectionOnlyCheckpoint,
+    playCarStartSound,
+    report,
+    sectionOnly,
+  ]);
 
   useEffect(() => {
     if (!isStarted) return;
@@ -2872,8 +2985,21 @@ export function DrivingView({
     isMobileViewport,
   );
   const roadLottiePreserveAspectRatio = 'xMidYMax slice';
-  const showFooterNav = isStarted && diagnosticsStage === 'full';
+  const showFooterNav = isStarted && diagnosticsStage === 'full' && !sectionOnly;
   const footerNavLocked = hoodNavTransition != null || hoodEntryPhase != null;
+  const allowLeaveToHood = canLeaveLockedSection('hood');
+  const standardsToTireTransition = canLeaveLockedSection('tires')
+    ? beginStandardsToTireTransition
+    : undefined;
+  const tireToStandardsTransition = canLeaveLockedSection('hood')
+    ? beginTireToStandardsTransition
+    : undefined;
+  const finishTireSequence = canLeaveLockedSection('diagnostics')
+    ? beginDiagnosticsFromTires
+    : undefined;
+  const backToJourney = canLeaveLockedSection('journey')
+    ? handleBackToJourneyEnd
+    : undefined;
   const pinnedBackdropStyle =
     pinBackdropToDashboard && isMobileViewport
       ? ({
@@ -3180,6 +3306,7 @@ export function DrivingView({
               hoodSession={hoodSession}
               onHoodPhaseChange={setHoodPhase}
               onGoToHood={handleGoToHood}
+              allowLeaveToHood={allowLeaveToHood}
               hoodEntryPhase={hoodEntryPhase}
               hoodNavTransition={hoodNavTransition}
               onDashboardExitComplete={handleDashboardExitComplete}
@@ -3187,10 +3314,10 @@ export function DrivingView({
               onHoodPanelFallComplete={handleHoodPanelFallComplete}
               onHoodNavTransitionMidpoint={handleHoodNavTransitionMidpoint}
               onHoodNavTransitionComplete={handleHoodNavTransitionComplete}
-              onRequestStandardsToTireTransition={beginStandardsToTireTransition}
-              onRequestTireToStandardsTransition={beginTireToStandardsTransition}
-              onFinishTireSequence={beginDiagnosticsFromTires}
-              onBackToJourney={handleBackToJourneyEnd}
+              onRequestStandardsToTireTransition={standardsToTireTransition}
+              onRequestTireToStandardsTransition={tireToStandardsTransition}
+              onFinishTireSequence={finishTireSequence}
+              onBackToJourney={backToJourney}
               onJourneyMapExit={handleJourneyMapExit}
               onExitJourneyToIntro={handleExitJourneyToIntro}
               journeyInitialSectionIdx={journeyResumeSectionIdx}
@@ -3202,7 +3329,14 @@ export function DrivingView({
           {isDiagnosticsFlow && diagnosticsStage === 'transition' && <DiagnosticsTransition />}
           {isDiagnosticsFlow && diagnosticsStage === 'final' && <FinalScenePlaceholder />}
           {currentScreen === 'diagnostics' && diagnosticsStage === 'full' && (
-            <FullDiagnostics onBackToStart={handleRestart} report={report} />
+            <FullDiagnostics
+              onBackToStart={
+                sectionOnly && embedSection === 'diagnostics'
+                  ? () => enterSectionOnlyCheckpoint('diagnostics')
+                  : handleRestart
+              }
+              report={report}
+            />
           )}
         </div>
       </div>

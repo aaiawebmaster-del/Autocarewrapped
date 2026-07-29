@@ -2606,9 +2606,16 @@ export function DashboardHoodArch({
   }, [popupIndex, isMobile, subscribedMobileSlide, onBackToJourney, hoodTransitionBusy]);
 
   const showStandardsControls = phase === 'standards';
+  const atStandardsExit =
+    (popupIndex === HOOD_VIP_POPUP_INDEX && popupTyped) ||
+    (popupIndex === HOOD_SUBSCRIBED_POPUP_INDEX &&
+      isMobile &&
+      subscribedMobileSlide === 1 &&
+      popupTyped);
   const forwardDisabled =
     (popupIndex === HOOD_CHECKING_POPUP_INDEX && !popupTyped) ||
-    (popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped);
+    (popupIndex >= HOOD_SUBSCRIBED_POPUP_INDEX && !popupTyped) ||
+    (atStandardsExit && !onRequestStandardsToTireTransition);
 
   useEffect(() => {
     if (hoodNavTransition) return;
