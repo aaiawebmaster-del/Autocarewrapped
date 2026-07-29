@@ -11,7 +11,12 @@ const mockScenario =
 const embed =
   typeof window !== 'undefined'
     ? getEmbedConfig()
-    : { isEmbedded: false, recordNumber: null, recordNumbers: [] as string[] };
+    : {
+        isEmbedded: false,
+        recordNumber: null,
+        recordNumbers: [] as string[],
+        isImpersonating: false,
+      };
 
 export const appConfig = {
   apiBaseUrl,
@@ -22,6 +27,8 @@ export const appConfig = {
   embedMode: embed.isEmbedded,
   embedRecordNumber: embed.recordNumber,
   embedRecordNumbers: embed.recordNumbers,
+  /** Skip usage analytics when re:Members admin is impersonating a member. */
+  isImpersonating: embed.isImpersonating,
   reportEndpoint: `${apiBaseUrl}/api/wrapped/report`,
   healthEndpoint: `${apiBaseUrl}/api/wrapped/health`,
   feedbackEndpoint: `${apiBaseUrl}/api/wrapped/feedback`,

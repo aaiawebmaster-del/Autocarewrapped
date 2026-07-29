@@ -47,6 +47,8 @@ export function trackAnalyticsEvent(
   properties?: Record<string, string | number>,
 ): void {
   if (typeof window === 'undefined') return;
+  // Internal re:Members impersonation sessions must not inflate usage reporting.
+  if (appConfig.isImpersonating) return;
 
   if (event === 'session_started') {
     markSessionStartedAtNow();
@@ -73,11 +75,12 @@ export function trackAnalyticsEventOnce(
   properties?: Record<string, string | number>,
   flagKey?: string,
 ): void {
+  if (typeof window === 'undefined') return;
+  if (appConfig.isImpersonating) return;
+
   const storageKey = flagKey ?? event;
-  if (typeof window !== 'undefined') {
-    const flag = `wrapped-analytics-event:${storageKey}`;
-    if (sessionStorage.getItem(flag) === '1') return;
-    sessionStorage.setItem(flag, '1');
-  }
+  const flag = `wrapped-analytics-event:${storageKey}`;
+  if (sessionStorage.getItem(flag) === '1') return;
+  sessionStorage.setItem(flag, '1');
   trackAnalyticsEvent(event, company, properties);
 }

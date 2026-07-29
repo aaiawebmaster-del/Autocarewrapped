@@ -22,6 +22,10 @@
  *   2. ?record= / ?company= / ?companyId= query param (shared links)
  *   3. Every element matching data-record-selector (the rendered shortcode list)
  *   4. /engagement/{recordNumber} path segment (legacy per-company pages)
+ *
+ * When re:Members admin impersonation is active (#main_lnkEndImpersonate /
+ * .impersonate-header-inner), the iframe is loaded with &impersonating=1 so the
+ * app skips usage analytics for that session.
  */
 (function () {
   var script = document.currentScript;
@@ -99,15 +103,32 @@
     return records;
   }
 
+  // re:Members admin impersonation shows a blue bar with #main_lnkEndImpersonate /
+  // .impersonate-header-inner. Those sessions must not count toward usage reporting.
+  function isImpersonating() {
+    try {
+      if (document.getElementById('main_lnkEndImpersonate')) return true;
+      if (document.querySelector('.impersonate-header-inner')) return true;
+      if (document.querySelector('.impersonate-header-text')) return true;
+    } catch (err) {
+      /* no-op */
+    }
+    return false;
+  }
+
   function renderIframe(records) {
     var iframe = document.createElement('iframe');
-    iframe.src =
+    var src =
       appUrl +
       '/?records=' +
       encodeURIComponent(records.join(',')) +
       '&record=' +
       encodeURIComponent(records[0]) +
       '&embed=1';
+    if (isImpersonating()) {
+      src += '&impersonating=1';
+    }
+    iframe.src = src;
     iframe.title = 'Your Year In Review';
     iframe.setAttribute('loading', 'lazy');
     iframe.setAttribute('allow', 'fullscreen');

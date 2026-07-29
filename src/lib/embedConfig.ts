@@ -9,6 +9,11 @@ export type EmbedConfig = {
    * tries each in turn.
    */
   recordNumbers: string[];
+  /**
+   * True when the parent my.autocare.org page is in re:Members admin impersonation mode.
+   * Usage analytics must not be recorded for these sessions.
+   */
+  isImpersonating: boolean;
 };
 
 function readSearchParams(): URLSearchParams {
@@ -51,8 +56,10 @@ export function getEmbedConfig(): EmbedConfig {
   const recordNumber = ordered[0] ?? null;
   const embedFlag = params.get('embed');
   const isEmbedded = embedFlag === '1' || embedFlag === 'true' || recordNumber !== null;
+  const impersonatingFlag = params.get('impersonating');
+  const isImpersonating = impersonatingFlag === '1' || impersonatingFlag === 'true';
 
-  return { isEmbedded, recordNumber, recordNumbers: ordered };
+  return { isEmbedded, recordNumber, recordNumbers: ordered, isImpersonating };
 }
 
 export function staticReportUrl(recordNumber: string): string {
