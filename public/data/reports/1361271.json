@@ -8,8 +8,11 @@
   "journey": {
     "membershipTenureYears": 12,
     "activeContacts": 66,
-    "communityMembers": 0,
-    "communities": [],
+    "communityMembers": 2,
+    "communities": [
+      "Women in Auto Care",
+      "YANG Membership"
+    ],
     "committeeMembers": 0
   },
   "events": {

@@ -24,16 +24,17 @@ const RETAILER_RECORD_NUMBERS = new Set([1386304]);
 
 /** Manual community lists per Impexium record until CRM export is authoritative. */
 const COMMUNITY_LIST_OVERRIDES = {
-  '1100433': ['AWDA Community'],
+  '1100433': ['AWDA Community', 'Women in Auto Care', 'YANG Membership'],
   '1101050': [
     'Automotive Communications Council',
     'AWDA Community',
     'Women in Auto Care',
     'YANG Membership',
   ],
-  '1101623': ['AWDA Community'],
-  '1252425': ['AWDA Community'],
-  '1252576': ['AWDA Community'],
+  '1101623': ['Automotive Communications Council'],
+  '1252425': ['Automotive Communications Council'],
+  '1252576': ['Automotive Communications Council'],
+  '1361271': ['Women in Auto Care', 'YANG Membership'],
   '1376049': [
     'Automotive Content Professionals Network',
     'AWDA Community',
@@ -125,7 +126,7 @@ const REPORT_PRODUCT_OVERRIDES = {
     journey: {
       membershipTenureYears: 12,
       activeContacts: 66,
-      communityMembers: 0,
+      communityMembers: 2,
       committeeMembers: 0,
     },
     events: {
