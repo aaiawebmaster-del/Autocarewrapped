@@ -6,6 +6,8 @@ import { BRAND_PRIMARY, BRAND_PRIMARY_TINT, BRAND_PRIMARY_RGB } from '@/lib/bran
 
 export const JOURNEY_GAUGE_SIZE = 'clamp(200px, 32vw, 280px)';
 export const JOURNEY_GAUGE_WIDE_SIZE = 'min(100%, clamp(18rem, 64vw, 25rem))';
+/** Section-only journey embed desktop — dial sized for the 300px email-header frame. */
+export const JOURNEY_GAUGE_SECTION_EMBED_WIDE_SIZE = 'min(100%, 14rem)';
 export const JOURNEY_GAUGE_VALUE_FONT = '35px';
 export const JOURNEY_GAUGE_LABEL_FONT = 'clamp(11px, 1.6vw, 14px)';
 /** Compact readout sizing for Full Diagnostics 4-up stat row. */
@@ -359,6 +361,8 @@ type JourneyCounterGaugeProps = {
   counterDialBox?: boolean;
   /** Wide semicircle dial on journey counter slides (~2× width, same height). */
   wideSemicircle?: boolean;
+  /** Override shell max-width (e.g. section-embed fuller dial). */
+  shellMaxWidth?: string;
   /** Hide the below-dial stat readout (e.g. mobile message phase). */
   hideStatBelow?: boolean;
   /** Wrap the below-dial stat readout (e.g. mobile chevrons). */
@@ -381,6 +385,7 @@ export function JourneyCounterGauge({
   variant = 'speedometer',
   counterDialBox = false,
   wideSemicircle = false,
+  shellMaxWidth,
   hideStatBelow = false,
   renderStatBelow,
 }: JourneyCounterGaugeProps) {
@@ -510,7 +515,7 @@ export function JourneyCounterGauge({
 
   const shellStyle = {
     width: '100%',
-    maxWidth: wideSemicircle ? JOURNEY_GAUGE_WIDE_SIZE : circleSize,
+    maxWidth: shellMaxWidth ?? (wideSemicircle ? JOURNEY_GAUGE_WIDE_SIZE : circleSize),
     height: 'fit-content' as const,
     flexShrink: 0,
     margin: 0,

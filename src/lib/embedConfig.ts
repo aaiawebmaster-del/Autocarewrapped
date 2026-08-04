@@ -114,6 +114,12 @@ const ENGAGEMENT_PAGE_ORIGIN = 'https://my.autocare.org';
 /** Unified my.autocare.org page where colleagues view a company's Wrapped report. */
 export const ENGAGEMENT_PAGE_PATH = '/engagement';
 
+/** Live member Drive page (full Wrapped experience host). */
+export const DRIVE_PAGE_PATH = '/drive';
+
+/** Full Drive experience URL for section-embed exit CTAs (HubSpot / iframe safe). */
+export const DRIVE_PAGE_URL = `${ENGAGEMENT_PAGE_ORIGIN}${DRIVE_PAGE_PATH}`;
+
 /** Public my.autocare.org page where colleagues view a company's Wrapped report. */
 export function companyReportPageUrl(recordNumber?: string | number | null): string {
   const record =
@@ -129,6 +135,29 @@ export function companyReportPageUrl(recordNumber?: string | number | null): str
   const url = new URL(window.location.href);
   url.hash = '';
   return url.toString();
+}
+
+/** Same-origin full Wrapped experience (drops `section=` so embeds exit section-only mode). */
+export function fullWrappedReportUrl(recordNumber?: string | number | null): string {
+  const record =
+    recordNumber != null && String(recordNumber).trim() !== ''
+      ? String(recordNumber).trim()
+      : getEmbedConfig().recordNumber;
+
+  if (typeof window === 'undefined') {
+    return record
+      ? `/?record=${encodeURIComponent(record)}&embed=1`
+      : '/?embed=1';
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.delete('section');
+  if (record) {
+    url.searchParams.set('record', record);
+  }
+  url.searchParams.set('embed', '1');
+  url.hash = '';
+  return `${url.pathname}${url.search}`;
 }
 
 export function buildShareMailtoUrl(reportPageUrl: string): string {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useLayoutEffect, Fragment, lazy, Suspense, type ReactNode } from 'react';
 import { motion, AnimatePresence, LayoutGroup, animate, useMotionValue, useTransform } from 'motion/react';
-import { JourneyCounterGauge } from './JourneyCounterGauge';
+import { JourneyCounterGauge, JOURNEY_GAUGE_SECTION_EMBED_WIDE_SIZE } from './JourneyCounterGauge';
 import { CommunityLogoGauge } from './CommunityLogoGauge';
 import { LazyLottie } from './LazyLottie';
 import { GpsUiControls } from './GpsUiControls';
@@ -49,8 +49,7 @@ import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import { BRAND_PRIMARY } from '@/lib/brandColors';
 import { buildJourneySections, type JourneySection } from '@/lib/buildJourneySections';
 import { getAapex2026DetailMessage, getInitialTirePhase } from '@/lib/contentVariants';
-import { appConfig } from '@/lib/config';
-import type { EmbedSection } from '@/lib/embedConfig';
+import { DRIVE_PAGE_URL, getEmbedConfig, type EmbedSection } from '@/lib/embedConfig';
 import {
   JOURNEY_CALCULATING_HOLD_MS,
   JOURNEY_NAV_MAP_ENTER_EVENT,
@@ -314,39 +313,61 @@ function HeadunitChevronNavButton({
   onClick,
   disabled,
   ariaLabel,
+  href,
 }: {
   direction: 'left' | 'right';
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
   ariaLabel?: string;
+  /** When set, renders as a link (preferred for iframe exit CTAs). */
+  href?: string;
 }) {
   const side = direction === 'left' ? 'left' : 'right';
+  const className = `infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--chevron infotainment-headunit__nav-btn--${side}`;
+  const label =
+    ariaLabel ?? (direction === 'left' ? 'previous section' : 'next section');
+  const chevron = (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {direction === 'left' ? (
+        <path d="M15 19l-7-7 7-7" />
+      ) : (
+        <path d="M9 5l7 7-7 7" />
+      )}
+    </svg>
+  );
+
+  if (href && !disabled) {
+    return (
+      <a
+        className={className}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={label}
+        onClick={onClick}
+      >
+        {chevron}
+      </a>
+    );
+  }
 
   return (
     <button
       type="button"
-      className={`infotainment-headunit__softkey infotainment-headunit__nav-btn infotainment-headunit__nav-btn--chevron infotainment-headunit__nav-btn--${side}`}
+      className={className}
       onClick={onClick}
       disabled={disabled}
-      aria-label={
-        ariaLabel ?? (direction === 'left' ? 'previous section' : 'next section')
-      }
+      aria-label={label}
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        {direction === 'left' ? (
-          <path d="M15 19l-7-7 7-7" />
-        ) : (
-          <path d="M9 5l7 7-7 7" />
-        )}
-      </svg>
+      {chevron}
     </button>
   );
 }
@@ -1411,35 +1432,58 @@ function JourneyCounterMessagePanel({
   footerButton,
   isFirst,
   showNextLabel = false,
+  hideCopy = false,
+  centerContent,
   onBack,
   onNext,
+  nextHref,
+  nextAriaLabel,
 }: {
   footerMessage?: string;
   footerButton?: { label: string; href: string };
   isFirst: boolean;
   /** Membership tenure (first counter slide): show NEXT label beside the right chevron. */
   showNextLabel?: boolean;
+  /** Section-only embed: hide message text + CTA, keep Back/Next. */
+  hideCopy?: boolean;
+  /** Replaces the CTA / placeholder between Back and Next (e.g. section-embed counter). */
+  centerContent?: ReactNode;
   onBack: () => void;
   onNext: () => void;
+  /** Last counter slide in section embed: Next opens Drive in a new tab. */
+  nextHref?: string;
+  nextAriaLabel?: string;
 }) {
   return (
-    <div className="journey-counter-panel__headunit infotainment-headunit">
+    <div
+      className={[
+        'journey-counter-panel__headunit',
+        'infotainment-headunit',
+        hideCopy ? 'journey-counter-panel__headunit--nav-only' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <InfotainmentHeadunitFrame
         className="journey-counter-panel__frame"
         contentClassName="journey-counter-panel__frame-body"
       >
-        <div className="journey-counter-panel__screen-well">
-          <div className="journey-counter-panel__screen">
-            <div className="journey-counter-panel__screen-glass" aria-hidden />
-            {footerMessage ? (
-              <p className="journey-counter-panel__message">{footerMessage}</p>
-            ) : null}
+        {!hideCopy ? (
+          <div className="journey-counter-panel__screen-well">
+            <div className="journey-counter-panel__screen">
+              <div className="journey-counter-panel__screen-glass" aria-hidden />
+              {footerMessage ? (
+                <p className="journey-counter-panel__message">{footerMessage}</p>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : null}
         <div
           className={[
             'journey-counter-panel__controls',
             showNextLabel ? 'journey-counter-panel__controls--with-next-label' : '',
+            hideCopy ? 'journey-counter-panel__controls--nav-only' : '',
+            centerContent ? 'journey-counter-panel__controls--with-stat' : '',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -1450,7 +1494,9 @@ function JourneyCounterMessagePanel({
             disabled={isFirst}
             ariaLabel="Previous section"
           />
-          {footerButton ? (
+          {centerContent ? (
+            <div className="journey-counter-panel__nav-stat-slot">{centerContent}</div>
+          ) : !hideCopy && footerButton ? (
             <a
               className="journey-counter-panel__cta"
               href={footerButton.href}
@@ -1470,19 +1516,63 @@ function JourneyCounterMessagePanel({
               <HeadunitChevronNavButton
                 direction="right"
                 onClick={onNext}
-                ariaLabel="Next section"
+                href={nextHref}
+                ariaLabel={nextAriaLabel ?? 'Next section'}
               />
             </div>
           ) : (
             <HeadunitChevronNavButton
               direction="right"
               onClick={onNext}
-              ariaLabel="Next section"
+              href={nextHref}
+              ariaLabel={nextAriaLabel ?? 'Next section'}
             />
           )}
         </div>
       </InfotainmentHeadunitFrame>
     </div>
+  );
+}
+
+/** Animated count readout for section-embed nav (mirrors JourneyCounterGauge below-dial stat). */
+function JourneyNavCounterReadout({
+  target,
+  label,
+  animationKey,
+  gaugeVariant = 'speedometer',
+}: {
+  target: number;
+  label: string;
+  animationKey: string | number;
+  gaugeVariant?: CounterSection['gaugeVariant'];
+}) {
+  const [gaugeValue, setGaugeValue] = useState(0);
+  const needleTarget =
+    gaugeVariant === 'fuel'
+      ? Math.min(Math.max(target, 0), 100)
+      : gaugeVariant === 'battery'
+        ? Math.min(Math.max(target, 0), 4)
+        : Math.min(Math.max(target, 0), 100);
+
+  useEffect(() => {
+    setGaugeValue(0);
+    const controls = animate(0, needleTarget, {
+      duration: JOURNEY_GAUGE_DURATION_MS / 1000,
+      ease: [0.22, 1.05, 0.36, 1],
+      onUpdate: (latest) => setGaugeValue(latest),
+    });
+    return () => controls.stop();
+  }, [needleTarget, animationKey]);
+
+  const displayValue =
+    target >= 1000 ? Math.round(gaugeValue).toLocaleString() : String(Math.round(gaugeValue));
+  const titleCaseLabel = label.replace(/\b\w/g, (char) => char.toUpperCase());
+
+  return (
+    <p className="journey-speedometer-gauge__stat-below journey-counter-panel__nav-stat" aria-live="polite">
+      <span className="journey-speedometer-gauge__stat-value">{displayValue}</span>
+      <span className="journey-speedometer-gauge__stat-label">{titleCaseLabel}</span>
+    </p>
   );
 }
 
@@ -1494,12 +1584,14 @@ function JourneySectionCounterGauge({
   communities,
   renderStatBelow,
   hideStatBelow,
+  shellMaxWidth,
 }: {
   section: CounterSection;
   sectionIdx: number;
   communities?: string[];
   renderStatBelow?: (stat: ReactNode) => ReactNode;
   hideStatBelow?: boolean;
+  shellMaxWidth?: string;
 }) {
   const sharedProps = {
     key: sectionIdx,
@@ -1514,6 +1606,7 @@ function JourneySectionCounterGauge({
     wideSemicircle: true,
     hideStatBelow,
     renderStatBelow,
+    shellMaxWidth,
   };
 
   if (section.gaugeVariant === 'community-logo') {
@@ -1544,6 +1637,9 @@ function YourJourney({
   communities,
   registerDashboardNav,
   allowLeaveToHood = true,
+  hideCounterCopy = false,
+  fullReportHref,
+  reportYear,
 }: {
   onSectionChange?: (idx: number) => void;
   onGoToHood: () => void;
@@ -1554,6 +1650,11 @@ function YourJourney({
   communities?: string[];
   registerDashboardNav?: RegisterDashboardNav;
   allowLeaveToHood?: boolean;
+  /** Section-only journey embed: hide message/CTA on counter slides. */
+  hideCounterCopy?: boolean;
+  /** Link for “See Full Report” under gauges (section-only journey). */
+  fullReportHref?: string;
+  reportYear?: number;
 }) {
   const [sectionIdx, setSectionIdx] = useState(initialSectionIdx);
   const isCounterMobile = useIsCounterMobile();
@@ -1572,6 +1673,37 @@ function YourJourney({
 
   const section = journeySections[sectionIdx];
   const isFirst = sectionIdx === 0;
+  const isLast = sectionIdx >= journeySections.length - 1;
+  const counterSection = section.type === 'counter' ? section : null;
+  const exitToDriveHref = hideCounterCopy && isLast ? DRIVE_PAGE_URL : undefined;
+  const showNavCounterStat =
+    hideCounterCopy &&
+    isCounterMobile &&
+    counterSection != null &&
+    counterSection.gaugeVariant !== 'community-logo';
+  const navCounterCenter =
+    showNavCounterStat && counterSection ? (
+      <JourneyNavCounterReadout
+        key={sectionIdx}
+        target={counterSection.target}
+        label={counterSection.label}
+        animationKey={sectionIdx}
+        gaugeVariant={counterSection.gaugeVariant}
+      />
+    ) : undefined;
+  const fullReportControl =
+    fullReportHref && hideCounterCopy && !isCounterMobile ? (
+      <a
+        className="journey-counter-panel__full-report journey-counter-panel__full-report--inline"
+        href={fullReportHref}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        See Full Report
+      </a>
+    ) : undefined;
+  const sectionEmbedGaugeMaxWidth =
+    hideCounterCopy && !isCounterMobile ? JOURNEY_GAUGE_SECTION_EMBED_WIDE_SIZE : undefined;
 
   const goToPrevJourneySection = useCallback(() => {
     const prevIdx = sectionIdx - 1;
@@ -1585,15 +1717,23 @@ function YourJourney({
   }, [sectionIdx, journeySections, changeSectionIdx]);
 
   const goToNextJourneySection = useCallback(() => {
+    if (hideCounterCopy && sectionIdx >= journeySections.length - 1) {
+      playUiClickSound();
+      return;
+    }
+
     const nextIdx = sectionIdx + 1;
     if (nextIdx >= journeySections.length) return;
 
     const nextSection = journeySections[nextIdx];
+    // Section-only journey embed never enters the GPS/map slide.
+    if (hideCounterCopy && nextSection.type === 'nav') return;
+
     playUiClickSound(() => {
       playJourneySlideOutcomeSound(nextSection);
     });
     changeSectionIdx(nextIdx);
-  }, [sectionIdx, journeySections, changeSectionIdx]);
+  }, [sectionIdx, journeySections, changeSectionIdx, hideCounterCopy]);
 
   useEffect(() => {
     if (!registerDashboardNav || section.type !== 'counter') return;
@@ -1602,7 +1742,8 @@ function YourJourney({
       back: goToPrevJourneySection,
       next: goToNextJourneySection,
       canBack: sectionIdx > 0,
-      canNext: sectionIdx < journeySections.length - 1,
+      // Keep Next enabled on last embed counter so it can open Drive.
+      canNext: hideCounterCopy || sectionIdx < journeySections.length - 1,
     }, counterNavBridgeOwnerRef.current);
 
     return () => registerDashboardNav(null, counterNavBridgeOwnerRef.current);
@@ -1613,6 +1754,7 @@ function YourJourney({
     journeySections.length,
     goToPrevJourneySection,
     goToNextJourneySection,
+    hideCounterCopy,
   ]);
 
   // Counter ↔ map: pure horizontal carousel (mirror of map → committee exit).
@@ -1628,6 +1770,79 @@ function YourJourney({
     exit: { opacity: 1, x: '-100%', y: 0 },
     transition: JOURNEY_SCENE_SLIDE_TRANSITION,
   };
+
+  const counterGaugeColumn =
+    section.type === 'counter' ? (
+      isCounterMobile ? (
+        <>
+          <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
+          <div className="journey-counter-panel__mobile-detail">
+            <JourneyCounterMessagePanel
+              footerMessage={section.footerMessage}
+              footerButton={section.footerButton}
+              hideCopy={hideCounterCopy}
+              centerContent={navCounterCenter}
+              isFirst={isFirst}
+              showNextLabel={isFirst && !hideCounterCopy}
+              onBack={goToPrevJourneySection}
+              onNext={goToNextJourneySection}
+              nextHref={exitToDriveHref}
+              nextAriaLabel={exitToDriveHref ? 'Open full report on Drive' : undefined}
+            />
+          </div>
+          <JourneySectionCounterGauge
+            section={section}
+            sectionIdx={sectionIdx}
+            communities={communities}
+            hideStatBelow={showNavCounterStat}
+          />
+          {fullReportHref ? (
+            <a
+              className="journey-counter-panel__full-report"
+              href={fullReportHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              See Full Report
+            </a>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
+          <JourneySectionCounterGauge
+            section={section}
+            sectionIdx={sectionIdx}
+            communities={communities}
+            hideStatBelow={false}
+            shellMaxWidth={sectionEmbedGaugeMaxWidth}
+          />
+          {hideCounterCopy ? (
+            <div className="journey-counter-panel__desktop-nav">
+              <JourneyCounterMessagePanel
+                hideCopy
+                centerContent={fullReportControl}
+                isFirst={isFirst}
+                showNextLabel={false}
+                onBack={goToPrevJourneySection}
+                onNext={goToNextJourneySection}
+                nextHref={exitToDriveHref}
+                nextAriaLabel={exitToDriveHref ? 'Open full report on Drive' : undefined}
+              />
+            </div>
+          ) : fullReportHref ? (
+            <a
+              className="journey-counter-panel__full-report"
+              href={fullReportHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              See Full Report
+            </a>
+          ) : null}
+        </>
+      )
+    ) : null;
 
   return (
     <div className="journey-scene-stage">
@@ -1668,50 +1883,46 @@ function YourJourney({
         'journey-layout--counter',
         'journey-scene-layer',
         isCounterMobile ? 'journey-layout--counter-mobile' : '',
+        hideCounterCopy ? 'journey-layout--counter-section-embed' : '',
       ]
         .filter(Boolean)
         .join(' ')}
       {...counterSceneMotion}
     >
       <main className="journey-layout__main journey-layout__main--counter">
-        <div className="journey-counter-panel">
-          <div className="journey-counter-panel__body">
+        <div
+          className={[
+            'journey-counter-panel',
+            hideCounterCopy ? 'journey-counter-panel--section-embed' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          <div
+            className={[
+              'journey-counter-panel__body',
+              hideCounterCopy ? 'journey-counter-panel__body--with-plate' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {hideCounterCopy && reportYear != null ? (
+              <aside className="journey-counter-panel__plate" aria-label="Driven By You">
+                <LicensePlate reportYear={reportYear} />
+              </aside>
+            ) : null}
             <section className="journey-counter-panel__gauge" aria-label="Journey statistic">
-              {isCounterMobile ? (
-                <>
-                  <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
-                  <div className="journey-counter-panel__mobile-detail">
-                    <JourneyCounterMessagePanel
-                      footerMessage={section.footerMessage}
-                      footerButton={section.footerButton}
-                      isFirst={isFirst}
-                      showNextLabel={isFirst}
-                      onBack={goToPrevJourneySection}
-                      onNext={goToNextJourneySection}
-                    />
-                  </div>
-                  <JourneySectionCounterGauge
-                    section={section}
-                    sectionIdx={sectionIdx}
-                    communities={communities}
-                  />
-                </>
-              ) : (
-                <>
-                  <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
-                  <JourneySectionCounterGauge
-                    section={section}
-                    sectionIdx={sectionIdx}
-                    communities={communities}
-                  />
-                </>
-              )}
+              {counterGaugeColumn}
             </section>
-            {!isCounterMobile ? (
-              <section className="journey-counter-panel__aside" aria-label="Journey message">
+            {!isCounterMobile && !hideCounterCopy ? (
+              <section
+                className="journey-counter-panel__aside"
+                aria-label="Journey message"
+              >
                 <JourneyCounterMessagePanel
                   footerMessage={section.footerMessage}
                   footerButton={section.footerButton}
+                  hideCopy={false}
                   isFirst={isFirst}
                   showNextLabel={isFirst}
                   onBack={goToPrevJourneySection}
@@ -1761,6 +1972,9 @@ function DashboardPanel({
   onJourneyMapExit,
   onPanelRef,
   allowLeaveToHood = true,
+  hideJourneyCounterCopy = false,
+  journeyFullReportHref,
+  hideTopNav = false,
 }: {
   currentSlide: number | null;
   onBack: () => void;
@@ -1793,6 +2007,10 @@ function DashboardPanel({
   onJourneyMapExit?: () => void;
   onPanelRef?: (node: HTMLDivElement | null) => void;
   allowLeaveToHood?: boolean;
+  hideJourneyCounterCopy?: boolean;
+  journeyFullReportHref?: string;
+  /** Section-only journey embed: hide PRNDL + top signal arrows. */
+  hideTopNav?: boolean;
 }) {
   const isFirstSlide = isLanding || currentSlide === 0;
   const showPreJourney = isLanding || (!isJourney && currentSlide !== null);
@@ -2148,36 +2366,45 @@ function DashboardPanel({
 
       {/* Nav + body — centered primary content (max 900px) */}
       {showDashboardChrome && (
-        <div className="dashboard-content-shell">
-          <div className="dashboard-panel__nav" style={{ top: NAV_TOP }}>
-            <div className="dashboard-panel__nav-cluster">
-              <button
-                type="button"
-                className="dashboard-panel__signal dashboard-panel__signal--left"
-                onClick={handlePanelBack}
-                disabled={panelBackDisabled}
-                aria-label="previous"
-              >
-                <svg viewBox="0 0 640 640" fill={BRAND_PRIMARY} aria-hidden>
-                  <path d={ARROW_PATH} />
-                </svg>
-              </button>
+        <div
+          className={[
+            'dashboard-content-shell',
+            hideTopNav ? 'dashboard-content-shell--no-top-nav' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {!hideTopNav ? (
+            <div className="dashboard-panel__nav" style={{ top: NAV_TOP }}>
+              <div className="dashboard-panel__nav-cluster">
+                <button
+                  type="button"
+                  className="dashboard-panel__signal dashboard-panel__signal--left"
+                  onClick={handlePanelBack}
+                  disabled={panelBackDisabled}
+                  aria-label="previous"
+                >
+                  <svg viewBox="0 0 640 640" fill={BRAND_PRIMARY} aria-hidden>
+                    <path d={ARROW_PATH} />
+                  </svg>
+                </button>
 
-              <DashboardPrndl activeGear={isLanding ? 'P' : 'D'} />
+                <DashboardPrndl activeGear={isLanding ? 'P' : 'D'} />
 
-              <button
-                type="button"
-                className="dashboard-panel__signal dashboard-panel__signal--right"
-                onClick={handlePanelNext}
-                disabled={panelNextDisabled}
-                aria-label="next"
-              >
-                <svg viewBox="0 0 640 640" fill={BRAND_PRIMARY} aria-hidden>
-                  <path d={ARROW_PATH} />
-                </svg>
-              </button>
+                <button
+                  type="button"
+                  className="dashboard-panel__signal dashboard-panel__signal--right"
+                  onClick={handlePanelNext}
+                  disabled={panelNextDisabled}
+                  aria-label="next"
+                >
+                  <svg viewBox="0 0 640 640" fill={BRAND_PRIMARY} aria-hidden>
+                    <path d={ARROW_PATH} />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
+          ) : null}
 
           {/* Body area — hidden on hood (grey arch only) */}
           {!isHood && (
@@ -2218,6 +2445,9 @@ function DashboardPanel({
                       onSectionChange={handleJourneySectionChange}
                       onGoToHood={onGoToHood}
                       allowLeaveToHood={allowLeaveToHood}
+                      hideCounterCopy={hideJourneyCounterCopy}
+                      fullReportHref={journeyFullReportHref}
+                      reportYear={report.reportYear}
                       initialSectionIdx={journeyInitialSectionIdx}
                       initialGpsPhase={journeyInitialGpsPhase}
                       journeySections={journeySections}
@@ -2371,10 +2601,16 @@ export function DrivingView({
   report: WrappedReport;
   embedded?: boolean;
 }) {
-  const sectionOnly = appConfig.sectionOnly;
-  const embedSection = appConfig.embedSection;
-  const journeySections = buildJourneySections(report);
-  const journeyNavSectionIndex = journeySections.length - 1;
+  const { sectionOnly, section: embedSection } = getEmbedConfig();
+  const allJourneySections = buildJourneySections(report);
+  const journeySections =
+    sectionOnly && embedSection === 'journey'
+      ? allJourneySections.filter(
+          (section): section is Extract<JourneySection, { type: 'counter' }> =>
+            section.type === 'counter',
+        )
+      : allJourneySections;
+  const journeyNavSectionIndex = allJourneySections.length - 1;
   const [currentSlide, setCurrentSlide] = useState<number | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(() => {
     if (!sectionOnly || !embedSection) return null;
@@ -2958,8 +3194,16 @@ export function DrivingView({
     (diagnosticsStage === 'transition' || diagnosticsStage === 'final');
   const showLandingBackdrop = !isStarted;
   const isBackdropFadingToBlack = hoodEntryPhase === 'fading-to-black';
+  const hideJourneyDrivingScene = sectionOnly && embedSection === 'journey';
+  const hideJourneyCounterCopy = hideJourneyDrivingScene;
+  const journeyFullReportHref = hideJourneyCounterCopy ? DRIVE_PAGE_URL : undefined;
+  const showDrivingFooter = !isDiagnosticsFlow && !hideJourneyDrivingScene;
   const showDrivingBackdrop =
-    isStarted && !isHoodScreen && !isDiagnosticsScreen && !isDiagnosticsFlow;
+    isStarted &&
+    !isHoodScreen &&
+    !isDiagnosticsScreen &&
+    !isDiagnosticsFlow &&
+    !hideJourneyDrivingScene;
   const showSkyAndRoad =
     showLandingBackdrop || showDrivingBackdrop || isBackdropFadingToBlack;
 
@@ -3016,6 +3260,7 @@ export function DrivingView({
         useFixedDrivingBand ? 'driving-view-root--driving-band' : '',
         pinBackdropToDashboard ? 'driving-view-root--backdrop-pinned' : '',
         currentScreen === 'journey' ? 'driving-view-root--journey' : '',
+        hideJourneyDrivingScene ? 'driving-view-root--section-only-journey' : '',
         embedded ? 'driving-view-root--embedded' : '',
       ]
         .filter(Boolean)
@@ -3137,7 +3382,7 @@ export function DrivingView({
       )}
 
       {/* ── Footer ── */}
-      {!isDiagnosticsFlow && (
+      {showDrivingFooter && (
       <div className="driving-view-footer">
         <button
           type="button"
@@ -3307,6 +3552,9 @@ export function DrivingView({
               onHoodPhaseChange={setHoodPhase}
               onGoToHood={handleGoToHood}
               allowLeaveToHood={allowLeaveToHood}
+              hideJourneyCounterCopy={hideJourneyCounterCopy}
+              journeyFullReportHref={journeyFullReportHref}
+              hideTopNav={hideJourneyDrivingScene}
               hoodEntryPhase={hoodEntryPhase}
               hoodNavTransition={hoodNavTransition}
               onDashboardExitComplete={handleDashboardExitComplete}
