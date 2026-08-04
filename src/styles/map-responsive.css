@@ -44,7 +44,8 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 .driving-view-root--section-only-journey .dashboard-panel--journey-scene {
   top: 0;
   bottom: 0;
-  height: 100%;
+  /* Beat inline journey panel height from measureMapPanelHeight when footer was wrongly reserved. */
+  height: 100% !important;
   max-height: 300px;
 }
 
@@ -54,8 +55,8 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 }
 
 .driving-view-root--section-only-journey .dashboard-panel--journey-counter .journey-layout--counter {
-  justify-content: flex-start;
-  align-items: stretch;
+  justify-content: center;
+  align-items: center;
   height: 100%;
   min-height: 0;
 }
@@ -67,8 +68,9 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 .driving-view-root--section-only-journey .dashboard-content-shell--no-top-nav .dashboard-panel__body.dashboard-body--journey-scene {
   top: 0 !important;
   bottom: 0;
-  padding-top: 20px;
-  padding-bottom: 8px;
+  /* Keep title clear of the frame edge; room for under-plate CTA + chevrons. */
+  padding-top: 18px;
+  padding-bottom: 14px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -81,38 +83,51 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
   max-height: 100%;
 }
 
+/* Center the plate+gauge block in the 300px frame (no PRNDL / leftover space). */
+.driving-view-root--section-only-journey .dashboard-content-shell--no-top-nav .journey-layout__main--counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
 .driving-view-root--section-only-journey .dashboard-panel--journey-scene .journey-layout--counter,
 .driving-view-root--section-only-journey .dashboard-panel--journey-scene .journey-scene-layer.journey-layout--counter {
-  justify-content: flex-start;
-  align-items: stretch;
-  align-content: flex-start;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
   overflow: hidden;
 }
 
 .driving-view-root--section-only-journey .journey-counter-panel--section-embed {
   --journey-counter-dial-width: min(100%, 100%);
-  --journey-counter-dial-height: 5.625rem;
+  --journey-counter-dial-height: 5.25rem;
   --journey-counter-dial-size: var(--journey-counter-dial-height);
   /* Slim nav for 300px email hero — must also override .journey-counter-panel__controls */
   --journey-counter-nav-size: 28px;
   --journey-counter-stat-min-h: 1.25rem;
   --journey-counter-subtitle-min-h: auto;
   --embed-plate-stats-gap: 0.85rem;
-  height: 100%;
+  --embed-bottom-row-gap: 0.45rem;
+  --embed-bottom-row-min-h: calc(var(--journey-counter-nav-size, 28px) + 6px);
+  height: auto;
   max-height: 100%;
   width: 100%;
 }
 
-/* Fixed ~62/38 grid — plate column width never depends on gauge slide content */
+/* Fixed ~62/38 grid — plate | gauge on row 1; See Full Report | Back/stat/Next on row 2 */
 .driving-view-root--section-only-journey .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate {
   display: grid;
   grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+  grid-template-rows: auto var(--embed-bottom-row-min-h);
   align-items: center;
   justify-content: stretch;
   column-gap: var(--embed-plate-stats-gap);
-  row-gap: 0;
+  row-gap: var(--embed-bottom-row-gap);
   width: 100%;
-  height: 100%;
+  height: auto;
   max-height: 100%;
   padding-inline: clamp(0.55rem, 1.6vw, 1.1rem);
   box-sizing: border-box;
@@ -120,37 +135,66 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 
 .driving-view-root--section-only-journey .journey-counter-panel__plate {
   grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   min-width: 0;
   max-width: none;
-  height: 100%;
-  align-self: stretch;
+  height: auto;
+  max-height: 100%;
+  align-self: center;
 }
 
 .driving-view-root--section-only-journey .journey-counter-panel__plate .license-plate {
   --plate-max-width: 100%;
-  width: 100%;
+  /* Size from the 300px frame, not window vh (tall browsers inflate 46vh). */
+  width: min(100%, calc(10.25rem * 251.1 / 102));
   max-width: 100%;
+  max-height: 10.25rem;
+  height: auto;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+}
+
+/* Shared bottom row: See Full Report (col 1) + nav with centered counter (col 2) */
+.driving-view-root--section-only-journey .journey-counter-panel__full-report--under-plate {
+  grid-column: 1;
+  grid-row: 2;
+  width: min(100%, 14rem);
+  max-width: 100%;
+  margin: 0;
+  min-height: var(--embed-bottom-row-min-h);
+  height: 100%;
+  padding: 0.35rem 0.75rem;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.1;
+  align-self: stretch;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .driving-view-root--section-only-journey .journey-counter-panel__body--with-plate .journey-counter-panel__gauge {
   grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.2rem;
+  justify-content: center;
+  gap: 0.15rem;
   width: 100%;
   min-width: 0;
   max-width: none;
-  height: 100%;
-  align-self: stretch;
+  height: auto;
+  max-height: 100%;
+  align-self: center;
+  overflow: visible;
   --journey-counter-dial-width: 100%;
-  --journey-counter-dial-height: 5.625rem;
+  --journey-counter-dial-height: 5.25rem;
   --journey-counter-dial-size: var(--journey-counter-dial-height);
 }
 
@@ -177,17 +221,17 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 .driving-view-root--section-only-journey .journey-counter-panel__gauge .journey-layout__subtitle {
   flex: 0 0 auto;
   min-height: 0;
-  margin: 0 0 0.25rem;
-  padding: 0 0.35rem;
+  margin: 0 0 0.15rem;
+  padding: 0 0.25rem;
   overflow: visible;
   width: 100%;
 }
 
 .driving-view-root--section-only-journey .journey-counter-panel__gauge .journey-layout__subtitle-text,
 .driving-view-root--section-only-journey .journey-layout__subtitle-text {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
   margin: 0;
 }
 
@@ -201,11 +245,26 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 }
 
 .driving-view-root--section-only-journey .journey-counter-panel--section-embed .journey-counter-panel__desktop-nav {
+  grid-column: 2;
+  grid-row: 2;
   width: 100%;
   max-width: 100%;
-  margin-top: 0.15rem;
-  margin-inline: 0;
-  flex: 0 0 auto;
+  margin: 0;
+  flex: none;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+  min-height: var(--embed-bottom-row-min-h);
+  height: 100%;
+}
+
+.driving-view-root--section-only-journey
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__desktop-nav
+  .journey-counter-panel__headunit {
+  width: 100%;
+  height: 100%;
+  align-self: stretch;
 }
 
 /* Beat `.journey-counter-panel__controls { --journey-counter-nav-size: clamp(44px…) }` */
@@ -214,69 +273,100 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
   .journey-counter-panel__controls {
   --journey-counter-nav-size: 28px;
   gap: 4px;
+  height: 100%;
+  align-items: stretch;
 }
 
-/* Slim headunit chrome around Back | CTA | Next */
+/* Back | counter readout | Next — reuse nav-stat-slot */
+.driving-view-root--section-only-journey
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__desktop-nav--with-stat
+  .journey-counter-panel__controls--nav-only {
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.driving-view-root--section-only-journey
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__desktop-nav--with-stat
+  .journey-counter-panel__nav-stat-slot {
+  min-height: var(--journey-counter-nav-size, 28px);
+  height: auto;
+  align-self: stretch;
+}
+
+.driving-view-root--section-only-journey
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__desktop-nav--with-stat
+  .journey-counter-panel__cta-placeholder {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0.5rem;
+  min-height: var(--journey-counter-nav-size, 28px);
+  height: auto;
+  align-self: stretch;
+}
+
+/* Slim headunit chrome around Back | counter | Next */
 .driving-view-root--section-only-journey
   .journey-counter-panel--section-embed
   .journey-counter-panel__desktop-nav
   .infotainment-headunit__frame.journey-counter-panel__frame {
-  flex: 0 0 auto;
-  height: auto;
+  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
-  padding: 4px 5px;
+  padding: 3px 4px;
+  box-sizing: border-box;
 }
 
-/* Higher specificity than desktop `.journey-counter-panel__body > …__stat-below` (margin-top: 0). */
 .driving-view-root--section-only-journey
-  .journey-counter-panel__body
-  > .journey-counter-panel__gauge
-  .journey-speedometer-gauge__stat-below {
-  min-height: 0;
-  height: auto;
-  max-height: 1.75rem;
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__desktop-nav
+  .journey-counter-panel__frame-body {
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Compact nav-stat typography for the 300px embed strip */
+.driving-view-root--section-only-journey
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__controls
+  .journey-counter-panel__nav-stat {
   padding-block: 0;
-  padding-inline: 0.4rem;
-  width: 100%;
-  max-width: 100%;
-  margin-inline: 0;
-  /* Tuck into dial so gauge column height matches community (no pill). */
-  margin-top: -0.85rem;
+  padding-inline: 0.35rem;
+  border-radius: 6px;
   gap: 0.2em;
   line-height: 1.05;
-  border-radius: 6px;
 }
 
-.driving-view-root--section-only-journey .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below::before {
+.driving-view-root--section-only-journey
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__controls
+  .journey-counter-panel__nav-stat::before {
   inset: 2px;
   border-radius: 5px;
 }
 
-.driving-view-root--section-only-journey .journey-counter-panel__gauge .journey-speedometer-gauge__stat-below::after {
-  top: 2px;
-  height: 38%;
-}
-
 .driving-view-root--section-only-journey
-  .journey-counter-panel__gauge:not(.full-diagnostics__stat-gauge--counter-only)
-  .journey-speedometer-gauge__stat-below
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__controls
+  .journey-counter-panel__nav-stat
   .journey-speedometer-gauge__stat-value {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.1;
-  text-shadow:
-    0 0 6px rgba(var(--brand-primary-rgb), 0.3),
-    0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .driving-view-root--section-only-journey
-  .journey-counter-panel__gauge:not(.full-diagnostics__stat-gauge--counter-only)
-  .journey-speedometer-gauge__stat-below
+  .journey-counter-panel--section-embed
+  .journey-counter-panel__controls
+  .journey-counter-panel__nav-stat
   .journey-speedometer-gauge__stat-label {
   font-size: 11px;
   font-weight: 500;
   line-height: 1.1;
-  padding-left: 6px;
+  padding-left: 4px;
 }
 
 .driving-view-root--section-only-journey .journey-counter-panel__gauge > .community-logo-gauge,
@@ -294,13 +384,15 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
   min-height: var(--journey-counter-nav-size);
   text-decoration: none;
   box-sizing: border-box;
+  align-self: center;
 }
 
 @media (max-width: 420px) {
   .driving-view-root--section-only-journey .journey-counter-panel--section-embed {
-    --journey-counter-dial-height: 5.25rem;
+    --journey-counter-dial-height: 5rem;
     --journey-counter-nav-size: 26px;
     --embed-plate-stats-gap: 0.45rem;
+    --embed-bottom-row-gap: 0.35rem;
   }
 
   .driving-view-root--section-only-journey .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate {
@@ -312,7 +404,7 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
   }
 
   .driving-view-root--section-only-journey .journey-counter-panel__body--with-plate .journey-counter-panel__gauge {
-    --journey-counter-dial-height: 5.25rem;
+    --journey-counter-dial-height: 5rem;
   }
 
   .driving-view-root--section-only-journey
@@ -321,16 +413,22 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
     --journey-counter-nav-size: 26px;
   }
 
+  .driving-view-root--section-only-journey .journey-counter-panel__full-report--under-plate {
+    min-height: var(--embed-bottom-row-min-h);
+    padding: 0.3rem 0.6rem;
+    font-size: 12px;
+  }
+
   .driving-view-root--section-only-journey .journey-counter-panel__gauge .journey-layout__subtitle-text,
   .driving-view-root--section-only-journey .journey-layout__subtitle-text {
-    font-size: 14px;
+    font-size: 16px;
   }
 }
 
 @media (min-width: 641px) {
   .driving-view-root--section-only-journey .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate .journey-counter-panel__gauge {
     --journey-counter-dial-width: 100%;
-    --journey-counter-dial-height: 5.625rem;
+    --journey-counter-dial-height: 5.25rem;
     --journey-counter-dial-size: var(--journey-counter-dial-height);
   }
 }
@@ -338,7 +436,7 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 @media (min-width: 900px) {
   .driving-view-root--section-only-journey .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate .journey-counter-panel__gauge {
     --journey-counter-dial-width: 100%;
-    --journey-counter-dial-height: 5.625rem;
+    --journey-counter-dial-height: 5.25rem;
     --journey-counter-dial-size: var(--journey-counter-dial-height);
   }
 }
@@ -861,11 +959,24 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
       calc(100% - var(--driving-footer-height, 6rem) - clamp(120px, 24%, 200px))
     );
   }
+
+  /* Section-only journey embed: keep the full 300px frame (no footer reserve). */
+  html.is-embedded .driving-view-root--section-only-journey,
+  .driving-view-root--section-only-journey {
+    --driving-footer-height: 0px;
+    --landing-dashboard-height: 300px;
+    --journey-counter-dashboard-height: 300px;
+  }
 }
 
 @media (max-width: 768px) {
   .driving-view-root {
     --driving-footer-height: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Beat the generic mobile footer token above for section-only embeds. */
+  .driving-view-root--section-only-journey {
+    --driving-footer-height: 0px;
   }
 
   .driving-view-footer {
@@ -10487,10 +10598,11 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     grid-template-columns: none;
   }
 
-  /* Plate+stats embed: keep grid tracks; do not reintroduce flex rebalancing */
+  /* Plate+stats embed: keep 2×2 grid tracks; do not reintroduce flex rebalancing */
   .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate {
     display: grid;
     grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+    grid-template-rows: auto auto;
     align-items: center;
     justify-content: stretch;
     column-gap: clamp(0.65rem, 1.8vw, 1.35rem);
@@ -10499,7 +10611,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
 
   .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate .journey-counter-panel__gauge {
     align-items: center;
-    align-self: stretch;
+    align-self: center;
     width: 100%;
     min-width: 0;
     max-width: none;
@@ -10569,6 +10681,13 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     width: 100%;
     max-width: 100%;
     margin-inline: 0;
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .journey-counter-panel--section-embed .journey-counter-panel__body--with-plate .journey-counter-panel__full-report--under-plate {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .journey-counter-panel--section-embed .journey-counter-panel__full-report--inline {

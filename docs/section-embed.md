@@ -38,8 +38,23 @@ https://autocareengagement.netlify.app/?record=1101050&section=diagnostics&embed
 - **Journey section embeds** are capped at **300px** tall (HubSpot email header), hide Restart, and hide the PRNDL / top signal arrows. Recommended iframe: `height="300"` and width **≥ 480** (works down to ~360 with a slightly smaller plate/dial).
 - **Journey counter slides only** (tenure → contacts → community → committee). The GPS/map slide is omitted.
 - Per-slide message text boxes and CTAs are hidden; Back/Next remain.
-  - **Mobile:** count readout sits between Back/Next; **See Full Report** is under the gauge.
-  - **Desktop:** count under the gauge, then Back | **See Full Report** | Next.
+  - **See Full Report** and the gauge **Back / counter / Next** strip share one bottom row (same height): plate column left, nav column right.
+  - The numeric count readout (e.g. “12 Years”) sits centered in the nav strip — not under the dial. Community slides keep an empty center slot so row height stays stable.
+  - Section-only journey always uses this two-column layout (not the ≤640px mobile counter stack), so HubSpot iframes at ~480–600px width keep the plate + shared bottom row.
+  - The plate+gauge block is vertically centered in the 300px frame (no PRNDL).
 - On **Committee Leadership**, Next opens the full experience at [https://my.autocare.org/drive](https://my.autocare.org/drive) in a new tab (iframe-safe). **See Full Report** uses the same URL.
 - Invalid or missing `section` leaves the full multi-section experience unchanged.
 - Company selection still uses `record` / `records` as usual.
+
+## HubSpot iframe (journey)
+
+```html
+<iframe
+  src="https://autocareengagement.netlify.app/?record={recordNumber}&section=journey&embed=1"
+  width="600"
+  height="300"
+  style="border:0;width:100%;max-width:600px;height:300px;"
+  title="Your Journey"
+  loading="lazy"
+></iframe>
+```

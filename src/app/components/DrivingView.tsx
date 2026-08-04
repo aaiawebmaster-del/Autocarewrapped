@@ -1658,6 +1658,8 @@ function YourJourney({
 }) {
   const [sectionIdx, setSectionIdx] = useState(initialSectionIdx);
   const isCounterMobile = useIsCounterMobile();
+  /** Section-only embeds stay two-column (plate + under-plate CTA) even under 640px HubSpot widths. */
+  const useMobileCounterLayout = isCounterMobile && !hideCounterCopy;
   const counterNavBridgeOwnerRef = useRef({});
 
   const changeSectionIdx = useCallback(
@@ -1676,9 +1678,9 @@ function YourJourney({
   const isLast = sectionIdx >= journeySections.length - 1;
   const counterSection = section.type === 'counter' ? section : null;
   const exitToDriveHref = hideCounterCopy && isLast ? DRIVE_PAGE_URL : undefined;
+  /** Section embed (and mobile embed stack): put count readout in Back/Next, not under the dial. */
   const showNavCounterStat =
     hideCounterCopy &&
-    isCounterMobile &&
     counterSection != null &&
     counterSection.gaugeVariant !== 'community-logo';
   const navCounterCenter =
@@ -1691,19 +1693,19 @@ function YourJourney({
         gaugeVariant={counterSection.gaugeVariant}
       />
     ) : undefined;
-  const fullReportControl =
-    fullReportHref && hideCounterCopy && !isCounterMobile ? (
+  const sectionEmbedGaugeMaxWidth =
+    hideCounterCopy && !useMobileCounterLayout ? JOURNEY_GAUGE_SECTION_EMBED_WIDE_SIZE : undefined;
+  const underPlateFullReport =
+    fullReportHref && hideCounterCopy && !useMobileCounterLayout ? (
       <a
-        className="journey-counter-panel__full-report journey-counter-panel__full-report--inline"
+        className="journey-counter-panel__full-report journey-counter-panel__full-report--under-plate"
         href={fullReportHref}
         target="_blank"
         rel="noopener noreferrer"
       >
         See Full Report
       </a>
-    ) : undefined;
-  const sectionEmbedGaugeMaxWidth =
-    hideCounterCopy && !isCounterMobile ? JOURNEY_GAUGE_SECTION_EMBED_WIDE_SIZE : undefined;
+    ) : null;
 
   const goToPrevJourneySection = useCallback(() => {
     const prevIdx = sectionIdx - 1;
@@ -1757,6 +1759,22 @@ function YourJourney({
     hideCounterCopy,
   ]);
 
+  const sectionEmbedDesktopNav =
+    hideCounterCopy && !useMobileCounterLayout && section.type === 'counter' ? (
+      <div className="journey-counter-panel__desktop-nav journey-counter-panel__desktop-nav--with-stat">
+        <JourneyCounterMessagePanel
+          hideCopy
+          centerContent={navCounterCenter}
+          isFirst={isFirst}
+          showNextLabel={false}
+          onBack={goToPrevJourneySection}
+          onNext={goToNextJourneySection}
+          nextHref={exitToDriveHref}
+          nextAriaLabel={exitToDriveHref ? 'Open full report on Drive' : undefined}
+        />
+      </div>
+    ) : null;
+
   // Counter ↔ map: pure horizontal carousel (mirror of map → committee exit).
   const counterSceneMotion = {
     initial: { opacity: 1, x: '100%', y: 0 },
@@ -1773,7 +1791,7 @@ function YourJourney({
 
   const counterGaugeColumn =
     section.type === 'counter' ? (
-      isCounterMobile ? (
+      useMobileCounterLayout ? (
         <>
           <JourneySectionSubtitle sectionIdx={sectionIdx} subtitle={section.subtitle} />
           <div className="journey-counter-panel__mobile-detail">
@@ -1814,23 +1832,11 @@ function YourJourney({
             section={section}
             sectionIdx={sectionIdx}
             communities={communities}
-            hideStatBelow={false}
+            hideStatBelow={showNavCounterStat}
             shellMaxWidth={sectionEmbedGaugeMaxWidth}
           />
-          {hideCounterCopy ? (
-            <div className="journey-counter-panel__desktop-nav">
-              <JourneyCounterMessagePanel
-                hideCopy
-                centerContent={fullReportControl}
-                isFirst={isFirst}
-                showNextLabel={false}
-                onBack={goToPrevJourneySection}
-                onNext={goToNextJourneySection}
-                nextHref={exitToDriveHref}
-                nextAriaLabel={exitToDriveHref ? 'Open full report on Drive' : undefined}
-              />
-            </div>
-          ) : fullReportHref ? (
+          {/* Section embed: nav lives as a body grid sibling (shared bottom row with See Full Report). */}
+          {hideCounterCopy ? null : fullReportHref ? (
             <a
               className="journey-counter-panel__full-report"
               href={fullReportHref}
@@ -1882,7 +1888,7 @@ function YourJourney({
         'journey-layout',
         'journey-layout--counter',
         'journey-scene-layer',
-        isCounterMobile ? 'journey-layout--counter-mobile' : '',
+        useMobileCounterLayout ? 'journey-layout--counter-mobile' : '',
         hideCounterCopy ? 'journey-layout--counter-section-embed' : '',
       ]
         .filter(Boolean)
@@ -1914,7 +1920,9 @@ function YourJourney({
             <section className="journey-counter-panel__gauge" aria-label="Journey statistic">
               {counterGaugeColumn}
             </section>
-            {!isCounterMobile && !hideCounterCopy ? (
+            {underPlateFullReport}
+            {sectionEmbedDesktopNav}
+            {!useMobileCounterLayout && !hideCounterCopy ? (
               <section
                 className="journey-counter-panel__aside"
                 aria-label="Journey message"
@@ -2115,6 +2123,11 @@ function DashboardPanel({
     const landingHeight = root
       ? Number.parseFloat(getComputedStyle(root).getPropertyValue('--landing-dashboard-height'))
       : Number.NaN;
+    const isSectionOnlyJourney = root?.classList.contains('driving-view-root--section-only-journey');
+    if (isSectionOnlyJourney) {
+      const embedHeight = Number.isFinite(landingHeight) ? landingHeight : 300;
+      return Math.min(embedHeight, Math.max(container.clientHeight, embedHeight));
+    }
     const isMobileLayout = window.matchMedia('(max-width: 640px)').matches;
 
     if (isMobileLayout) {
