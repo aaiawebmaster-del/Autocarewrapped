@@ -10,9 +10,12 @@
     "activeContacts": 31,
     "communityMembers": 30,
     "communities": [
-      "Automotive Communications Council"
+      "Automotive Communications Council",
+      "Automotive Content Professionals Network",
+      "AWDA Community",
+      "Women in Auto Care"
     ],
-    "committeeMembers": 0
+    "committeeMembers": 1
   },
   "events": {
     "inPersonAttended": 3,

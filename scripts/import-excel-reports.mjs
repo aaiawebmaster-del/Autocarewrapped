@@ -31,9 +31,26 @@ const COMMUNITY_LIST_OVERRIDES = {
     'Women in Auto Care',
     'YANG Membership',
   ],
-  '1101623': ['Automotive Communications Council'],
-  '1252425': ['Automotive Communications Council'],
-  '1252576': ['Automotive Communications Council'],
+  '1101623': [
+    'Automotive Communications Council',
+    'Automotive Content Professionals Network',
+    'AWDA Community',
+    'Women in Auto Care',
+  ],
+  '1252425': [
+    'Automotive Content Professionals Network',
+    'Automotive Communications Council',
+    'AWDA Community',
+    'Women in Auto Care',
+    'YANG Membership',
+  ],
+  '1252576': [
+    'Automotive Communications Council',
+    'Automotive Content Professionals Network',
+    'AWDA Community',
+    'Women in Auto Care',
+    'YANG Membership',
+  ],
   '1361271': ['Women in Auto Care', 'YANG Membership'],
   '1376049': [
     'Automotive Content Professionals Network',
@@ -76,7 +93,7 @@ const REPORT_PRODUCT_OVERRIDES = {
       membershipTenureYears: 43,
       activeContacts: 31,
       communityMembers: 30,
-      committeeMembers: 0,
+      committeeMembers: 1,
     },
     events: {
       inPersonAttended: 3,
@@ -94,7 +111,7 @@ const REPORT_PRODUCT_OVERRIDES = {
       membershipTenureYears: 23,
       activeContacts: 40,
       communityMembers: 40,
-      committeeMembers: 0,
+      committeeMembers: 1,
     },
     events: {
       inPersonAttended: 4,
