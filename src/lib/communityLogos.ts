@@ -121,7 +121,11 @@ export const COMMUNITY_LIST_OVERRIDES: Record<string, string[]> = {
     'Women in Auto Care',
     'YANG Membership',
   ],
-  '1361271': ['Women in Auto Care', 'YANG Membership'],
+  '1361271': [
+    'Automotive Content Professionals Network',
+    'Women in Auto Care',
+    'YANG Membership',
+  ],
   '1376049': [
     'Automotive Content Professionals Network',
     'AWDA Community',
