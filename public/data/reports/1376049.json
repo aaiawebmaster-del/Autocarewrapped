@@ -6,7 +6,7 @@
     "recordNumber": 1376049
   },
   "journey": {
-    "membershipTenureYears": 6,
+    "membershipTenureYears": 7,
     "activeContacts": 15,
     "communityMembers": 84,
     "communities": [
@@ -14,7 +14,8 @@
       "AWDA Community",
       "Import Vehicle Community"
     ],
-    "committeeMembers": 0
+    "committeeMembers": 0,
+    "membershipSince": "2019-02-10"
   },
   "events": {
     "inPersonAttended": 0,

@@ -2,6 +2,7 @@ import type { WrappedReport } from '@/types/wrappedReport';
 import { resolveCommunityLogos } from '@/lib/communityLogos';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import { getAttendanceAsideMessage, getWebinarMessageBody } from '@/lib/contentVariants';
+import { resolveMembershipTenureYears } from '@/lib/membershipTenure';
 
 export type JourneySection =
   | {
@@ -25,14 +26,15 @@ export type JourneySection =
 
 export function buildJourneySections(report: WrappedReport): JourneySection[] {
   const { journey } = report;
+  const membershipTenureYears = resolveMembershipTenureYears(journey);
 
   return [
     {
       type: 'counter',
       subtitle: 'Membership Tenure',
-      target: journey.membershipTenureYears,
+      target: membershipTenureYears,
       label: 'years',
-      footerMessage: getTenureFooterMessage(journey.membershipTenureYears),
+      footerMessage: getTenureFooterMessage(membershipTenureYears),
     },
     {
       type: 'counter',
@@ -140,9 +142,10 @@ function getWebinarSectionMessage(hours: number): string {
 
 export function buildDiagnosticsCounterStats(report: WrappedReport) {
   const { journey } = report;
+  const membershipTenureYears = resolveMembershipTenureYears(journey);
   return [
     {
-      target: journey.membershipTenureYears,
+      target: membershipTenureYears,
       label: 'years',
       animationKey: 'diag-years',
       delay: 0,

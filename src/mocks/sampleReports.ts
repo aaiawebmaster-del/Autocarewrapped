@@ -9,6 +9,7 @@ const daycoReport: WrappedReport = {
     recordNumber: 1101050,
   },
   journey: {
+    membershipSince: '1969-09-19',
     membershipTenureYears: 56,
     activeContacts: 88,
     communityMembers: 176,

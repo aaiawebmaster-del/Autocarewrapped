@@ -6,13 +6,14 @@
     "recordNumber": 1255413
   },
   "journey": {
-    "membershipTenureYears": 18,
+    "membershipTenureYears": 19,
     "activeContacts": 11,
     "communityMembers": 13,
     "communities": [
       "AWDA Community"
     ],
-    "committeeMembers": 0
+    "committeeMembers": 0,
+    "membershipSince": "2007-04-30"
   },
   "events": {
     "inPersonAttended": 0,

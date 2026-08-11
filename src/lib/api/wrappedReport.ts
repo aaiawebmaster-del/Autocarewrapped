@@ -1,5 +1,6 @@
 import { appConfig } from '@/lib/config';
 import { staticReportUrl } from '@/lib/embedConfig';
+import { withResolvedMembershipTenure } from '@/lib/membershipTenure';
 import { getSampleReport } from '@/mocks/sampleReports';
 import type { WrappedReport } from '@/types/wrappedReport';
 
@@ -43,7 +44,7 @@ async function fetchStaticCompanyReport(recordNumber: string): Promise<WrappedRe
     throw new WrappedReportError('Report not available for this company', 404);
   }
 
-  return report;
+  return withResolvedMembershipTenure(report);
 }
 
 /** Try each candidate record number and return the first one that has a report. */
@@ -80,7 +81,7 @@ export async function fetchWrappedReport(): Promise<WrappedReport> {
   }
 
   if (appConfig.useMockAuth) {
-    return getSampleReport(appConfig.mockScenario);
+    return withResolvedMembershipTenure(getSampleReport(appConfig.mockScenario));
   }
 
   const url = new URL(appConfig.reportEndpoint, window.location.origin);
@@ -105,7 +106,7 @@ export async function fetchWrappedReport(): Promise<WrappedReport> {
     throw new WrappedReportError('Unable to load your report', response.status);
   }
 
-  return response.json() as Promise<WrappedReport>;
+  return withResolvedMembershipTenure(await response.json() as WrappedReport);
 }
 
 export async function checkWrappedHealth(): Promise<boolean> {

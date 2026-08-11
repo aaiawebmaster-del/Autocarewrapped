@@ -66,11 +66,26 @@ const COMMUNITY_LIST_OVERRIDES = {
   '1255413': ['AWDA Community'],
 };
 
+/** Manual membership start dates until CRM export is authoritative. */
+const MEMBERSHIP_SINCE_OVERRIDES = {
+  '1100433': '1976-02-06', // East Penn Manufacturing Company
+  '1101050': '1969-09-19', // Dayco Incorporated
+  '1101623': '1982-11-29', // Stryten Energy
+  '1252425': '2002-01-10', // SKF Automotive Division
+  '1252576': '2000-11-06', // Interstate Batteries
+  '1255413': '2007-04-30', // Recochem Inc.
+  '1257307': '2017-02-10', // Nissan North America
+  '1351167': '2012-04-26', // EnerSys Batteries
+  '1361271': '2013-05-02', // Dana Incorporated
+  '1376049': '2019-02-10', // ElringKlinger AG
+  '1381305': '2021-10-25', // Zoro Tools (source listed 0/25/2021)
+  '1386304': '2019-10-01', // Batteries Plus, LLC
+};
+
 /** Manual Kick the Tires / Factbook values until TrendLens & Factbook APIs are wired. */
 const REPORT_PRODUCT_OVERRIDES = {
   '1100433': {
     journey: {
-      membershipTenureYears: 49,
       activeContacts: 57,
       communityMembers: 1,
       committeeMembers: 2,
@@ -94,7 +109,6 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1101623': {
     journey: {
-      membershipTenureYears: 43,
       activeContacts: 31,
       communityMembers: 30,
       committeeMembers: 1,
@@ -112,7 +126,6 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1252425': {
     journey: {
-      membershipTenureYears: 23,
       activeContacts: 40,
       communityMembers: 40,
       committeeMembers: 1,
@@ -129,7 +142,6 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1252576': {
     journey: {
-      membershipTenureYears: 25,
       activeContacts: 78,
       communityMembers: 78,
       committeeMembers: 0,
@@ -145,7 +157,6 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1361271': {
     journey: {
-      membershipTenureYears: 12,
       activeContacts: 66,
       communityMembers: 2,
       committeeMembers: 0,
@@ -163,7 +174,6 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1381305': {
     journey: {
-      membershipTenureYears: 4,
       activeContacts: 12,
       communityMembers: 0,
       committeeMembers: 0,
@@ -219,7 +229,6 @@ const REPORT_PRODUCT_OVERRIDES = {
   },
   '1255413': {
     journey: {
-      membershipTenureYears: 18,
       communityMembers: 13,
     },
     events: {
@@ -256,6 +265,68 @@ function pct(attended, total) {
 function contactPct(users, contacts) {
   if (contacts <= 0) return 0;
   return Math.round((users / contacts) * 100);
+}
+
+function pad2(value) {
+  return String(value).padStart(2, '0');
+}
+
+/** Normalize membership start values to YYYY-MM-DD local calendar dates. */
+function normalizeMembershipSince(value) {
+  if (value == null || value === '') return undefined;
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return `${value.getFullYear()}-${pad2(value.getMonth() + 1)}-${pad2(value.getDate())}`;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const parsed = XLSX.SSF.parse_date_code(value);
+    if (parsed) return `${parsed.y}-${pad2(parsed.m)}-${pad2(parsed.d)}`;
+  }
+
+  const trimmed = String(value).trim();
+  if (!trimmed) return undefined;
+
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed);
+  if (us) return `${us[3]}-${pad2(us[1])}-${pad2(us[2])}`;
+
+  return undefined;
+}
+
+function pickMembershipSince(row) {
+  const keys = [
+    'MembershipSince',
+    'MemberSince',
+    'MembershipStartDate',
+    'Membership Start Date',
+    'JoinDate',
+    'StartDate',
+    'Member Since',
+    'MEMBERSHIP_SINCE',
+  ];
+  for (const key of keys) {
+    const normalized = normalizeMembershipSince(row?.[key]);
+    if (normalized) return normalized;
+  }
+  return undefined;
+}
+
+function membershipTenureYearsFromDate(since, asOf = new Date()) {
+  const normalized = normalizeMembershipSince(since);
+  if (!normalized) return 0;
+  const [year, month, day] = normalized.split('-').map(Number);
+  const start = new Date(year, month - 1, day);
+  let years = asOf.getFullYear() - start.getFullYear();
+  if (
+    asOf.getMonth() < start.getMonth() ||
+    (asOf.getMonth() === start.getMonth() && asOf.getDate() < start.getDate())
+  ) {
+    years -= 1;
+  }
+  return Math.max(0, years);
 }
 
 function loadWorkbook() {
@@ -306,6 +377,10 @@ function buildReports(workbook) {
     const tenure = tenureByRecord.get(org.RECORDNUMBER) ?? {};
     const contactsRow = contactsByRecord.get(org.RECORDNUMBER) ?? {};
     const activeContacts = Number(contactsRow['Contact Count'] ?? 0);
+    const membershipSince = pickMembershipSince(tenure);
+    const membershipTenureYears = membershipSince
+      ? membershipTenureYearsFromDate(membershipSince)
+      : Number(tenure.YearsActive ?? 0);
 
     const orgStandards = standardsRows.filter((row) => row.RecordNumber === org.RECORDNUMBER);
     const subscribedProducts = unique(
@@ -360,7 +435,8 @@ function buildReports(workbook) {
           : {}),
       },
       journey: {
-        membershipTenureYears: Number(tenure.YearsActive ?? 0),
+        ...(membershipSince ? { membershipSince } : {}),
+        membershipTenureYears,
         activeContacts,
         communityMembers,
         communities,
@@ -411,6 +487,17 @@ function buildReports(workbook) {
     const communityOverride = COMMUNITY_LIST_OVERRIDES[recordNumber];
     if (communityOverride) {
       report.journey.communities = communityOverride;
+    }
+
+    const membershipSinceOverride = MEMBERSHIP_SINCE_OVERRIDES[recordNumber];
+    if (membershipSinceOverride) {
+      report.journey.membershipSince = membershipSinceOverride;
+    }
+
+    if (report.journey.membershipSince) {
+      report.journey.membershipTenureYears = membershipTenureYearsFromDate(
+        report.journey.membershipSince,
+      );
     }
 
     report.products.trendLensContactPct = contactPct(

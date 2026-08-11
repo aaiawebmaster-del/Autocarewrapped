@@ -6,7 +6,7 @@
     "recordNumber": 1252425
   },
   "journey": {
-    "membershipTenureYears": 23,
+    "membershipTenureYears": 24,
     "activeContacts": 40,
     "communityMembers": 40,
     "communities": [
@@ -16,7 +16,8 @@
       "Women in Auto Care",
       "YANG Membership"
     ],
-    "committeeMembers": 1
+    "committeeMembers": 1,
+    "membershipSince": "2002-01-10"
   },
   "events": {
     "inPersonAttended": 4,

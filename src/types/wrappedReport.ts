@@ -10,6 +10,12 @@ export type WrappedReport = {
     marketSegment?: 'retailer';
   };
   journey: {
+    /**
+     * Membership start date (`YYYY-MM-DD` or `M/D/YYYY`).
+     * When set, tenure years are calculated from this date at load time.
+     */
+    membershipSince?: string;
+    /** Years as a member. Derived from `membershipSince` when that field is present. */
     membershipTenureYears: number;
     activeContacts: number;
     communityMembers: number;
