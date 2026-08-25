@@ -53,7 +53,7 @@ export async function listFeedbackEntriesBetween(startInclusive, endExclusive) {
  * @param {Partial<import('./feedback-report.mjs').StoredFeedbackEntry>} patch
  */
 export async function updateFeedbackEntry(id, patch) {
-  const store = getStore(STORE_NAME);
+  const store = getFeedbackStore();
   const key = entryKey(id);
   const existing = await store.get(key, { type: 'json' });
   if (!existing) return null;
