@@ -1,5 +1,4 @@
-import { getEffectiveReport, listEffectiveReports } from './lib/report-resolve.mjs';
-import { setStoredReport } from './lib/report-store.mjs';
+import { getStoredReport, listStoredReports, setStoredReport } from './lib/report-store.mjs';
 import {
   normalizeWrappedReport,
   parseEngagementUpload,
@@ -49,6 +48,10 @@ async function readJsonBody(request) {
   return JSON.parse(raw);
 }
 
+/**
+ * Keep this function lean: only Blobs + validation.
+ * Static company JSON is loaded by the browser from /data/reports.
+ */
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -63,17 +66,18 @@ export default async function handler(request) {
 
   try {
     if (request.method === 'GET' && !reportId) {
-      const reports = await listEffectiveReports(request);
+      const reports = await listStoredReports();
       return jsonResponse(200, {
         reports,
         count: reports.length,
+        source: 'blobs',
       });
     }
 
     if (request.method === 'GET' && reportId) {
-      const report = await getEffectiveReport(request, reportId);
-      if (!report) return jsonResponse(404, { error: 'Report not found' });
-      return jsonResponse(200, { report, source: 'effective' });
+      const report = await getStoredReport(reportId);
+      if (!report) return jsonResponse(404, { error: 'Report not found in published overlays' });
+      return jsonResponse(200, { report, source: 'blobs' });
     }
 
     if (request.method === 'POST' && !reportId) {
@@ -134,8 +138,21 @@ export default async function handler(request) {
         return jsonResponse(400, { error: 'company.id cannot be changed via field edit' });
       }
 
-      const existing = await getEffectiveReport(request, reportId);
-      if (!existing) return jsonResponse(404, { error: 'Report not found' });
+      const existing =
+        (await getStoredReport(reportId)) ??
+        (payload.baseReport && typeof payload.baseReport === 'object'
+          ? payload.baseReport
+          : null);
+      if (!existing) {
+        return jsonResponse(404, {
+          error:
+            'Report not found. Refresh the ADMIN list and try again, or upload a full JSON report first.',
+        });
+      }
+
+      if (String(existing.company?.id ?? '') !== String(reportId)) {
+        return jsonResponse(400, { error: 'baseReport company.id must match URL id' });
+      }
 
       const patched = recomputeDerivedFields(setByPath(existing, path, payload.value));
       const validationError = validateWrappedReport(patched);
@@ -157,6 +174,7 @@ export default async function handler(request) {
     return jsonResponse(405, { error: 'Method not allowed' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to process report request';
+    console.error('[reporting-reports]', message, error);
     return jsonResponse(500, { error: message });
   }
 }

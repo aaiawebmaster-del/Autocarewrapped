@@ -116,8 +116,9 @@ export async function publishReport(payload) {
  * @param {string} id
  * @param {string} fieldPath
  * @param {unknown} value
+ * @param {object} [baseReport]
  */
-export async function patchReportField(id, fieldPath, value) {
+export async function patchReportField(id, fieldPath, value, baseReport) {
   const path = String(fieldPath ?? '').trim();
   if (!path) {
     const error = new Error('path is required');
@@ -130,9 +131,11 @@ export async function patchReportField(id, fieldPath, value) {
     throw error;
   }
 
-  const existing = await getEffectiveReport(id);
+  const existing = (await getStoredReport(id)) ?? baseReport ?? null;
   if (!existing) {
-    const error = new Error('Report not found');
+    const error = new Error(
+      'Report not found. Refresh the ADMIN list and try again, or upload a full JSON report first.',
+    );
     error.status = 404;
     throw error;
   }

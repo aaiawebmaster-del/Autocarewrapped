@@ -316,8 +316,17 @@ async function handleReportingReports(
     }
 
     if (req.method === 'PATCH' && reportId) {
-      const payload = (await readJsonBody(req)) as { path?: string; value?: unknown };
-      const report = await patchReportField(reportId, String(payload.path ?? ''), payload.value);
+      const payload = (await readJsonBody(req)) as {
+        path?: string;
+        value?: unknown;
+        baseReport?: object;
+      };
+      const report = await patchReportField(
+        reportId,
+        String(payload.path ?? ''),
+        payload.value,
+        payload.baseReport,
+      );
       sendJson(res, 200, {
         report,
         path: payload.path,

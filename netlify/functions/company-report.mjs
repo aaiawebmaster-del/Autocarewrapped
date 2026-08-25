@@ -31,21 +31,27 @@ export default async function handler(request) {
     return jsonResponse(405, { error: 'Method not allowed' });
   }
 
-  const url = new URL(request.url);
-  const record =
-    url.searchParams.get('record') ??
-    url.searchParams.get('id') ??
-    url.pathname.split('/').filter(Boolean).at(-1) ??
-    '';
-  const id = decodeURIComponent(String(record)).trim();
-  if (!id || id === 'company-report') {
-    return jsonResponse(400, { error: 'record query parameter is required' });
-  }
+  try {
+    const url = new URL(request.url);
+    const record =
+      url.searchParams.get('record') ??
+      url.searchParams.get('id') ??
+      url.pathname.split('/').filter(Boolean).at(-1) ??
+      '';
+    const id = decodeURIComponent(String(record)).trim();
+    if (!id || id === 'company-report') {
+      return jsonResponse(400, { error: 'record query parameter is required' });
+    }
 
-  const report = await getStoredReport(id);
-  if (!report) {
-    return jsonResponse(404, { error: 'No published override for this company' });
-  }
+    const report = await getStoredReport(id);
+    if (!report) {
+      return jsonResponse(404, { error: 'No published override for this company' });
+    }
 
-  return jsonResponse(200, report);
+    return jsonResponse(200, report);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to load company report overlay';
+    console.error('[company-report]', message, error);
+    return jsonResponse(500, { error: message });
+  }
 }

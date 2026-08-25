@@ -6,8 +6,13 @@ function reportKey(id) {
   return `report:${String(id).trim()}`;
 }
 
+/**
+ * Create the store inside the call (never at module scope) so Netlify can
+ * inject Blobs credentials for Functions 2.0.
+ * @returns {ReturnType<typeof getStore>}
+ */
 function getReportStore() {
-  return getStore(STORE_NAME);
+  return getStore({ name: STORE_NAME, consistency: 'strong' });
 }
 
 /**
@@ -19,7 +24,8 @@ export async function getStoredReport(id) {
     const store = getReportStore();
     const report = await store.get(reportKey(id), { type: 'json' });
     return report ?? null;
-  } catch {
+  } catch (error) {
+    console.error('[wrapped-reports] getStoredReport failed', error);
     return null;
   }
 }
@@ -31,9 +37,18 @@ export async function getStoredReport(id) {
 export async function setStoredReport(report) {
   const id = String(report?.company?.id ?? '').trim();
   if (!id) throw new Error('company.id is required');
-  const store = getReportStore();
-  await store.setJSON(reportKey(id), report);
-  return report;
+
+  try {
+    const store = getReportStore();
+    await store.setJSON(reportKey(id), report);
+    return report;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error('[wrapped-reports] setStoredReport failed', error);
+    throw new Error(
+      `Unable to save report to Netlify Blobs (${detail}). Check that Blobs is enabled for this site.`,
+    );
+  }
 }
 
 /**
@@ -47,7 +62,8 @@ export async function listStoredReportIds() {
       .map((blob) => blob.key.replace(/^report:/, ''))
       .filter(Boolean)
       .sort();
-  } catch {
+  } catch (error) {
+    console.error('[wrapped-reports] listStoredReportIds failed', error);
     return [];
   }
 }

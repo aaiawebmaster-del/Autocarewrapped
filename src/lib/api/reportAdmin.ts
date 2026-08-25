@@ -86,23 +86,14 @@ export async function fetchStaticReportCatalog(): Promise<WrappedReport[]> {
   return reports.filter((report): report is WrappedReport => Boolean(report));
 }
 
-async function mergeOverlayReports(baseReports: WrappedReport[]): Promise<WrappedReport[]> {
-  const merged = await Promise.all(
-    baseReports.map(async (report) => {
-      const overlay = await fetchCompanyReportOverlay(report.company.id);
-      return overlay ?? report;
-    }),
-  );
-  return sortReports(merged);
-}
-
 /**
- * Merge API catalog (includes Blobs uploads) with static `/data/reports`
- * so ADMIN always shows built-in companies plus newly uploaded ones.
+ * Merge API overlays (Blobs uploads) with static `/data/reports`.
+ * Static files are the catalog; overlays win when present.
  */
 export async function fetchAdminReports(password: string): Promise<WrappedReport[]> {
   let apiError: ReportAdminError | null = null;
   let apiReports: WrappedReport[] = [];
+  let apiAvailable = false;
 
   try {
     const response = await fetch(appConfig.reportingReportsEndpoint, {
@@ -119,16 +110,23 @@ export async function fetchAdminReports(password: string): Promise<WrappedReport
 
     const body = (await response.json()) as { reports?: WrappedReport[] };
     apiReports = (body.reports ?? []).filter(isWrappedReport);
+    apiAvailable = true;
   } catch (error) {
     if (error instanceof ReportAdminError) {
       if (error.status === 401) throw error;
       apiError = error;
+    } else if (error instanceof Error) {
+      apiError = new ReportAdminError(error.message, 500);
     }
   }
 
   const staticReports = await fetchStaticReportCatalog();
-  const withOverlays = await mergeOverlayReports(staticReports);
-  const merged = mergeReportsById([withOverlays, apiReports]);
+
+  // Prefer API overlay map when the endpoint is healthy; otherwise skip per-id
+  // overlay fetches so the console is not flooded with expected 404s.
+  const merged = apiAvailable
+    ? mergeReportsById([staticReports, apiReports])
+    : sortReports(staticReports);
 
   if (merged.length === 0 && apiError) throw apiError;
   return merged;
@@ -203,13 +201,14 @@ export async function patchAdminReportField(
   companyId: string,
   path: string,
   value: unknown,
+  baseReport?: WrappedReport,
 ): Promise<WrappedReport> {
   const response = await fetch(
     `${appConfig.reportingReportsEndpoint}/${encodeURIComponent(companyId)}`,
     {
       method: 'PATCH',
       headers: authHeaders(password, true),
-      body: JSON.stringify({ path, value }),
+      body: JSON.stringify({ path, value, baseReport }),
     },
   );
 

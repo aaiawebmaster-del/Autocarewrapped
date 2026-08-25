@@ -6,11 +6,15 @@ function entryKey(id) {
   return `entry:${id}`;
 }
 
+function getFeedbackStore() {
+  return getStore({ name: STORE_NAME, consistency: 'strong' });
+}
+
 /**
  * @param {Omit<import('./feedback-report.mjs').StoredFeedbackEntry, 'id' | 'submittedAt'>} submission
  */
 export async function appendFeedbackEntry(submission) {
-  const store = getStore(STORE_NAME);
+  const store = getFeedbackStore();
   const id = crypto.randomUUID();
   const entry = {
     id,
@@ -22,7 +26,7 @@ export async function appendFeedbackEntry(submission) {
 }
 
 export async function listFeedbackEntries() {
-  const store = getStore(STORE_NAME);
+  const store = getFeedbackStore();
   const blobs = await store.list({ prefix: 'entry:' });
   const entries = await Promise.all(
     blobs.blobs.map(async (blob) => store.get(blob.key, { type: 'json' })),

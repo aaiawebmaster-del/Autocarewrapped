@@ -229,7 +229,14 @@ export default function ReportingAdminPanel({ password, onAuthError }: Reporting
     setStatus(null);
     try {
       const value = parseAdminFieldValue(draft, field.type);
-      const nextReport = await patchAdminReportField(password, companyId, field.path, value);
+      const baseReport = reports.find((report) => report.company.id === companyId);
+      const nextReport = await patchAdminReportField(
+        password,
+        companyId,
+        field.path,
+        value,
+        baseReport,
+      );
       replaceReport(nextReport);
       setEditState(null);
       setStatus(`Published ${field.label} for ${nextReport.company.name}.`);
