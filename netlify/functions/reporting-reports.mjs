@@ -2,6 +2,7 @@ import { getEffectiveReport, listEffectiveReports } from './lib/report-resolve.m
 import { setStoredReport } from './lib/report-store.mjs';
 import {
   normalizeWrappedReport,
+  parseEngagementUpload,
   recomputeDerivedFields,
   setByPath,
   validateWrappedReport,
@@ -77,15 +78,32 @@ export default async function handler(request) {
 
     if (request.method === 'POST' && !reportId) {
       const payload = await readJsonBody(request);
-      const validationError = validateWrappedReport(payload);
-      if (validationError) return jsonResponse(400, { error: validationError });
+      const parsed = parseEngagementUpload(payload);
+      if (parsed.error) return jsonResponse(400, { error: parsed.error });
 
-      const report = recomputeDerivedFields(normalizeWrappedReport(payload));
-      await setStoredReport(report);
+      const published = [];
+      for (let index = 0; index < parsed.reports.length; index += 1) {
+        const candidate = parsed.reports[index];
+        const validationError = validateWrappedReport(candidate);
+        if (validationError) {
+          return jsonResponse(400, {
+            error: `Report ${index + 1}: ${validationError}`,
+          });
+        }
+        const report = recomputeDerivedFields(normalizeWrappedReport(candidate));
+        await setStoredReport(report);
+        published.push(report);
+      }
+
       return jsonResponse(200, {
-        report,
+        reports: published,
+        report: published[0],
+        count: published.length,
         created: true,
-        message: `Published report for ${report.company.name} (${report.company.id})`,
+        message:
+          published.length === 1
+            ? `Published report for ${published[0].company.name} (${published[0].company.id})`
+            : `Published ${published.length} company reports`,
       });
     }
 

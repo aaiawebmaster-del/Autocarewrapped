@@ -3,6 +3,7 @@ import path from 'node:path';
 import { getStoredReport, listStoredReportIds, setStoredReport } from './report-store.mjs';
 import {
   normalizeWrappedReport,
+  parseEngagementUpload,
   recomputeDerivedFields,
   setByPath,
   validateWrappedReport,
@@ -77,17 +78,38 @@ export async function listEffectiveReports() {
 
 /**
  * @param {unknown} payload
+ * @returns {Promise<object[]>}
  */
-export async function publishReport(payload) {
-  const validationError = validateWrappedReport(payload);
-  if (validationError) {
-    const error = new Error(validationError);
+export async function publishReports(payload) {
+  const parsed = parseEngagementUpload(payload);
+  if (parsed.error) {
+    const error = new Error(parsed.error);
     error.status = 400;
     throw error;
   }
-  const report = recomputeDerivedFields(normalizeWrappedReport(payload));
-  await setStoredReport(report);
-  return report;
+
+  const published = [];
+  for (let index = 0; index < parsed.reports.length; index += 1) {
+    const candidate = parsed.reports[index];
+    const validationError = validateWrappedReport(candidate);
+    if (validationError) {
+      const error = new Error(`Report ${index + 1}: ${validationError}`);
+      error.status = 400;
+      throw error;
+    }
+    const report = recomputeDerivedFields(normalizeWrappedReport(candidate));
+    await setStoredReport(report);
+    published.push(report);
+  }
+  return published;
+}
+
+/**
+ * @param {unknown} payload
+ */
+export async function publishReport(payload) {
+  const published = await publishReports(payload);
+  return published[0];
 }
 
 /**

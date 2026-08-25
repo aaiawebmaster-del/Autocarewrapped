@@ -8,8 +8,9 @@ import {
 } from '@/lib/adminReportFields';
 import {
   fetchAdminReports,
+  parseEngagementUploadPayload,
   patchAdminReportField,
-  publishAdminReport,
+  publishAdminReports,
   ReportAdminError,
 } from '@/lib/api/reportAdmin';
 import type { WrappedReport } from '@/types/wrappedReport';
@@ -259,17 +260,25 @@ export default function ReportingAdminPanel({ password, onAuthError }: Reporting
 
     try {
       const raw = await file.text();
+      const cleaned = raw.replace(/^\uFEFF/, '').trim();
       let parsed: unknown;
       try {
-        parsed = JSON.parse(raw);
+        parsed = JSON.parse(cleaned);
       } catch {
         throw new Error('File is not valid JSON.');
       }
 
-      const report = await publishAdminReport(password, parsed as WrappedReport);
-      replaceReport(report);
+      // Validate shape up front so users get a clear message before the API call.
+      parseEngagementUploadPayload(parsed);
+
+      const published = await publishAdminReports(password, parsed);
+      for (const report of published) {
+        replaceReport(report);
+      }
       setStatus(
-        `Uploaded and published ${report.company.name} (${report.company.id}). Live experience will use this data.`,
+        published.length === 1
+          ? `Uploaded and published ${published[0].company.name} (${published[0].company.id}). Live experience will use this data.`
+          : `Uploaded and published ${published.length} company reports.`,
       );
     } catch (err) {
       const message =
@@ -292,8 +301,10 @@ export default function ReportingAdminPanel({ password, onAuthError }: Reporting
       <section className="reporting-page__section" aria-label="Upload company report JSON">
         <h2 className="reporting-page__section-title">Upload JSON</h2>
         <p className="reporting-page__admin-copy">
-          Upload a full company report JSON file. Matching <code>company.id</code> values update the
-          live report; new IDs create a report immediately.
+          Upload an Engagement Report JSON file (for example{' '}
+          <code>EngagementReport_1100785_2026.json</code>). The file can contain one company object,
+          an array of company objects, or <code>{`{ "reports": [...] }`}</code>. Matching{' '}
+          <code>company.id</code> values update the live report; new IDs create a report immediately.
         </p>
         <label className="reporting-page__admin-upload">
           <span className="reporting-page__button">

@@ -1,0 +1,50 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "1100785",
+    "name": "Clarios",
+    "recordNumber": 1100785
+  },
+  "journey": {
+    "membershipTenureYears": 49,
+    "activeContacts": 86,
+    "communityMembers": 79,
+    "communities": [
+      "AWDA Community",
+      "Automotive Communications Council",
+      "Women in Auto Care",
+      "YANG Membership"
+    ],
+    "committeeMembers": 3
+  },
+  "events": {
+    "inPersonAttended": 3,
+    "inPersonTotal": 8,
+    "attendancePct": 38,
+    "webinarCount": 23,
+    "aapexAttended": true,
+    "aapexExhibitor": true
+  },
+  "products": {
+    "trendLensUsers": 7,
+    "trendLensContactPct": 8,
+    "demandIndexGroups": 6,
+    "demandIndexGroupsTotal": 183,
+    "academyUsers": 0,
+    "academyCoursesCompleted": 0
+  },
+  "factbook": {
+    "users": 6,
+    "contactPct": 7
+  },
+  "standards": {
+    "subscribedCount": 4,
+    "subscribedProducts": [
+      "PAdb - Product Attribute database",
+      "VCdb - (Latin America) Light, Medium, Heavy Duty & Powersports",
+      "VCdb - (North America) Light Duty & Powersports",
+      "VCdb - (North America) Medium & Heavy Duty"
+    ],
+    "subscribedPct": 40
+  }
+}

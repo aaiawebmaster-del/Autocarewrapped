@@ -54,6 +54,21 @@ async function fetchJson(url: string): Promise<unknown | null> {
   }
 }
 
+function sortReports(reports: WrappedReport[]): WrappedReport[] {
+  return [...reports].sort((a, b) => a.company.name.localeCompare(b.company.name));
+}
+
+function mergeReportsById(groups: WrappedReport[][]): WrappedReport[] {
+  const byId = new Map<string, WrappedReport>();
+  for (const group of groups) {
+    for (const report of group) {
+      if (!isWrappedReport(report)) continue;
+      byId.set(String(report.company.id), report);
+    }
+  }
+  return sortReports([...byId.values()]);
+}
+
 /** Load built-in company reports from static `/data/reports` files. */
 export async function fetchStaticReportCatalog(): Promise<WrappedReport[]> {
   const index = (await fetchJson('/data/reports/index.json')) as ReportIndexEntry[] | null;
@@ -68,9 +83,7 @@ export async function fetchStaticReportCatalog(): Promise<WrappedReport[]> {
     }),
   );
 
-  return reports
-    .filter((report): report is WrappedReport => Boolean(report))
-    .sort((a, b) => a.company.name.localeCompare(b.company.name));
+  return reports.filter((report): report is WrappedReport => Boolean(report));
 }
 
 async function mergeOverlayReports(baseReports: WrappedReport[]): Promise<WrappedReport[]> {
@@ -80,16 +93,16 @@ async function mergeOverlayReports(baseReports: WrappedReport[]): Promise<Wrappe
       return overlay ?? report;
     }),
   );
-  return merged.sort((a, b) => a.company.name.localeCompare(b.company.name));
+  return sortReports(merged);
 }
 
 /**
- * Prefer the authenticated API catalog when it returns companies.
- * Always fall back to static `/data/reports` so ADMIN shows built-in data
- * even when Blobs/API resolution is empty.
+ * Merge API catalog (includes Blobs uploads) with static `/data/reports`
+ * so ADMIN always shows built-in companies plus newly uploaded ones.
  */
 export async function fetchAdminReports(password: string): Promise<WrappedReport[]> {
   let apiError: ReportAdminError | null = null;
+  let apiReports: WrappedReport[] = [];
 
   try {
     const response = await fetch(appConfig.reportingReportsEndpoint, {
@@ -105,10 +118,7 @@ export async function fetchAdminReports(password: string): Promise<WrappedReport
     }
 
     const body = (await response.json()) as { reports?: WrappedReport[] };
-    const apiReports = (body.reports ?? []).filter(isWrappedReport);
-    if (apiReports.length > 0) {
-      return apiReports.sort((a, b) => a.company.name.localeCompare(b.company.name));
-    }
+    apiReports = (body.reports ?? []).filter(isWrappedReport);
   } catch (error) {
     if (error instanceof ReportAdminError) {
       if (error.status === 401) throw error;
@@ -117,22 +127,54 @@ export async function fetchAdminReports(password: string): Promise<WrappedReport
   }
 
   const staticReports = await fetchStaticReportCatalog();
-  if (staticReports.length === 0) {
-    if (apiError) throw apiError;
-    return [];
-  }
+  const withOverlays = await mergeOverlayReports(staticReports);
+  const merged = mergeReportsById([withOverlays, apiReports]);
 
-  return mergeOverlayReports(staticReports);
+  if (merged.length === 0 && apiError) throw apiError;
+  return merged;
 }
 
-export async function publishAdminReport(
+/**
+ * Parse Engagement Report upload JSON:
+ * - single company object
+ * - array of company objects
+ * - `{ "reports": [ ... ] }`
+ */
+export function parseEngagementUploadPayload(payload: unknown): WrappedReport[] {
+  if (Array.isArray(payload)) {
+    if (payload.length === 0) throw new Error('Upload array is empty');
+    return payload as WrappedReport[];
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    throw new Error(
+      'Upload must be a company report JSON object, an array of reports, or { "reports": [...] }',
+    );
+  }
+
+  const record = payload as Record<string, unknown>;
+  if (Array.isArray(record.reports)) {
+    if (record.reports.length === 0) throw new Error('reports array is empty');
+    return record.reports as WrappedReport[];
+  }
+
+  if (record.company != null || record.reportYear != null || record.journey != null) {
+    return [payload as WrappedReport];
+  }
+
+  throw new Error(
+    'Upload must be a company report JSON object, an array of reports, or { "reports": [...] }',
+  );
+}
+
+export async function publishAdminReports(
   password: string,
-  report: WrappedReport,
-): Promise<WrappedReport> {
+  payload: unknown,
+): Promise<WrappedReport[]> {
   const response = await fetch(appConfig.reportingReportsEndpoint, {
     method: 'POST',
     headers: authHeaders(password, true),
-    body: JSON.stringify(report),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -142,8 +184,18 @@ export async function publishAdminReport(
     );
   }
 
-  const body = (await response.json()) as { report: WrappedReport };
-  return body.report;
+  const body = (await response.json()) as { reports?: WrappedReport[]; report?: WrappedReport };
+  if (Array.isArray(body.reports) && body.reports.length > 0) return body.reports;
+  if (body.report) return [body.report];
+  return parseEngagementUploadPayload(payload);
+}
+
+export async function publishAdminReport(
+  password: string,
+  report: WrappedReport,
+): Promise<WrappedReport> {
+  const published = await publishAdminReports(password, report);
+  return published[0];
 }
 
 export async function patchAdminReportField(

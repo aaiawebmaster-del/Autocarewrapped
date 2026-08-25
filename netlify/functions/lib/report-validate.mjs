@@ -13,6 +13,50 @@ function isObject(value) {
 }
 
 /**
+ * Accept Engagement Report upload shapes:
+ * - single company object
+ * - array of company objects
+ * - `{ "reports": [ ... ] }`
+ *
+ * @param {unknown} payload
+ * @returns {{ reports: unknown[]; error: string | null }}
+ */
+export function parseEngagementUpload(payload) {
+  if (Array.isArray(payload)) {
+    if (payload.length === 0) {
+      return { reports: [], error: 'Upload array is empty' };
+    }
+    return { reports: payload, error: null };
+  }
+
+  if (!isObject(payload)) {
+    return {
+      reports: [],
+      error:
+        'Upload must be a company report JSON object, an array of reports, or { "reports": [...] }',
+    };
+  }
+
+  if (Array.isArray(payload.reports)) {
+    if (payload.reports.length === 0) {
+      return { reports: [], error: 'reports array is empty' };
+    }
+    return { reports: payload.reports, error: null };
+  }
+
+  // Single-company Engagement Report template (e.g. EngagementReport_{id}_{year}.json)
+  if (payload.company != null || payload.reportYear != null || payload.journey != null) {
+    return { reports: [payload], error: null };
+  }
+
+  return {
+    reports: [],
+    error:
+      'Upload must be a company report JSON object, an array of reports, or { "reports": [...] }',
+  };
+}
+
+/**
  * @param {unknown} value
  * @returns {string | null}
  */
@@ -28,7 +72,8 @@ export function validateWrappedReport(value) {
   if (!companyId) return 'company.id is required';
   if (!String(value.company.name ?? '').trim()) return 'company.name is required';
 
-  if (typeof value.reportYear !== 'number' || !Number.isFinite(value.reportYear)) {
+  const reportYear = Number(value.reportYear);
+  if (!Number.isFinite(reportYear)) {
     return 'reportYear must be a number';
   }
 
@@ -69,13 +114,26 @@ export function normalizeWrappedReport(report) {
   const next = structuredClone(report);
   const id = String(next.company.id).trim();
   next.company.id = id;
+  next.company.name = String(next.company.name ?? '').trim();
+  next.reportYear = Number(next.reportYear);
+
   if (next.company.recordNumber == null || next.company.recordNumber === '') {
     const asNumber = Number(id);
     if (Number.isFinite(asNumber)) next.company.recordNumber = asNumber;
+  } else {
+    next.company.recordNumber = Number(next.company.recordNumber);
   }
+
   if (!Array.isArray(next.journey.communities)) next.journey.communities = [];
-  if (next.standards && !Array.isArray(next.standards.subscribedProducts)) {
-    next.standards.subscribedProducts = [];
+  next.journey.communities = next.journey.communities.map((name) => String(name).trim()).filter(Boolean);
+
+  if (next.standards) {
+    if (!Array.isArray(next.standards.subscribedProducts)) {
+      next.standards.subscribedProducts = [];
+    }
+    next.standards.subscribedProducts = next.standards.subscribedProducts
+      .map((name) => String(name).trim())
+      .filter(Boolean);
   }
   return next;
 }

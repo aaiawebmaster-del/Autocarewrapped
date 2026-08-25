@@ -10,6 +10,7 @@ import {
   listEffectiveReports,
   patchReportField,
   publishReport,
+  publishReports,
 } from './report-admin.mjs';
 import { getSampleReport } from '../src/mocks/sampleReports.ts';
 import type { WrappedReportScenario } from '../src/types/wrappedReport.ts';
@@ -284,11 +285,16 @@ async function handleReportingReports(
 
     if (req.method === 'POST' && !reportId) {
       const payload = await readJsonBody(req);
-      const report = await publishReport(payload);
+      const published = await publishReports(payload);
       sendJson(res, 200, {
-        report,
+        reports: published,
+        report: published[0],
+        count: published.length,
         created: true,
-        message: `Published report for ${report.company.name} (${report.company.id})`,
+        message:
+          published.length === 1
+            ? `Published report for ${published[0].company.name} (${published[0].company.id})`
+            : `Published ${published.length} company reports`,
       });
       return;
     }

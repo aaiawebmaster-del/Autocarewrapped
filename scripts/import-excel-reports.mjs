@@ -2,7 +2,7 @@
  * Builds WrappedReport JSON files from the October Renewal Companies workbook.
  * Output: public/data/reports/{recordNumber}.json
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import XLSX from 'xlsx';
@@ -522,22 +522,54 @@ function indexBy(rows, key) {
   return map;
 }
 
+function readExistingReports() {
+  try {
+    return readdirSync(OUT_DIR)
+      .filter((name) => name.endsWith('.json') && name !== 'index.json')
+      .map((name) => {
+        try {
+          return JSON.parse(readFileSync(join(OUT_DIR, name), 'utf8'));
+        } catch {
+          return null;
+        }
+      })
+      .filter((report) => report?.company?.id && report?.company?.name);
+  } catch {
+    return [];
+  }
+}
+
 function main() {
+  const existingReports = readExistingReports();
+  const existingById = new Map(
+    existingReports.map((report) => [String(report.company.id), report]),
+  );
+
   const workbook = loadWorkbook();
-  const reports = buildReports(workbook);
+  const excelReports = buildReports(workbook);
+  const excelIds = new Set(excelReports.map((report) => String(report.company.id)));
 
   mkdirSync(OUT_DIR, { recursive: true });
 
-  for (const report of reports) {
+  for (const report of excelReports) {
     const filePath = join(OUT_DIR, `${report.company.id}.json`);
     writeFileSync(filePath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
     console.log(`Wrote ${filePath} (${report.company.name})`);
   }
 
+  // Keep manually curated / previously imported companies that are not in the Excel workbook.
+  const preservedReports = [...existingById.entries()]
+    .filter(([id]) => !excelIds.has(id))
+    .map(([, report]) => report);
+
+  const allReports = [...excelReports, ...preservedReports].sort((a, b) =>
+    String(a.company.name).localeCompare(String(b.company.name)),
+  );
+
   writeFileSync(
     join(OUT_DIR, 'index.json'),
     `${JSON.stringify(
-      reports.map((report) => ({
+      allReports.map((report) => ({
         recordNumber: report.company.recordNumber,
         id: report.company.id,
         name: report.company.name,
@@ -549,7 +581,9 @@ function main() {
     'utf8',
   );
 
-  console.log(`Generated ${reports.length} reports from ${xlsxPath}`);
+  console.log(
+    `Generated ${excelReports.length} Excel reports + preserved ${preservedReports.length} existing (${allReports.length} total) from ${xlsxPath}`,
+  );
 }
 
 main();
