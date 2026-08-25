@@ -6,14 +6,22 @@ function reportKey(id) {
   return `report:${String(id).trim()}`;
 }
 
+function getReportStore() {
+  return getStore(STORE_NAME);
+}
+
 /**
  * @param {string} id
  * @returns {Promise<object | null>}
  */
 export async function getStoredReport(id) {
-  const store = getStore(STORE_NAME);
-  const report = await store.get(reportKey(id), { type: 'json' });
-  return report ?? null;
+  try {
+    const store = getReportStore();
+    const report = await store.get(reportKey(id), { type: 'json' });
+    return report ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -23,7 +31,7 @@ export async function getStoredReport(id) {
 export async function setStoredReport(report) {
   const id = String(report?.company?.id ?? '').trim();
   if (!id) throw new Error('company.id is required');
-  const store = getStore(STORE_NAME);
+  const store = getReportStore();
   await store.setJSON(reportKey(id), report);
   return report;
 }
@@ -32,12 +40,16 @@ export async function setStoredReport(report) {
  * @returns {Promise<string[]>}
  */
 export async function listStoredReportIds() {
-  const store = getStore(STORE_NAME);
-  const listed = await store.list({ prefix: 'report:' });
-  return listed.blobs
-    .map((blob) => blob.key.replace(/^report:/, ''))
-    .filter(Boolean)
-    .sort();
+  try {
+    const store = getReportStore();
+    const listed = await store.list({ prefix: 'report:' });
+    return listed.blobs
+      .map((blob) => blob.key.replace(/^report:/, ''))
+      .filter(Boolean)
+      .sort();
+  } catch {
+    return [];
+  }
 }
 
 /**
