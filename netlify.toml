@@ -22,6 +22,21 @@
   status = 200
 
 [[redirects]]
+  from = "/api/wrapped/reporting/reports"
+  to = "/.netlify/functions/reporting-reports"
+  status = 200
+
+[[redirects]]
+  from = "/api/wrapped/reporting/reports/:id"
+  to = "/.netlify/functions/reporting-reports?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/api/wrapped/company-report"
+  to = "/.netlify/functions/company-report"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

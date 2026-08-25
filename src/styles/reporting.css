@@ -470,3 +470,234 @@
 .reporting-page__empty--inline {
   margin: 0;
 }
+
+.reporting-page--admin .reporting-page__inner {
+  width: min(100%, 1280px);
+}
+
+.reporting-page__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  width: fit-content;
+}
+
+.reporting-page__tab {
+  appearance: none;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  color: rgba(229, 231, 235, 0.78);
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.reporting-page__tab--active {
+  background: rgba(96, 165, 250, 0.18);
+  color: #f5f7fa;
+}
+
+.reporting-page__tab:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.45);
+  outline-offset: 1px;
+}
+
+.reporting-page__admin-copy {
+  margin: 0 0 14px;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(229, 231, 235, 0.72);
+}
+
+.reporting-page__admin-copy code {
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #bfdbfe;
+}
+
+.reporting-page__admin-upload {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.reporting-page__admin-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.reporting-page__admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reporting-page__admin-toolbar .reporting-page__section-title {
+  margin: 0;
+}
+
+.reporting-page__admin-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.reporting-page__admin-search {
+  min-width: min(100%, 240px);
+}
+
+.reporting-page__status--ok {
+  color: #86efac;
+}
+
+.reporting-page__admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reporting-page__admin-company {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.reporting-page__admin-company-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.reporting-page__admin-company-summary::-webkit-details-marker {
+  display: none;
+}
+
+.reporting-page__admin-company-name {
+  font-family: 'Istok Web', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f5f7fa;
+}
+
+.reporting-page__admin-company-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(229, 231, 235, 0.66);
+}
+
+.reporting-page__admin-company-body {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.reporting-page__admin-section-title {
+  margin: 0 0 10px;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.78);
+}
+
+.reporting-page__table--admin {
+  min-width: 720px;
+}
+
+.reporting-page__table--admin th:last-child,
+.reporting-page__table--admin td:last-child {
+  width: 220px;
+}
+
+.reporting-page__admin-field-label {
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color: #f5f7fa;
+}
+
+.reporting-page__admin-field-path {
+  margin-top: 2px;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  color: rgba(229, 231, 235, 0.5);
+}
+
+.reporting-page__admin-value-cell {
+  max-width: 420px;
+}
+
+.reporting-page__admin-value {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+  color: rgba(229, 231, 235, 0.9);
+}
+
+.reporting-page__admin-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #f5f7fa;
+  font-family: 'Istok Web', sans-serif;
+  font-size: 13px;
+}
+
+.reporting-page__admin-input--area {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.reporting-page__admin-input:focus {
+  outline: 2px solid rgba(96, 165, 250, 0.45);
+  outline-offset: 1px;
+}
+
+.reporting-page__admin-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reporting-page__admin-readonly {
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.45);
+}

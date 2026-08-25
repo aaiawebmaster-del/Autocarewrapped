@@ -56,6 +56,8 @@ export const appConfig = {
   healthEndpoint: `${apiBaseUrl}/api/wrapped/health`,
   feedbackEndpoint: `${apiBaseUrl}/api/wrapped/feedback`,
   reportingFeedbackEndpoint: `${apiBaseUrl}/api/wrapped/reporting/feedback`,
+  reportingReportsEndpoint: `${apiBaseUrl}/api/wrapped/reporting/reports`,
+  companyReportEndpoint: `${apiBaseUrl}/api/wrapped/company-report`,
   analyticsEndpoint: `${apiBaseUrl}/api/wrapped/analytics`,
 };
 

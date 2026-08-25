@@ -1,5 +1,6 @@
 import { appConfig } from '@/lib/config';
 import { staticReportUrl } from '@/lib/embedConfig';
+import { fetchCompanyReportOverlay } from '@/lib/api/reportAdmin';
 import { withResolvedMembershipTenure } from '@/lib/membershipTenure';
 import { getSampleReport } from '@/mocks/sampleReports';
 import type { WrappedReport } from '@/types/wrappedReport';
@@ -15,6 +16,12 @@ export class WrappedReportError extends Error {
 }
 
 async function fetchStaticCompanyReport(recordNumber: string): Promise<WrappedReport> {
+  // Admin-published overlays (Netlify Blobs / local runtime store) win over build files.
+  const overlay = await fetchCompanyReportOverlay(recordNumber);
+  if (overlay) {
+    return withResolvedMembershipTenure(overlay);
+  }
+
   const response = await fetch(staticReportUrl(recordNumber), {
     headers: { Accept: 'application/json' },
   });

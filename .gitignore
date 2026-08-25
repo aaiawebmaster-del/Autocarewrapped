@@ -7,3 +7,4 @@ dist/
 .vs/
 data/feedback/submissions.json
 data/analytics/events.json
+data/runtime/reports/

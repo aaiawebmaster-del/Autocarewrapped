@@ -4,6 +4,13 @@ import { appendAnalyticsEvent, listAnalyticsEvents } from './analytics-store.mjs
 import { buildFeedbackSummary } from '../netlify/functions/lib/feedback-report.mjs';
 import { buildUsageReport, filterAnalyticsEventsByDateRange, parseAnalyticsEventPayload } from '../netlify/functions/lib/analytics-report.mjs';
 import { isReportingPasswordValid } from '../netlify/functions/lib/reporting-auth.mjs';
+import {
+  getEffectiveReport,
+  getStoredReport,
+  listEffectiveReports,
+  patchReportField,
+  publishReport,
+} from './report-admin.mjs';
 import { getSampleReport } from '../src/mocks/sampleReports.ts';
 import type { WrappedReportScenario } from '../src/types/wrappedReport.ts';
 
@@ -70,6 +77,30 @@ export function handleMockWrappedApi(req: IncomingMessage, res: ServerResponse):
     }
 
     void handleReportingFeedback(req, res);
+    return true;
+  }
+
+  if (pathname === '/api/wrapped/reporting/reports' || pathname.startsWith('/api/wrapped/reporting/reports/')) {
+    if (req.method === 'OPTIONS') {
+      res.statusCode = 204;
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, X-Reporting-Password');
+      res.end();
+      return true;
+    }
+
+    if (!isReportingPasswordValid(req)) {
+      sendJson(res, 401, { error: 'Invalid reporting password' });
+      return true;
+    }
+
+    void handleReportingReports(req, res, pathname);
+    return true;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/wrapped/company-report') {
+    void handleCompanyReportOverlay(req, res);
     return true;
   }
 
@@ -202,5 +233,100 @@ async function handleAnalyticsSubmit(req: IncomingMessage, res: ServerResponse) 
     sendJson(res, 201, { ok: true, id: entry.id });
   } catch {
     sendJson(res, 400, { error: 'Invalid JSON body' });
+  }
+}
+
+async function handleCompanyReportOverlay(req: IncomingMessage, res: ServerResponse) {
+  try {
+    const parsed = new URL(req.url ?? '/', 'http://localhost');
+    const id = String(parsed.searchParams.get('record') ?? parsed.searchParams.get('id') ?? '').trim();
+    if (!id) {
+      sendJson(res, 400, { error: 'record query parameter is required' });
+      return;
+    }
+
+    const report = await getStoredReport(id);
+    if (!report) {
+      sendJson(res, 404, { error: 'No published override for this company' });
+      return;
+    }
+
+    sendJson(res, 200, report);
+  } catch {
+    sendJson(res, 500, { error: 'Unable to load company report overlay' });
+  }
+}
+
+async function handleReportingReports(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathname: string,
+) {
+  try {
+    const reportIdMatch = pathname.match(/\/api\/wrapped\/reporting\/reports\/([^/]+)\/?$/);
+    const reportId = reportIdMatch ? decodeURIComponent(reportIdMatch[1]) : null;
+
+    if (req.method === 'GET' && !reportId) {
+      const reports = await listEffectiveReports();
+      sendJson(res, 200, { reports, count: reports.length });
+      return;
+    }
+
+    if (req.method === 'GET' && reportId) {
+      const report = await getEffectiveReport(reportId);
+      if (!report) {
+        sendJson(res, 404, { error: 'Report not found' });
+        return;
+      }
+      sendJson(res, 200, { report, source: 'effective' });
+      return;
+    }
+
+    if (req.method === 'POST' && !reportId) {
+      const payload = await readJsonBody(req);
+      const report = await publishReport(payload);
+      sendJson(res, 200, {
+        report,
+        created: true,
+        message: `Published report for ${report.company.name} (${report.company.id})`,
+      });
+      return;
+    }
+
+    if ((req.method === 'PUT' || req.method === 'POST') && reportId) {
+      const payload = (await readJsonBody(req)) as { company?: { id?: string } };
+      if (String(payload?.company?.id ?? '') !== String(reportId)) {
+        sendJson(res, 400, {
+          error: `company.id (${payload?.company?.id ?? ''}) must match URL id (${reportId})`,
+        });
+        return;
+      }
+      const report = await publishReport(payload);
+      sendJson(res, 200, {
+        report,
+        message: `Published report for ${report.company.name} (${report.company.id})`,
+      });
+      return;
+    }
+
+    if (req.method === 'PATCH' && reportId) {
+      const payload = (await readJsonBody(req)) as { path?: string; value?: unknown };
+      const report = await patchReportField(reportId, String(payload.path ?? ''), payload.value);
+      sendJson(res, 200, {
+        report,
+        path: payload.path,
+        message: `Updated ${payload.path} for ${report.company.name}`,
+      });
+      return;
+    }
+
+    sendJson(res, 405, { error: 'Method not allowed' });
+  } catch (error) {
+    const status =
+      error && typeof error === 'object' && 'status' in error && typeof error.status === 'number'
+        ? error.status
+        : 500;
+    const message = error instanceof Error ? error.message : 'Unable to process report request';
+    sendJson(res, status, { error: message });
   }
 }

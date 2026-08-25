@@ -15,11 +15,13 @@ import {
   sumUsageTotals,
 } from '@/lib/usageReportingUtils';
 import { downloadReportingSpreadsheet } from '@/lib/reportingExport';
+import ReportingAdminPanel from '@/app/components/ReportingAdminPanel';
 import type { CompanyUsageMetrics } from '@/types/analytics';
 import type { FeedbackReportResponse } from '@/types/feedback';
 import '@/styles/reporting.css';
 
 const REPORTING_PASSWORD_STORAGE_KEY = 'wrapped-reporting-password';
+type ReportingTab = 'feedback' | 'admin';
 
 function formatFeedbackDate(iso: string): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -153,6 +155,7 @@ export default function ReportingPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<ReportingTab>('feedback');
 
   const loadReport = useCallback(
     async (password: string, range?: { fromDate: string; toDate: string }) => {
@@ -189,8 +192,9 @@ export default function ReportingPage() {
 
   useEffect(() => {
     if (!storedPassword) return;
+    if (activeTab !== 'feedback') return;
     void loadReport(storedPassword, { fromDate, toDate });
-  }, [storedPassword, fromDate, toDate, loadReport]);
+  }, [storedPassword, fromDate, toDate, loadReport, activeTab]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -252,16 +256,16 @@ export default function ReportingPage() {
   const hasDateFilter = Boolean(fromDate || toDate);
 
   return (
-    <main className="reporting-page">
+    <main className={`reporting-page${activeTab === 'admin' ? ' reporting-page--admin' : ''}`}>
       <div className="reporting-page__inner">
         <header className="reporting-page__header">
           <div>
             <h1 className="reporting-page__title">Engagement Report Feedback</h1>
             <p className="reporting-page__subtitle">
-              Internal feedback submissions and usage metrics by company.
+              Internal feedback submissions, usage metrics, and company report admin.
             </p>
           </div>
-          {isAuthenticated ? (
+          {isAuthenticated && activeTab === 'feedback' ? (
             <div className="reporting-page__header-tools">
               <div className="reporting-page__date-range" aria-label="Filter by submission date">
                 <div className="reporting-page__date-field">
@@ -331,13 +335,25 @@ export default function ReportingPage() {
               </div>
             </div>
           ) : null}
+          {isAuthenticated && activeTab === 'admin' ? (
+            <div className="reporting-page__actions">
+              <button
+                type="button"
+                className="reporting-page__button"
+                disabled={loading}
+                onClick={handleSignOut}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : null}
         </header>
 
         {!isAuthenticated ? (
           <section className="reporting-page__gate" aria-label="Reporting password">
             <h2 className="reporting-page__gate-title">Internal access</h2>
             <p className="reporting-page__gate-copy">
-              Enter the reporting password to view submitted feedback and usage metrics.
+              Enter the reporting password to view submitted feedback and manage company reports.
             </p>
             <form onSubmit={handleSubmit}>
               <div className="reporting-page__field">
@@ -361,155 +377,225 @@ export default function ReportingPage() {
           </section>
         ) : (
           <>
-            {loading ? <p className="reporting-page__status">Loading report…</p> : null}
-            {error ? <p className="reporting-page__error">{error}</p> : null}
-            {report ? (
-              <>
-                {hasDateFilter ? (
-                  <p className="reporting-page__filter-note">
-                    Showing data from {fromDate ? fromDate : 'the beginning'} through{' '}
-                    {toDate ? toDate : 'today'}.
-                  </p>
-                ) : null}
+            <div className="reporting-page__tabs" role="tablist" aria-label="Reporting sections">
+              <button
+                type="button"
+                role="tab"
+                id="reporting-tab-feedback"
+                aria-selected={activeTab === 'feedback'}
+                aria-controls="reporting-panel-feedback"
+                className={
+                  activeTab === 'feedback'
+                    ? 'reporting-page__tab reporting-page__tab--active'
+                    : 'reporting-page__tab'
+                }
+                onClick={() => setActiveTab('feedback')}
+              >
+                Feedback
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="reporting-tab-admin"
+                aria-selected={activeTab === 'admin'}
+                aria-controls="reporting-panel-admin"
+                className={
+                  activeTab === 'admin'
+                    ? 'reporting-page__tab reporting-page__tab--active'
+                    : 'reporting-page__tab'
+                }
+                onClick={() => setActiveTab('admin')}
+              >
+                ADMIN
+              </button>
+            </div>
 
-                <section className="reporting-page__section" aria-label="Usage by company">
-                  <h2 className="reporting-page__section-title">Usage by company</h2>
-                  <div className="reporting-page__summary reporting-page__summary--usage">
-                    <div className="reporting-page__summary-card">
-                      <span className="reporting-page__summary-value">{usageTotals.totalVisitors}</span>
-                      <span className="reporting-page__summary-label">Total visitors</span>
-                    </div>
-                    <div className="reporting-page__summary-card">
-                      <span className="reporting-page__summary-value">{usageTotals.totalSessions}</span>
-                      <span className="reporting-page__summary-label">Sessions started</span>
-                    </div>
-                    <div className="reporting-page__summary-card">
-                      <span className="reporting-page__summary-value">{usageTotals.totalCompletions}</span>
-                      <span className="reporting-page__summary-label">Completions</span>
-                    </div>
-                    <div className="reporting-page__summary-card">
-                      <span className="reporting-page__summary-value">{usageTotals.totalShares}</span>
-                      <span className="reporting-page__summary-label">Shares</span>
-                    </div>
-                  </div>
-                  {usageCompanies.length > 0 ? (
-                    <div className="reporting-page__usage-list">
-                      {usageCompanies.map((company) => (
-                        <CompanyUsageRow
-                          key={`${company.companyId}-${company.recordNumber ?? 'na'}`}
-                          company={company}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="reporting-page__empty">
-                      {hasDateFilter
-                        ? 'No usage data in this date range.'
-                        : 'No usage data yet — metrics appear after users visit embedded reports.'}
-                    </p>
-                  )}
-                </section>
-
-                <div className="reporting-page__summary">
-                  <div className="reporting-page__summary-card">
-                    <span className="reporting-page__summary-value">{filteredSummary.total}</span>
-                    <span className="reporting-page__summary-label">Total responses</span>
-                  </div>
-                  <div className="reporting-page__summary-card">
-                    <span className="reporting-page__summary-value">{filteredSummary.positive}</span>
-                    <span className="reporting-page__summary-label">Positive</span>
-                  </div>
-                  <div className="reporting-page__summary-card">
-                    <span className="reporting-page__summary-value">{filteredSummary.negative}</span>
-                    <span className="reporting-page__summary-label">Negative</span>
-                  </div>
-                </div>
-
-                <section className="reporting-page__section" aria-label="Written feedback">
-                  <h2 className="reporting-page__section-title">Written feedback</h2>
-                  {writtenFeedbackEntries.length > 0 ? (
-                    <ul className="reporting-page__comments">
-                      {writtenFeedbackEntries.map((entry) => (
-                        <li key={entry.id} className="reporting-page__comment">
-                          <div className="reporting-page__comment-meta">
-                            <span className="reporting-page__comment-company">{entry.companyName}</span>
-                            <span
-                              className={
-                                entry.rating === 'positive'
-                                  ? 'reporting-page__rating--positive'
-                                  : 'reporting-page__rating--negative'
-                              }
-                            >
-                              {formatRating(entry.rating)}
-                            </span>
-                            <time className="reporting-page__comment-date" dateTime={entry.submittedAt}>
-                              {formatFeedbackDate(entry.submittedAt)}
-                            </time>
-                          </div>
-                          <p className="reporting-page__comment-body">{entry.comment}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="reporting-page__empty">
-                      {hasDateFilter
-                        ? 'No written feedback in this date range.'
-                        : 'No written feedback yet.'}
-                    </p>
-                  )}
-                </section>
-
-                <section className="reporting-page__section" aria-label="All submissions">
-                  <h2 className="reporting-page__section-title">All submissions</h2>
-                  <div className="reporting-page__table-wrap">
-                    {filteredEntries.length > 0 ? (
-                      <table className="reporting-page__table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Date</th>
-                            <th scope="col">Company Name</th>
-                            <th scope="col">Rating</th>
-                            <th scope="col">Written feedback</th>
-                            <th scope="col">Company ID</th>
-                            <th scope="col">Record Number</th>
-                            <th scope="col">Report Year</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredEntries.map((entry) => (
-                            <tr key={entry.id}>
-                              <td>{formatFeedbackDate(entry.submittedAt)}</td>
-                              <td>{entry.companyName}</td>
-                              <td
-                                className={
-                                  entry.rating === 'positive'
-                                    ? 'reporting-page__rating--positive'
-                                    : 'reporting-page__rating--negative'
-                                }
-                              >
-                                {formatRating(entry.rating)}
-                              </td>
-                              <td className="reporting-page__comment-cell">
-                                {entry.comment?.trim() ? entry.comment : '—'}
-                              </td>
-                              <td>{entry.companyId}</td>
-                              <td>{entry.recordNumber ?? ''}</td>
-                              <td>{entry.reportYear ?? ''}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p className="reporting-page__empty">
-                        {hasDateFilter
-                          ? 'No feedback submissions in this date range.'
-                          : 'No feedback submissions yet.'}
+            {activeTab === 'feedback' ? (
+              <div
+                id="reporting-panel-feedback"
+                role="tabpanel"
+                aria-labelledby="reporting-tab-feedback"
+              >
+                {loading ? <p className="reporting-page__status">Loading report…</p> : null}
+                {error ? <p className="reporting-page__error">{error}</p> : null}
+                {report ? (
+                  <>
+                    {hasDateFilter ? (
+                      <p className="reporting-page__filter-note">
+                        Showing data from {fromDate ? fromDate : 'the beginning'} through{' '}
+                        {toDate ? toDate : 'today'}.
                       </p>
-                    )}
-                  </div>
-                </section>
-              </>
-            ) : null}
+                    ) : null}
+
+                    <section className="reporting-page__section" aria-label="Usage by company">
+                      <h2 className="reporting-page__section-title">Usage by company</h2>
+                      <div className="reporting-page__summary reporting-page__summary--usage">
+                        <div className="reporting-page__summary-card">
+                          <span className="reporting-page__summary-value">
+                            {usageTotals.totalVisitors}
+                          </span>
+                          <span className="reporting-page__summary-label">Total visitors</span>
+                        </div>
+                        <div className="reporting-page__summary-card">
+                          <span className="reporting-page__summary-value">
+                            {usageTotals.totalSessions}
+                          </span>
+                          <span className="reporting-page__summary-label">Sessions started</span>
+                        </div>
+                        <div className="reporting-page__summary-card">
+                          <span className="reporting-page__summary-value">
+                            {usageTotals.totalCompletions}
+                          </span>
+                          <span className="reporting-page__summary-label">Completions</span>
+                        </div>
+                        <div className="reporting-page__summary-card">
+                          <span className="reporting-page__summary-value">
+                            {usageTotals.totalShares}
+                          </span>
+                          <span className="reporting-page__summary-label">Shares</span>
+                        </div>
+                      </div>
+                      {usageCompanies.length > 0 ? (
+                        <div className="reporting-page__usage-list">
+                          {usageCompanies.map((company) => (
+                            <CompanyUsageRow
+                              key={`${company.companyId}-${company.recordNumber ?? 'na'}`}
+                              company={company}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="reporting-page__empty">
+                          {hasDateFilter
+                            ? 'No usage data in this date range.'
+                            : 'No usage data yet — metrics appear after users visit embedded reports.'}
+                        </p>
+                      )}
+                    </section>
+
+                    <div className="reporting-page__summary">
+                      <div className="reporting-page__summary-card">
+                        <span className="reporting-page__summary-value">{filteredSummary.total}</span>
+                        <span className="reporting-page__summary-label">Total responses</span>
+                      </div>
+                      <div className="reporting-page__summary-card">
+                        <span className="reporting-page__summary-value">
+                          {filteredSummary.positive}
+                        </span>
+                        <span className="reporting-page__summary-label">Positive</span>
+                      </div>
+                      <div className="reporting-page__summary-card">
+                        <span className="reporting-page__summary-value">
+                          {filteredSummary.negative}
+                        </span>
+                        <span className="reporting-page__summary-label">Negative</span>
+                      </div>
+                    </div>
+
+                    <section className="reporting-page__section" aria-label="Written feedback">
+                      <h2 className="reporting-page__section-title">Written feedback</h2>
+                      {writtenFeedbackEntries.length > 0 ? (
+                        <ul className="reporting-page__comments">
+                          {writtenFeedbackEntries.map((entry) => (
+                            <li key={entry.id} className="reporting-page__comment">
+                              <div className="reporting-page__comment-meta">
+                                <span className="reporting-page__comment-company">
+                                  {entry.companyName}
+                                </span>
+                                <span
+                                  className={
+                                    entry.rating === 'positive'
+                                      ? 'reporting-page__rating--positive'
+                                      : 'reporting-page__rating--negative'
+                                  }
+                                >
+                                  {formatRating(entry.rating)}
+                                </span>
+                                <time
+                                  className="reporting-page__comment-date"
+                                  dateTime={entry.submittedAt}
+                                >
+                                  {formatFeedbackDate(entry.submittedAt)}
+                                </time>
+                              </div>
+                              <p className="reporting-page__comment-body">{entry.comment}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="reporting-page__empty">
+                          {hasDateFilter
+                            ? 'No written feedback in this date range.'
+                            : 'No written feedback yet.'}
+                        </p>
+                      )}
+                    </section>
+
+                    <section className="reporting-page__section" aria-label="All submissions">
+                      <h2 className="reporting-page__section-title">All submissions</h2>
+                      <div className="reporting-page__table-wrap">
+                        {filteredEntries.length > 0 ? (
+                          <table className="reporting-page__table">
+                            <thead>
+                              <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Company Name</th>
+                                <th scope="col">Rating</th>
+                                <th scope="col">Written feedback</th>
+                                <th scope="col">Company ID</th>
+                                <th scope="col">Record Number</th>
+                                <th scope="col">Report Year</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredEntries.map((entry) => (
+                                <tr key={entry.id}>
+                                  <td>{formatFeedbackDate(entry.submittedAt)}</td>
+                                  <td>{entry.companyName}</td>
+                                  <td
+                                    className={
+                                      entry.rating === 'positive'
+                                        ? 'reporting-page__rating--positive'
+                                        : 'reporting-page__rating--negative'
+                                    }
+                                  >
+                                    {formatRating(entry.rating)}
+                                  </td>
+                                  <td className="reporting-page__comment-cell">
+                                    {entry.comment?.trim() ? entry.comment : '—'}
+                                  </td>
+                                  <td>{entry.companyId}</td>
+                                  <td>{entry.recordNumber ?? ''}</td>
+                                  <td>{entry.reportYear ?? ''}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <p className="reporting-page__empty">
+                            {hasDateFilter
+                              ? 'No feedback submissions in this date range.'
+                              : 'No feedback submissions yet.'}
+                          </p>
+                        )}
+                      </div>
+                    </section>
+                  </>
+                ) : null}
+              </div>
+            ) : (
+              <div id="reporting-panel-admin" role="tabpanel" aria-labelledby="reporting-tab-admin">
+                <ReportingAdminPanel
+                  password={storedPassword!}
+                  onAuthError={() => {
+                    sessionStorage.removeItem(REPORTING_PASSWORD_STORAGE_KEY);
+                    setStoredPassword(null);
+                    setReport(null);
+                    setError('Incorrect password.');
+                  }}
+                />
+              </div>
+            )}
           </>
         )}
       </div>
