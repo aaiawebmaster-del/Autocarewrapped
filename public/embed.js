@@ -145,12 +145,10 @@
 
   // Login CTA when no org id is available (typical for anonymous /drive visitors).
   // Override via data-login-url / data-login-redirect on the embed script tag.
-  // Default redirect is the current page (e.g. https://my.autocare.org/drive).
+  // Format: /account/login.aspx?returnUrl=https://my.autocare.org/drive&reload=timezone
   var loginUrl =
     script.getAttribute('data-login-url') ||
-    'https://www.autocare.org/account/login';
-  // Prefer an absolute return URL so login on www.autocare.org can send members
-  // back to my.autocare.org/drive (override with data-login-redirect if needed).
+    'https://my.autocare.org/account/login.aspx';
   var loginRedirect = script.getAttribute('data-login-redirect');
   if (!loginRedirect) {
     var path = (window.location.pathname || '/drive').replace(/\/$/, '') || '/drive';
@@ -163,14 +161,16 @@
   function buildLoginHref() {
     try {
       var url = new URL(loginUrl);
-      url.searchParams.set('redirect_uri', loginRedirect);
+      url.searchParams.set('returnUrl', loginRedirect);
+      url.searchParams.set('reload', 'timezone');
       return url.toString();
     } catch (err) {
       return (
         loginUrl +
         (loginUrl.indexOf('?') === -1 ? '?' : '&') +
-        'redirect_uri=' +
-        encodeURIComponent(loginRedirect)
+        'returnUrl=' +
+        encodeURIComponent(loginRedirect) +
+        '&reload=timezone'
       );
     }
   }

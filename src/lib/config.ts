@@ -1,15 +1,18 @@
 import { DRIVE_PAGE_URL, getEmbedConfig } from '@/lib/embedConfig';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
-/** Public Autocare account login (Impexium / www.autocare.org). */
+/** my.autocare.org account login (re:Members / Impexium). */
 const ssoLoginUrl =
-  import.meta.env.VITE_SSO_LOGIN_URL ?? 'https://www.autocare.org/account/login';
+  import.meta.env.VITE_SSO_LOGIN_URL ?? 'https://my.autocare.org/account/login.aspx';
 /**
- * Where Autocare should send the user after a successful login.
- * Must match a registered redirect for the login page (path or absolute URL).
+ * Where my.autocare.org should send the user after a successful login (`returnUrl`).
+ * Example live URL:
+ * /account/login.aspx?returnUrl=https%3a%2f%2fmy.autocare.org%2fdrive&reload=timezone
  */
-const ssoRedirectUri =
-  import.meta.env.VITE_SSO_REDIRECT_URI?.trim() || DRIVE_PAGE_URL;
+const ssoReturnUrl =
+  import.meta.env.VITE_SSO_RETURN_URL?.trim() ||
+  import.meta.env.VITE_SSO_REDIRECT_URI?.trim() ||
+  DRIVE_PAGE_URL;
 const useMockAuth = import.meta.env.VITE_USE_MOCK_AUTH === 'true';
 const devRecordNumber = import.meta.env.VITE_DEV_RECORD_NUMBER?.trim() || null;
 const mockScenario =
@@ -36,7 +39,7 @@ function readEmbed() {
 export const appConfig = {
   apiBaseUrl,
   ssoLoginUrl,
-  ssoRedirectUri,
+  ssoReturnUrl,
   useMockAuth,
   devRecordNumber,
   mockScenario,
@@ -71,11 +74,12 @@ export const appConfig = {
 };
 
 /**
- * Build the Autocare login URL with `redirect_uri` so members return to Drive
- * after signing in (same pattern as www.autocare.org/account/login?redirect_uri=…).
+ * Build the my.autocare.org login URL so members return to Drive after signing in:
+ * https://my.autocare.org/account/login.aspx?returnUrl=…&reload=timezone
  */
-export function buildSsoLoginRedirect(redirectUri = ssoRedirectUri): string {
+export function buildSsoLoginRedirect(returnUrl = ssoReturnUrl): string {
   const url = new URL(ssoLoginUrl);
-  url.searchParams.set('redirect_uri', redirectUri);
+  url.searchParams.set('returnUrl', returnUrl);
+  url.searchParams.set('reload', 'timezone');
   return url.toString();
 }
