@@ -93,5 +93,7 @@ export function useWrappedReport(): WrappedReportContextValue {
 }
 
 export function redirectToSsoLogin(): void {
-  window.location.assign(buildSsoLoginRedirect(window.location.href));
+  // Always return members to the configured Drive URL after login (not the
+  // Netlify iframe origin), matching www.autocare.org/account/login?redirect_uri=…
+  window.location.assign(buildSsoLoginRedirect());
 }

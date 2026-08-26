@@ -101,19 +101,31 @@ export async function fetchWrappedReport(): Promise<WrappedReport> {
     headers: { Accept: 'application/json' },
   });
 
-  if (response.status === 401) {
+  // No company record in the URL: only a signed-in session can resolve a report.
+  // Treat auth failures (and missing API / HTML SPA fallback) as login-required so
+  // Drive visitors see "Log in to view report" instead of "Report not available".
+  if (response.status === 401 || response.status === 403) {
     throw new WrappedReportError('Authentication required', 401);
   }
 
   if (response.status === 404) {
-    throw new WrappedReportError('Report not available for your organization', 404);
+    throw new WrappedReportError('Authentication required', 401);
   }
 
   if (!response.ok) {
     throw new WrappedReportError('Unable to load your report', response.status);
   }
 
-  return withResolvedMembershipTenure(await response.json() as WrappedReport);
+  const raw = await response.text();
+  try {
+    if (raw.trimStart().startsWith('<')) {
+      throw new WrappedReportError('Authentication required', 401);
+    }
+    return withResolvedMembershipTenure(JSON.parse(raw) as WrappedReport);
+  } catch (error) {
+    if (error instanceof WrappedReportError) throw error;
+    throw new WrappedReportError('Authentication required', 401);
+  }
 }
 
 export async function checkWrappedHealth(): Promise<boolean> {

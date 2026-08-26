@@ -1,7 +1,15 @@
-import { getEmbedConfig } from '@/lib/embedConfig';
+import { DRIVE_PAGE_URL, getEmbedConfig } from '@/lib/embedConfig';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
-const ssoLoginUrl = import.meta.env.VITE_SSO_LOGIN_URL ?? 'https://my.autocare.org/login';
+/** Public Autocare account login (Impexium / www.autocare.org). */
+const ssoLoginUrl =
+  import.meta.env.VITE_SSO_LOGIN_URL ?? 'https://www.autocare.org/account/login';
+/**
+ * Where Autocare should send the user after a successful login.
+ * Must match a registered redirect for the login page (path or absolute URL).
+ */
+const ssoRedirectUri =
+  import.meta.env.VITE_SSO_REDIRECT_URI?.trim() || DRIVE_PAGE_URL;
 const useMockAuth = import.meta.env.VITE_USE_MOCK_AUTH === 'true';
 const devRecordNumber = import.meta.env.VITE_DEV_RECORD_NUMBER?.trim() || null;
 const mockScenario =
@@ -28,6 +36,7 @@ function readEmbed() {
 export const appConfig = {
   apiBaseUrl,
   ssoLoginUrl,
+  ssoRedirectUri,
   useMockAuth,
   devRecordNumber,
   mockScenario,
@@ -61,10 +70,12 @@ export const appConfig = {
   analyticsEndpoint: `${apiBaseUrl}/api/wrapped/analytics`,
 };
 
-export function buildSsoLoginRedirect(returnUrl?: string): string {
+/**
+ * Build the Autocare login URL with `redirect_uri` so members return to Drive
+ * after signing in (same pattern as www.autocare.org/account/login?redirect_uri=…).
+ */
+export function buildSsoLoginRedirect(redirectUri = ssoRedirectUri): string {
   const url = new URL(ssoLoginUrl);
-  if (returnUrl) {
-    url.searchParams.set('returnUrl', returnUrl);
-  }
+  url.searchParams.set('redirect_uri', redirectUri);
   return url.toString();
 }

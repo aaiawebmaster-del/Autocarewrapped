@@ -143,11 +143,49 @@
     mount.appendChild(iframe);
   }
 
-  function showMessage(text) {
+  // Login CTA when no org id is available (typical for anonymous /drive visitors).
+  // Override via data-login-url / data-login-redirect on the embed script tag.
+  // Default redirect is the current page (e.g. https://my.autocare.org/drive).
+  var loginUrl =
+    script.getAttribute('data-login-url') ||
+    'https://www.autocare.org/account/login';
+  // Prefer an absolute return URL so login on www.autocare.org can send members
+  // back to my.autocare.org/drive (override with data-login-redirect if needed).
+  var loginRedirect = script.getAttribute('data-login-redirect');
+  if (!loginRedirect) {
+    var path = (window.location.pathname || '/drive').replace(/\/$/, '') || '/drive';
+    loginRedirect =
+      window.location.hostname.indexOf('autocare.org') !== -1
+        ? window.location.origin + path
+        : 'https://my.autocare.org/drive';
+  }
+
+  function buildLoginHref() {
+    try {
+      var url = new URL(loginUrl);
+      url.searchParams.set('redirect_uri', loginRedirect);
+      return url.toString();
+    } catch (err) {
+      return (
+        loginUrl +
+        (loginUrl.indexOf('?') === -1 ? '?' : '&') +
+        'redirect_uri=' +
+        encodeURIComponent(loginRedirect)
+      );
+    }
+  }
+
+  function showLoginPrompt() {
+    var href = buildLoginHref();
     mount.innerHTML =
-      '<p style="font-family:Segoe UI,sans-serif;color:#4a5568;padding:1rem;">' +
-      text +
-      '</p>';
+      '<div style="font-family:Segoe UI,sans-serif;color:#1a202c;padding:2rem 1.25rem;text-align:center;max-width:28rem;margin:0 auto;">' +
+      '<p style="margin:0 0 0.5rem;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:#718096;">Your Year In Review</p>' +
+      '<h2 style="margin:0 0 0.75rem;font-size:1.5rem;font-weight:700;">Log in to view your report</h2>' +
+      '<p style="margin:0 0 1.25rem;line-height:1.5;color:#4a5568;">Sign in with your Auto Care membership to view your company\u2019s Year In Review.</p>' +
+      '<a href="' +
+      href.replace(/"/g, '&quot;') +
+      '" style="display:inline-block;padding:0.75rem 1.25rem;border-radius:999px;background:#e87722;color:#0a0a0a;font-weight:700;text-decoration:none;">Log in to view report</a>' +
+      '</div>';
   }
 
   var records = collectRecords();
@@ -158,8 +196,8 @@
 
   // The Query Content shortcode may be injected after this script runs. Watch the
   // DOM and poll until an org id appears. Once the page has finished loading we only
-  // wait a short grace period before concluding the user has no organization, so the
-  // fallback message appears quickly instead of after a long fixed timeout.
+  // wait a short grace period before concluding the user is not signed in (or has no
+  // organization), then show the login CTA.
   var settled = false;
   var observer = null;
   var timer = null;
@@ -209,9 +247,7 @@
     if (pastGrace || pastHardCap) {
       settled = true;
       cleanup();
-      showMessage(
-        'Your Year In Review: we couldn\u2019t find your organization ID. Please make sure you\u2019re signed in and try again.',
-      );
+      showLoginPrompt();
     }
   }, 200);
 })();
