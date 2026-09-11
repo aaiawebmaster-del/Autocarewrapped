@@ -557,14 +557,17 @@ function main() {
     console.log(`Wrote ${filePath} (${report.company.name})`);
   }
 
+  // Public fictional demo — keep the JSON file, omit from admin/engagement catalog.
+  const DEMO_RECORD_IDS = new Set(['9999999']);
+
   // Keep manually curated / previously imported companies that are not in the Excel workbook.
   const preservedReports = [...existingById.entries()]
     .filter(([id]) => !excelIds.has(id))
     .map(([, report]) => report);
 
-  const allReports = [...excelReports, ...preservedReports].sort((a, b) =>
-    String(a.company.name).localeCompare(String(b.company.name)),
-  );
+  const allReports = [...excelReports, ...preservedReports]
+    .filter((report) => !DEMO_RECORD_IDS.has(String(report.company.id)))
+    .sort((a, b) => String(a.company.name).localeCompare(String(b.company.name)));
 
   writeFileSync(
     join(OUT_DIR, 'index.json'),

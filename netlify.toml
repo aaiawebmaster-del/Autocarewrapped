@@ -37,6 +37,18 @@
   to = "/.netlify/functions/company-report"
   status = 200
 
+# Public shareable demo (fictional Demo Company — no SSO).
+# Force the SPA shell so client code can load the demo report without a session.
+[[redirects]]
+  from = "/demo"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/demo/"
+  to = "/index.html"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

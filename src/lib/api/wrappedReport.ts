@@ -2,6 +2,7 @@ import { appConfig } from '@/lib/config';
 import { staticReportUrl } from '@/lib/embedConfig';
 import { fetchCompanyReportOverlay } from '@/lib/api/reportAdmin';
 import { withResolvedMembershipTenure } from '@/lib/membershipTenure';
+import { getDemoWrappedReport, isDemoReportId } from '@/lib/demoReport';
 import { getSampleReport } from '@/mocks/sampleReports';
 import type { WrappedReport } from '@/types/wrappedReport';
 
@@ -16,6 +17,11 @@ export class WrappedReportError extends Error {
 }
 
 async function fetchStaticCompanyReport(recordNumber: string): Promise<WrappedReport> {
+  // Public shareable demo — always available without SSO or static file quirks.
+  if (isDemoReportId(recordNumber)) {
+    return withResolvedMembershipTenure(getDemoWrappedReport());
+  }
+
   // Admin-published overlays (Netlify Blobs / local runtime store) win over build files.
   const overlay = await fetchCompanyReportOverlay(recordNumber);
   if (overlay) {
@@ -75,6 +81,11 @@ async function fetchFirstAvailableReport(recordNumbers: string[]): Promise<Wrapp
 }
 
 export async function fetchWrappedReport(): Promise<WrappedReport> {
+  // Public /demo path must never require SSO, even if query rewrite hasn't landed.
+  if (typeof window !== 'undefined' && /\/demo\/?$/i.test(window.location.pathname)) {
+    return withResolvedMembershipTenure(getDemoWrappedReport());
+  }
+
   if (appConfig.embedRecordNumbers.length > 0) {
     return fetchFirstAvailableReport(appConfig.embedRecordNumbers);
   }

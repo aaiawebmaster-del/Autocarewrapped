@@ -1,0 +1,48 @@
+{
+  "reportYear": 2026,
+  "company": {
+    "id": "9999999",
+    "name": "Demo Company",
+    "recordNumber": 9999999
+  },
+  "journey": {
+    "membershipSince": "2012-03-15",
+    "membershipTenureYears": 14,
+    "activeContacts": 42,
+    "communityMembers": 28,
+    "communities": [
+      "AWDA Community",
+      "Women in Auto Care",
+      "Aftermarket Suppliers Community"
+    ],
+    "committeeMembers": 1
+  },
+  "events": {
+    "inPersonAttended": 4,
+    "inPersonTotal": 8,
+    "attendancePct": 50,
+    "webinarCount": 18,
+    "aapexExhibitor": true,
+    "aapexAttended": true
+  },
+  "products": {
+    "trendLensUsers": 6,
+    "trendLensContactPct": 14,
+    "demandIndexGroups": 24,
+    "demandIndexGroupsTotal": 200,
+    "academyUsers": 5,
+    "academyCoursesCompleted": 9
+  },
+  "factbook": {
+    "users": 4,
+    "contactPct": 10
+  },
+  "standards": {
+    "subscribedCount": 2,
+    "subscribedProducts": [
+      "ACES",
+      "PIES"
+    ],
+    "subscribedPct": 67
+  }
+}

@@ -1,4 +1,5 @@
 import { appConfig } from '@/lib/config';
+import { isDemoReportId } from '@/lib/demoReport';
 import type { AnalyticsEventName, AnalyticsEventPayload } from '@/types/analytics';
 import type { WrappedReport } from '@/types/wrappedReport';
 import {
@@ -49,6 +50,8 @@ export function trackAnalyticsEvent(
   if (typeof window === 'undefined') return;
   // Internal re:Members impersonation sessions must not inflate usage reporting.
   if (appConfig.isImpersonating) return;
+  // Public Demo Company link is shareable; exclude from member usage reporting.
+  if (isDemoReportId(company.companyId)) return;
 
   if (event === 'session_started') {
     markSessionStartedAtNow();
@@ -77,6 +80,7 @@ export function trackAnalyticsEventOnce(
 ): void {
   if (typeof window === 'undefined') return;
   if (appConfig.isImpersonating) return;
+  if (isDemoReportId(company.companyId)) return;
 
   const storageKey = flagKey ?? event;
   const flag = `wrapped-analytics-event:${storageKey}`;

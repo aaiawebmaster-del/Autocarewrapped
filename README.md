@@ -16,6 +16,15 @@
 
   Switch mock scenarios with `VITE_MOCK_REPORT_SCENARIO=zero-events` (requires removing or clearing `VITE_DEV_RECORD_NUMBER`).
 
+  ## Public demo (no SSO)
+
+  A fictional **Demo Company** report is available for judges, stakeholders, and share links:
+
+  - Local: [http://localhost:5173/demo](http://localhost:5173/demo) (or `/?record=9999999&embed=1`)
+  - Production Netlify: `https://<your-site>/demo`
+
+  Data lives in [`public/data/reports/9999999.json`](public/data/reports/9999999.json). Demo traffic is excluded from usage analytics and omitted from the admin report catalog.
+
   ## Integration docs
 
   - [Architecture brief (HTML)](docs/architecture-brief.html)
