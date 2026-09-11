@@ -27,7 +27,6 @@ export const DEMO_WRAPPED_REPORT: WrappedReport = {
     communities: [
       'AWDA Community',
       'Women in Auto Care',
-      'Aftermarket Suppliers Community',
     ],
     committeeMembers: 1,
   },
