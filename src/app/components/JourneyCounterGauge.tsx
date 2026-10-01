@@ -390,14 +390,12 @@ export function JourneyCounterGauge({
   renderStatBelow,
 }: JourneyCounterGaugeProps) {
   const uid = useId().replace(/:/g, '');
-  const [gaugeValue, setGaugeValue] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [batteryWarningActive, setBatteryWarningActive] = useState(false);
   const [fuelWarningActive, setFuelWarningActive] = useState(false);
   const onCountCompleteRef = useRef(onCountComplete);
   onCountCompleteRef.current = onCountComplete;
 
-  const displayValue = target >= 1000 ? Math.round(gaugeValue).toLocaleString() : String(Math.round(gaugeValue));
-  const needleAngle = speedoValueToAngle(gaugeValue);
   const fillPercent = Math.min(Math.max(target, 0), 100);
   const batterySegmentCount = 4;
   const needleTarget =
@@ -406,6 +404,10 @@ export function JourneyCounterGauge({
       : variant === 'battery'
         ? Math.min(Math.max(target, 0), batterySegmentCount)
         : Math.min(Math.max(target, 0), 100);
+  const gaugeValue = needleTarget * progress;
+  const countValue = Math.round(Math.max(target, 0) * Math.min(progress, 1));
+  const displayValue = target >= 1000 ? countValue.toLocaleString() : String(countValue);
+  const needleAngle = speedoValueToAngle(gaugeValue);
   const fuelFillAngle = fuelPercentToAngle(gaugeValue);
 
   const layout = getGaugeLayout(wideSemicircle);
@@ -463,12 +465,12 @@ export function JourneyCounterGauge({
     : null;
 
   useEffect(() => {
-    setGaugeValue(0);
-    const controls = animate(0, needleTarget, {
+    setProgress(0);
+    const controls = animate(0, 1, {
       duration: duration / 1000,
       delay: delay / 1000,
       ease: [0.22, 1.05, 0.36, 1],
-      onUpdate: (latest) => setGaugeValue(latest),
+      onUpdate: (latest) => setProgress(latest),
       onComplete: () => onCountCompleteRef.current?.(),
     });
     return () => controls.stop();

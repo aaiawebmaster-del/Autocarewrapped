@@ -1553,33 +1553,26 @@ function JourneyNavCounterReadout({
   target,
   label,
   animationKey,
-  gaugeVariant = 'speedometer',
 }: {
   target: number;
   label: string;
   animationKey: string | number;
-  gaugeVariant?: CounterSection['gaugeVariant'];
 }) {
   const [gaugeValue, setGaugeValue] = useState(0);
-  const needleTarget =
-    gaugeVariant === 'fuel'
-      ? Math.min(Math.max(target, 0), 100)
-      : gaugeVariant === 'battery'
-        ? Math.min(Math.max(target, 0), 4)
-        : Math.min(Math.max(target, 0), 100);
+  const countTarget = Math.max(target, 0);
 
   useEffect(() => {
     setGaugeValue(0);
-    const controls = animate(0, needleTarget, {
+    const controls = animate(0, countTarget, {
       duration: JOURNEY_GAUGE_DURATION_MS / 1000,
       ease: [0.22, 1.05, 0.36, 1],
       onUpdate: (latest) => setGaugeValue(latest),
     });
     return () => controls.stop();
-  }, [needleTarget, animationKey]);
+  }, [countTarget, animationKey]);
 
-  const displayValue =
-    target >= 1000 ? Math.round(gaugeValue).toLocaleString() : String(Math.round(gaugeValue));
+  const countValue = Math.min(Math.round(gaugeValue), countTarget);
+  const displayValue = target >= 1000 ? countValue.toLocaleString() : String(countValue);
   const titleCaseLabel = label.replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
@@ -1704,7 +1697,6 @@ function YourJourney({
         target={counterSection.target}
         label={counterSection.label}
         animationKey={sectionIdx}
-        gaugeVariant={counterSection.gaugeVariant}
       />
     ) : undefined;
   const sectionEmbedGaugeMaxWidth =
