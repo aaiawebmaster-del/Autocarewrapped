@@ -667,6 +667,20 @@ function useDashboardVentMetrics(
   }, [enabled, panelRef]);
 }
 
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(prefersReducedMotion);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduced(mql.matches);
+    mql.addEventListener('change', onChange);
+    onChange();
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  return reduced;
+}
+
 function useIsCounterMobile() {
   const [isCounterMobile, setIsCounterMobile] = useState(false);
 
@@ -3232,7 +3246,8 @@ export function DrivingView({
     showDrivingBackdrop &&
     showDashboardPanel &&
     (currentScreen === 'journey' || isMobileViewport);
-  const showRoadLottie = showDrivingBackdrop && !prefersReducedMotion();
+  const showRoadLottie = showDrivingBackdrop;
+  const reducedMotion = usePrefersReducedMotion();
   const backdropLayoutEpoch = useBackdropLayoutEpoch(
     drivingRootRef,
     dashboardPanelRef,
@@ -3392,6 +3407,12 @@ export function DrivingView({
           onAnimationComplete={handleBackdropFadeComplete}
           aria-hidden
         />
+      )}
+
+      {reducedMotion && !sectionOnly && (
+        <div className="driving-view-reduced-motion-notice" role="status">
+          You have Reduced Motion turned on so animations are paused
+        </div>
       )}
 
       {/* ── Footer ── */}

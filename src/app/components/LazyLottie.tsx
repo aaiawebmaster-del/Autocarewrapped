@@ -16,6 +16,8 @@ type LazyLottieProps = {
   };
   /** Lottie playback rate (1 = normal). Use 0.5 for half speed. */
   playbackSpeed?: number;
+  /** Frame shown when reduced motion is on. Defaults to 0 for loops, last frame otherwise. */
+  staticFrame?: number;
   /** Force a renderer; default picks canvas on mobile and SVG on desktop. */
   renderer?: 'canvas' | 'svg' | 'auto';
   /** Measured layout box — when set, Lottie is resized to these dimensions. */
@@ -35,6 +37,7 @@ export function LazyLottie({
   autoplay = true,
   rendererSettings,
   playbackSpeed = 1,
+  staticFrame,
   renderer = 'auto',
   syncSize,
   layoutEpoch = 0,
@@ -72,8 +75,15 @@ export function LazyLottie({
       return;
     }
 
+    if (active && prefersReducedMotion()) {
+      const lastFrame = Math.max(0, Math.floor(instance.getDuration(true) ?? 1) - 1);
+      const frame = staticFrame ?? (loop ? 0 : lastFrame);
+      instance.goToAndStop(Math.min(frame, lastFrame), true);
+      return;
+    }
+
     instance.pause();
-  }, [animationData, shouldAnimate, autoplay, active, playbackSpeed, layoutEpoch]);
+  }, [animationData, shouldAnimate, autoplay, active, playbackSpeed, layoutEpoch, staticFrame, loop]);
 
   useLayoutEffect(() => {
     if (!active || !animationData) return;

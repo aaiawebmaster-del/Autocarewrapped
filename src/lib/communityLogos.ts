@@ -1,7 +1,11 @@
 import accCommunityLogo from '../assets/acc-2c-tagline.svg?url';
 import acpnCommunityLogo from '../assets/acpn-community-color.svg?url';
 import awdaCommunityLogo from '../assets/awda-community-logo.svg?url';
+import filterManufacturersCommunityLogo from '../assets/filter-manufacturers-community-logo.png?url';
 import importVehicleCommunityLogo from '../assets/import-vehicle-community-logo.svg?url';
+import pbesCommunityLogo from '../assets/pbes-community-logo.png?url';
+import toolAndEquipmentCommunityLogo from '../assets/tool-and-equipment-community-logo.png?url';
+import vehicleServiceExpertsCommunityLogo from '../assets/vehicle-service-experts-community-logo.png?url';
 import womenInAutoCareCommunityLogo from '../assets/women-in-auto-care-community-logo.svg?url';
 import yangCommunityLogo from '../assets/yang-community-logo.svg?url';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
@@ -88,6 +92,50 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
       width: 274.11,
       height: 108.09,
       src: yangCommunityLogo,
+    },
+  },
+  {
+    pattern: /tool\s*(and|&)\s*equipment/i,
+    asset: {
+      id: 'tool-and-equipment',
+      href: EXPLORE_COMMUNITIES_HREF,
+      width: 572,
+      height: 260,
+      src: toolAndEquipmentCommunityLogo,
+      logoClassName: 'community-logo-gauge__logo--contained',
+    },
+  },
+  {
+    pattern: /pbes|paint,?\s*body\s*(and|&)\s*equipment/i,
+    asset: {
+      id: 'pbes',
+      href: EXPLORE_COMMUNITIES_HREF,
+      width: 572,
+      height: 260,
+      src: pbesCommunityLogo,
+      logoClassName: 'community-logo-gauge__logo--contained',
+    },
+  },
+  {
+    pattern: /filter manufacturers|^fmc$/i,
+    asset: {
+      id: 'filter-manufacturers',
+      href: EXPLORE_COMMUNITIES_HREF,
+      width: 1144,
+      height: 521,
+      src: filterManufacturersCommunityLogo,
+      logoClassName: 'community-logo-gauge__logo--contained',
+    },
+  },
+  {
+    pattern: /vehicle service experts|^vse$/i,
+    asset: {
+      id: 'vehicle-service-experts',
+      href: EXPLORE_COMMUNITIES_HREF,
+      width: 1150,
+      height: 522,
+      src: vehicleServiceExpertsCommunityLogo,
+      logoClassName: 'community-logo-gauge__logo--contained',
     },
   },
 ];

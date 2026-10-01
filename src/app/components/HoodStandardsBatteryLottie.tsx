@@ -47,6 +47,7 @@ export function HoodStandardsSceneContent({
             active={active}
             loop
             autoplay
+            staticFrame={84}
             renderer="svg"
             className="hood-standards-scene__battery-player"
             rendererSettings={{ preserveAspectRatio: 'xMidYMax meet' }}

@@ -138,6 +138,10 @@ Women in Auto Care
 YANG Membership
 Automotive Content Professionals Network
 Import Vehicle Community
+Tool and Equipment Community
+PBES Community
+Filter Manufacturers Community
+Vehicle Service Experts
 ```
 
 Unknown names still appear in copy; known names unlock community logos.
