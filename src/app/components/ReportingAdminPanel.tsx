@@ -62,7 +62,11 @@ function CompanyAdminRow({
         <span className="reporting-page__admin-company-name">{report.company.name}</span>
         <span className="reporting-page__admin-company-meta">
           <span>ID {report.company.id}</span>
-          <span>{report.journey.membershipTenureYears} yrs</span>
+          <span>
+            {report.journey.membershipTenureMonths != null
+              ? `${report.journey.membershipTenureMonths} mos`
+              : `${report.journey.membershipTenureYears} yrs`}
+          </span>
           <span>{report.journey.communities.length} communities</span>
         </span>
       </summary>

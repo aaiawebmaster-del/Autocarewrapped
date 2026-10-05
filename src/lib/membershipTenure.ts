@@ -2,8 +2,15 @@ import type { WrappedReport } from '@/types/wrappedReport';
 
 type TenureJourneyFields = Pick<
   WrappedReport['journey'],
-  'membershipSince' | 'membershipTenureYears'
+  'membershipSince' | 'membershipTenureYears' | 'membershipTenureMonths'
 >;
+
+export type MembershipTenureDisplay = {
+  value: number;
+  unit: 'years' | 'months';
+  /** Counter label, singular when value is 1 (e.g. "1 month", "3 months"). */
+  label: string;
+};
 
 /** Parse membership start dates as local calendar dates (avoids UTC day-shift). */
 export function parseMembershipSinceDate(value: string): Date | null {
@@ -47,21 +54,28 @@ export function parseMembershipSinceDate(value: string): Date | null {
   return null;
 }
 
-/** Completed whole years from membership start date through `asOf`. */
-export function membershipTenureYearsFromDate(
+/** Completed whole months from membership start date through `asOf`. */
+export function membershipTenureTotalMonthsFromDate(
   since: string,
   asOf: Date = new Date(),
 ): number {
   const start = parseMembershipSinceDate(since);
   if (!start) return 0;
 
-  let years = asOf.getFullYear() - start.getFullYear();
-  const month = asOf.getMonth();
-  const day = asOf.getDate();
-  if (month < start.getMonth() || (month === start.getMonth() && day < start.getDate())) {
-    years -= 1;
+  let months =
+    (asOf.getFullYear() - start.getFullYear()) * 12 + (asOf.getMonth() - start.getMonth());
+  if (asOf.getDate() < start.getDate()) {
+    months -= 1;
   }
-  return Math.max(0, years);
+  return Math.max(0, months);
+}
+
+/** Completed whole years from membership start date through `asOf`. */
+export function membershipTenureYearsFromDate(
+  since: string,
+  asOf: Date = new Date(),
+): number {
+  return Math.floor(membershipTenureTotalMonthsFromDate(since, asOf) / 12);
 }
 
 /**
@@ -77,18 +91,62 @@ export function resolveMembershipTenureYears(
   return Math.max(0, Number(journey.membershipTenureYears ?? 0));
 }
 
-/** Ensure `membershipTenureYears` matches `membershipSince` when a start date is provided. */
+/**
+ * Months as a member when tenure is under one year; `undefined` once tenure reaches a year.
+ * Prefers `membershipSince`, then the stored `membershipTenureMonths`.
+ */
+export function resolveMembershipTenureMonths(
+  journey: TenureJourneyFields,
+  asOf: Date = new Date(),
+): number | undefined {
+  if (resolveMembershipTenureYears(journey, asOf) >= 1) return undefined;
+
+  if (journey.membershipSince) {
+    return membershipTenureTotalMonthsFromDate(journey.membershipSince, asOf);
+  }
+  if (journey.membershipTenureMonths == null) return undefined;
+
+  const months = Math.floor(Number(journey.membershipTenureMonths));
+  return Number.isFinite(months) ? Math.min(Math.max(months, 0), 11) : undefined;
+}
+
+/** Value + unit for the tenure counter: months under one year, years otherwise. */
+export function resolveMembershipTenureDisplay(
+  journey: TenureJourneyFields,
+  asOf: Date = new Date(),
+): MembershipTenureDisplay {
+  const months = resolveMembershipTenureMonths(journey, asOf);
+  if (months != null) {
+    return { value: months, unit: 'months', label: months === 1 ? 'month' : 'months' };
+  }
+  const years = resolveMembershipTenureYears(journey, asOf);
+  return { value: years, unit: 'years', label: years === 1 ? 'year' : 'years' };
+}
+
+/**
+ * Sync `membershipTenureYears` / `membershipTenureMonths` with `membershipSince` (or the
+ * stored counts) so downstream consumers see consistent values.
+ */
 export function withResolvedMembershipTenure(
   report: WrappedReport,
   asOf: Date = new Date(),
 ): WrappedReport {
   const years = resolveMembershipTenureYears(report.journey, asOf);
-  if (years === report.journey.membershipTenureYears) return report;
+  const months = resolveMembershipTenureMonths(report.journey, asOf);
+  if (
+    years === report.journey.membershipTenureYears &&
+    months === report.journey.membershipTenureMonths
+  ) {
+    return report;
+  }
+
+  const { membershipTenureMonths: _previousMonths, ...journey } = report.journey;
   return {
     ...report,
     journey: {
-      ...report.journey,
+      ...journey,
       membershipTenureYears: years,
+      ...(months != null ? { membershipTenureMonths: months } : {}),
     },
   };
 }

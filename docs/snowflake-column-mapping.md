@@ -12,6 +12,7 @@ Adjust column names after Snowflake discovery. The API layer should map Snowflak
 | `COMPANY_NAME` | `company.name` | string | Display name |
 | `REPORT_YEAR` | `reportYear` | number | e.g. 2026 |
 | `MEMBERSHIP_TENURE_YEARS` | `journey.membershipTenureYears` | number | |
+| `MEMBERSHIP_TENURE_MONTHS` | `journey.membershipTenureMonths` | number | Optional, 0–11. Only for companies with less than a year of tenure; the tenure counter shows months instead of years. Derived automatically when `membershipSince` is provided. |
 | `ACTIVE_CONTACTS` | `journey.activeContacts` | number | |
 | `COMMUNITY_MEMBERS` | `journey.communityMembers` | number | Headcount |
 | `COMMUNITY_NAMES` | `journey.communities` | string[] | Community names (may need separate join) |

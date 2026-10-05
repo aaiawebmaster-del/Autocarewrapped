@@ -41,7 +41,8 @@ Override source path: `WRAPPED_XLSX=/path/to/workbook.xlsx npm run import:report
 | JSON field | Source / rule |
 |------------|----------------|
 | `company.id` | Organization `RECORDNUMBER` (string) |
-| `journey.membershipTenureYears` | Membership tenure → `YearsActive` |
+| `journey.membershipTenureYears` | Membership tenure → `YearsActive` (or derived from a member-since date column) |
+| `journey.membershipTenureMonths` | Under 1 year only: derived from the member-since date, else Membership tenure → `MonthsActive` |
 | `journey.activeContacts` | Number of contacts → `Contact Count` |
 | `journey.communityMembers` | Count of Community Participation rows |
 | `journey.communities` | Unique `MembershipName` values |

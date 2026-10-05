@@ -314,19 +314,44 @@ function pickMembershipSince(row) {
   return undefined;
 }
 
-function membershipTenureYearsFromDate(since, asOf = new Date()) {
+/** Months-as-member column for companies with less than a year of tenure. */
+function pickMembershipTenureMonths(row) {
+  const keys = [
+    'MonthsActive',
+    'Months Active',
+    'MembershipTenureMonths',
+    'MEMBERSHIP_TENURE_MONTHS',
+  ];
+  for (const key of keys) {
+    const raw = row?.[key];
+    if (raw == null || raw === '') continue;
+    const months = Math.floor(Number(raw));
+    if (Number.isFinite(months)) return Math.min(Math.max(months, 0), 11);
+  }
+  return undefined;
+}
+
+function membershipTenureTotalMonthsFromDate(since, asOf = new Date()) {
   const normalized = normalizeMembershipSince(since);
   if (!normalized) return 0;
   const [year, month, day] = normalized.split('-').map(Number);
-  const start = new Date(year, month - 1, day);
-  let years = asOf.getFullYear() - start.getFullYear();
-  if (
-    asOf.getMonth() < start.getMonth() ||
-    (asOf.getMonth() === start.getMonth() && asOf.getDate() < start.getDate())
-  ) {
-    years -= 1;
+  let months = (asOf.getFullYear() - year) * 12 + (asOf.getMonth() - (month - 1));
+  if (asOf.getDate() < day) {
+    months -= 1;
   }
-  return Math.max(0, years);
+  return Math.max(0, months);
+}
+
+/** Set `membershipTenureYears`, plus `membershipTenureMonths` when tenure is under a year. */
+function applyMembershipTenure(journey) {
+  if (journey.membershipSince) {
+    const totalMonths = membershipTenureTotalMonthsFromDate(journey.membershipSince);
+    journey.membershipTenureYears = Math.floor(totalMonths / 12);
+    journey.membershipTenureMonths = totalMonths < 12 ? totalMonths : undefined;
+  } else if (journey.membershipTenureYears >= 1) {
+    journey.membershipTenureMonths = undefined;
+  }
+  if (journey.membershipTenureMonths === undefined) delete journey.membershipTenureMonths;
 }
 
 function loadWorkbook() {
@@ -378,9 +403,8 @@ function buildReports(workbook) {
     const contactsRow = contactsByRecord.get(org.RECORDNUMBER) ?? {};
     const activeContacts = Number(contactsRow['Contact Count'] ?? 0);
     const membershipSince = pickMembershipSince(tenure);
-    const membershipTenureYears = membershipSince
-      ? membershipTenureYearsFromDate(membershipSince)
-      : Number(tenure.YearsActive ?? 0);
+    const membershipTenureYears = Number(tenure.YearsActive ?? 0);
+    const membershipTenureMonths = pickMembershipTenureMonths(tenure);
 
     const orgStandards = standardsRows.filter((row) => row.RecordNumber === org.RECORDNUMBER);
     const subscribedProducts = unique(
@@ -437,6 +461,7 @@ function buildReports(workbook) {
       journey: {
         ...(membershipSince ? { membershipSince } : {}),
         membershipTenureYears,
+        ...(membershipTenureMonths != null ? { membershipTenureMonths } : {}),
         activeContacts,
         communityMembers,
         communities,
@@ -494,11 +519,7 @@ function buildReports(workbook) {
       report.journey.membershipSince = membershipSinceOverride;
     }
 
-    if (report.journey.membershipSince) {
-      report.journey.membershipTenureYears = membershipTenureYearsFromDate(
-        report.journey.membershipSince,
-      );
-    }
+    applyMembershipTenure(report.journey);
 
     report.products.trendLensContactPct = contactPct(
       report.products.trendLensUsers,
@@ -548,6 +569,16 @@ function main() {
   const workbook = loadWorkbook();
   const excelReports = buildReports(workbook);
   const excelIds = new Set(excelReports.map((report) => String(report.company.id)));
+
+  // Months are entered by hand in the report JSON until the workbook carries them.
+  for (const report of excelReports) {
+    const existingMonths = existingById.get(String(report.company.id))?.journey
+      ?.membershipTenureMonths;
+    if (report.journey.membershipTenureMonths == null && existingMonths != null) {
+      report.journey.membershipTenureMonths = existingMonths;
+      applyMembershipTenure(report.journey);
+    }
+  }
 
   mkdirSync(OUT_DIR, { recursive: true });
 

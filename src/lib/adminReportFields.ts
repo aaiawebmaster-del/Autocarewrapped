@@ -28,6 +28,12 @@ export const ADMIN_REPORT_FIELDS: AdminFieldDef[] = [
     label: 'Membership tenure (years)',
     type: 'number',
   },
+  {
+    section: 'Journey',
+    path: 'journey.membershipTenureMonths',
+    label: 'Membership tenure (months, under 1 year)',
+    type: 'number',
+  },
   { section: 'Journey', path: 'journey.activeContacts', label: 'Active contacts', type: 'number' },
   {
     section: 'Journey',

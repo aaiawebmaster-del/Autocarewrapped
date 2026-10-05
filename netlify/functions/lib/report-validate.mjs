@@ -190,9 +190,17 @@ export function recomputeDerivedFields(report) {
   const factbookUsers = Number(next.factbook?.users ?? 0);
 
   if (next.journey?.membershipSince) {
-    next.journey.membershipTenureYears = membershipTenureYearsFromDate(
-      String(next.journey.membershipSince),
-    );
+    const totalMonths = membershipTenureTotalMonthsFromDate(String(next.journey.membershipSince));
+    next.journey.membershipTenureYears = Math.floor(totalMonths / 12);
+    if (totalMonths < 12) next.journey.membershipTenureMonths = totalMonths;
+    else delete next.journey.membershipTenureMonths;
+  } else if (next.journey) {
+    const months = next.journey.membershipTenureMonths;
+    if (months == null || months === '' || Number(next.journey.membershipTenureYears) >= 1) {
+      delete next.journey.membershipTenureMonths;
+    } else {
+      next.journey.membershipTenureMonths = Math.min(Math.max(Math.floor(Number(months)), 0), 11);
+    }
   }
 
   if (inPersonTotal > 0) {
@@ -217,9 +225,9 @@ export function recomputeDerivedFields(report) {
 /**
  * @param {string} since
  * @param {Date} [asOf]
- * @returns {number}
+ * @returns {number} Completed whole months of membership.
  */
-function membershipTenureYearsFromDate(since, asOf = new Date()) {
+function membershipTenureTotalMonthsFromDate(since, asOf = new Date()) {
   const trimmed = String(since ?? '').trim();
   let year;
   let month;
@@ -241,12 +249,10 @@ function membershipTenureYearsFromDate(since, asOf = new Date()) {
   const start = new Date(year, month - 1, day);
   if (Number.isNaN(start.getTime())) return 0;
 
-  let years = asOf.getFullYear() - start.getFullYear();
-  if (
-    asOf.getMonth() < start.getMonth() ||
-    (asOf.getMonth() === start.getMonth() && asOf.getDate() < start.getDate())
-  ) {
-    years -= 1;
+  let months =
+    (asOf.getFullYear() - start.getFullYear()) * 12 + (asOf.getMonth() - start.getMonth());
+  if (asOf.getDate() < start.getDate()) {
+    months -= 1;
   }
-  return Math.max(0, years);
+  return Math.max(0, months);
 }

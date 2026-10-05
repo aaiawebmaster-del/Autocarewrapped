@@ -2,7 +2,7 @@ import type { WrappedReport } from '@/types/wrappedReport';
 import { resolveCommunityLogos } from '@/lib/communityLogos';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
 import { getAttendanceAsideMessage, getWebinarMessageBody } from '@/lib/contentVariants';
-import { resolveMembershipTenureYears } from '@/lib/membershipTenure';
+import { resolveMembershipTenureDisplay } from '@/lib/membershipTenure';
 
 export type JourneySection =
   | {
@@ -26,15 +26,16 @@ export type JourneySection =
 
 export function buildJourneySections(report: WrappedReport): JourneySection[] {
   const { journey } = report;
-  const membershipTenureYears = resolveMembershipTenureYears(journey);
+  const tenure = resolveMembershipTenureDisplay(journey);
+  const tenureYears = tenure.unit === 'years' ? tenure.value : 0;
 
   return [
     {
       type: 'counter',
       subtitle: 'Membership Tenure',
-      target: membershipTenureYears,
-      label: 'years',
-      footerMessage: getTenureFooterMessage(membershipTenureYears),
+      target: tenure.value,
+      label: tenure.label,
+      footerMessage: getTenureFooterMessage(tenureYears),
     },
     {
       type: 'counter',
@@ -142,11 +143,11 @@ function getWebinarSectionMessage(hours: number): string {
 
 export function buildDiagnosticsCounterStats(report: WrappedReport) {
   const { journey } = report;
-  const membershipTenureYears = resolveMembershipTenureYears(journey);
+  const tenure = resolveMembershipTenureDisplay(journey);
   return [
     {
-      target: membershipTenureYears,
-      label: 'years',
+      target: tenure.value,
+      label: tenure.label,
       animationKey: 'diag-years',
       delay: 0,
       gaugeVariant: 'speedometer' as const,

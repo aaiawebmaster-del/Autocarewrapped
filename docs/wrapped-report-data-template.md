@@ -27,6 +27,7 @@ Use this template if you need to enter or convert data for the **7 launch compan
 | `company_name` | `company.name` |
 | `report_year` | `reportYear` |
 | `membership_tenure_years` | `journey.membershipTenureYears` |
+| `membership_tenure_months` | `journey.membershipTenureMonths` (leave blank unless tenure is under 1 year; set years to `0`) |
 | `active_contacts` | `journey.activeContacts` |
 | `community_members` | `journey.communityMembers` |
 | `communities` | `journey.communities` (split on `\|`) |

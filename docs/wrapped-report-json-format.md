@@ -87,6 +87,7 @@ Also see `data/reports/example.wrapped-report.json` and the TypeScript contract 
 | `company.marketSegment` | `"retailer"` | no | When set to `"retailer"`, Demand Index is omitted from Kick the Tires / Full Diagnostics |
 | `journey.membershipSince` | string | no | Membership start date (`YYYY-MM-DD` or `M/D/YYYY`). When set, tenure years are calculated from this date. |
 | `journey.membershipTenureYears` | number | yes | Years as a member (derived from `membershipSince` when present) |
+| `journey.membershipTenureMonths` | number | no | Months as a member (0–11) for companies with less than a year of tenure. When set (and years is `0`), the tenure counter shows months instead of years. Derived from `membershipSince` when present. |
 | `journey.activeContacts` | number | yes | Active contacts |
 | `journey.communityMembers` | number | yes | Headcount in communities (animated counter) |
 | `journey.communities` | string[] | yes | Community display names (drives logos); use `[]` if none |

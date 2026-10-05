@@ -17,6 +17,12 @@ export type WrappedReport = {
     membershipSince?: string;
     /** Years as a member. Derived from `membershipSince` when that field is present. */
     membershipTenureYears: number;
+    /**
+     * Completed months as a member (0–11) for companies with less than a year of tenure.
+     * Derived from `membershipSince` when present; omitted once tenure reaches one year.
+     * The tenure counter shows months instead of years when this applies.
+     */
+    membershipTenureMonths?: number;
     activeContacts: number;
     communityMembers: number;
     /** Community names the organization participates in (e.g. AWDA). */
