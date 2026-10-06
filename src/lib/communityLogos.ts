@@ -121,8 +121,8 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
     asset: {
       id: 'filter-manufacturers',
       href: EXPLORE_COMMUNITIES_HREF,
-      width: 1020,
-      height: 400,
+      width: 1142,
+      height: 451,
       src: filterManufacturersCommunityLogo,
       logoClassName: 'community-logo-gauge__logo--contained',
     },
@@ -132,8 +132,8 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
     asset: {
       id: 'vehicle-service-experts',
       href: EXPLORE_COMMUNITIES_HREF,
-      width: 1020,
-      height: 400,
+      width: 1143,
+      height: 452,
       src: vehicleServiceExpertsCommunityLogo,
       logoClassName: 'community-logo-gauge__logo--contained',
     },
