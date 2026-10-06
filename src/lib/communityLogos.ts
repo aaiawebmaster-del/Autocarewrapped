@@ -101,9 +101,7 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
       href: EXPLORE_COMMUNITIES_HREF,
       width: 571,
       height: 225,
-      src: toolAndEquipmentCommunityLogo,
-      logoClassName: 'community-logo-gauge__logo--contained',
-    },
+      src: toolAndEquipmentCommunityLogo,    },
   },
   {
     pattern: /pbes|paint,?\s*body\s*(and|&)\s*equipment/i,
@@ -112,9 +110,7 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
       href: EXPLORE_COMMUNITIES_HREF,
       width: 571,
       height: 225,
-      src: pbesCommunityLogo,
-      logoClassName: 'community-logo-gauge__logo--contained',
-    },
+      src: pbesCommunityLogo,    },
   },
   {
     pattern: /filter manufacturers|^fmc$/i,
@@ -123,9 +119,7 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
       href: EXPLORE_COMMUNITIES_HREF,
       width: 1142,
       height: 451,
-      src: filterManufacturersCommunityLogo,
-      logoClassName: 'community-logo-gauge__logo--contained',
-    },
+      src: filterManufacturersCommunityLogo,    },
   },
   {
     pattern: /vehicle service experts|^vse$/i,
@@ -134,9 +128,7 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
       href: EXPLORE_COMMUNITIES_HREF,
       width: 1143,
       height: 452,
-      src: vehicleServiceExpertsCommunityLogo,
-      logoClassName: 'community-logo-gauge__logo--contained',
-    },
+      src: vehicleServiceExpertsCommunityLogo,    },
   },
 ];
 

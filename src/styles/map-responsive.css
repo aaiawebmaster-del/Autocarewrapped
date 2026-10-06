@@ -9402,8 +9402,7 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 }
 
 /* ACC wordmark has no bleed rect — pad inside face; contain keeps tagline off edges */
-.community-logo-gauge__logo.community-logo-gauge__logo--acc,
-.community-logo-gauge__logo.community-logo-gauge__logo--contained {
+.community-logo-gauge__logo.community-logo-gauge__logo--acc {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9413,9 +9412,7 @@ html.is-embedded:has(.driving-view-root--section-only-journey) #root {
 }
 
 .community-logo-gauge__logo--acc .community-logo-gauge__logo-image,
-img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc,
-.community-logo-gauge__logo--contained .community-logo-gauge__logo-image,
-img.community-logo-gauge__logo-image.community-logo-gauge__logo--contained {
+img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   position: static;
   flex: 0 1 auto;
   width: 100%;
@@ -10113,10 +10110,7 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--contained {
 
 .journey-counter-panel__gauge
   .community-logo-gauge:not(.community-logo-gauge--dual)
-  .community-logo-gauge__logo.community-logo-gauge__logo--acc,
-.journey-counter-panel__gauge
-  .community-logo-gauge:not(.community-logo-gauge--dual)
-  .community-logo-gauge__logo.community-logo-gauge__logo--contained {
+  .community-logo-gauge__logo.community-logo-gauge__logo--acc {
   display: flex;
   align-items: center;
   justify-content: center;
