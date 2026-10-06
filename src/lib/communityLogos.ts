@@ -99,8 +99,8 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
     asset: {
       id: 'tool-and-equipment',
       href: EXPLORE_COMMUNITIES_HREF,
-      width: 572,
-      height: 260,
+      width: 571,
+      height: 225,
       src: toolAndEquipmentCommunityLogo,
       logoClassName: 'community-logo-gauge__logo--contained',
     },
@@ -110,8 +110,8 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
     asset: {
       id: 'pbes',
       href: EXPLORE_COMMUNITIES_HREF,
-      width: 572,
-      height: 260,
+      width: 571,
+      height: 225,
       src: pbesCommunityLogo,
       logoClassName: 'community-logo-gauge__logo--contained',
     },
@@ -121,8 +121,8 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
     asset: {
       id: 'filter-manufacturers',
       href: EXPLORE_COMMUNITIES_HREF,
-      width: 1144,
-      height: 521,
+      width: 1020,
+      height: 400,
       src: filterManufacturersCommunityLogo,
       logoClassName: 'community-logo-gauge__logo--contained',
     },
@@ -132,8 +132,8 @@ const COMMUNITY_MATCHERS: CommunityMatcher[] = [
     asset: {
       id: 'vehicle-service-experts',
       href: EXPLORE_COMMUNITIES_HREF,
-      width: 1150,
-      height: 522,
+      width: 1020,
+      height: 400,
       src: vehicleServiceExpertsCommunityLogo,
       logoClassName: 'community-logo-gauge__logo--contained',
     },
