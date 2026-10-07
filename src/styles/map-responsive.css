@@ -13736,6 +13736,14 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
   font-weight: 600;
 }
 
+/* Word in the count slot (e.g. Data Contributor "Thank you") — keep it on one line. */
+.hood-tire-hub__stat-value.hood-tire-hub__stat-value--text {
+  font-size: clamp(28px, 5.2vw, 40px);
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 .hood-tire-hub__stat-label {
   font-size: clamp(14px, 2.2vw, 17px);
   font-weight: 500;
@@ -13978,6 +13986,13 @@ img.community-logo-gauge__logo-image.community-logo-gauge__logo--acc {
     .hood-tire-hub__line--primary
     .hood-tire-hub__stat-value {
     font-size: clamp(44px, calc(7.5vw + 9px), 62px);
+  }
+
+  .hood-tire-hub--mobile-stack
+    .hood-tire-hub__stat-block
+    .hood-tire-hub__line--primary
+    .hood-tire-hub__stat-value.hood-tire-hub__stat-value--text {
+    font-size: clamp(34px, calc(6vw + 8px), 48px);
   }
 
   .hood-tire-hub__line--secondary {

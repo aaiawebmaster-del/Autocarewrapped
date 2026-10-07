@@ -15,3 +15,15 @@ export function isRetailerCompany(report: WrappedReport): boolean {
 export function shouldSkipDemandIndexPhase(report: WrappedReport): boolean {
   return isRetailerCompany(report);
 }
+
+/** Impexium record numbers of Demand Index Data Contributors. */
+const DATA_CONTRIBUTOR_RECORD_NUMBERS = new Set<number>([
+  1252582, // NAPA
+]);
+
+/** An explicit `company.dataContributor` (set from the reporting admin) overrides the record list. */
+export function isDataContributor(report: WrappedReport): boolean {
+  if (typeof report.company.dataContributor === 'boolean') return report.company.dataContributor;
+  const recordNumber = report.company.recordNumber ?? Number(report.company.id);
+  return Number.isFinite(recordNumber) && DATA_CONTRIBUTOR_RECORD_NUMBERS.has(recordNumber);
+}

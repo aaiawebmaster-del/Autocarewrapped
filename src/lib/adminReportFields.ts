@@ -14,6 +14,12 @@ export const ADMIN_REPORT_FIELDS: AdminFieldDef[] = [
   { section: 'Company', path: 'company.name', label: 'Company name', type: 'string' },
   { section: 'Company', path: 'company.recordNumber', label: 'Record number', type: 'number' },
   { section: 'Company', path: 'company.marketSegment', label: 'Market segment', type: 'string' },
+  {
+    section: 'Company',
+    path: 'company.dataContributor',
+    label: 'Data Contributor (Demand Index)',
+    type: 'boolean',
+  },
   { section: 'Company', path: 'reportYear', label: 'Report year', type: 'number' },
 
   {

@@ -109,6 +109,20 @@ function CompanyAdminRow({
                                 disabled={isBusy}
                                 aria-label={`Edit ${field.label}`}
                               />
+                            ) : field.type === 'boolean' ? (
+                              <select
+                                className="reporting-page__admin-input"
+                                value={editState.draft}
+                                onChange={(event) => onDraftChange(event.target.value)}
+                                disabled={isBusy}
+                                aria-label={`Edit ${field.label}`}
+                              >
+                                <option value="" disabled>
+                                  Select…
+                                </option>
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                              </select>
                             ) : (
                               <input
                                 className="reporting-page__admin-input"

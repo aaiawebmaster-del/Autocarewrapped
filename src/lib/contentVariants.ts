@@ -1,5 +1,5 @@
 import type { EventsMetrics, WrappedReport } from '@/types/wrappedReport';
-import { shouldSkipDemandIndexPhase } from '@/lib/companyTireRules';
+import { isDataContributor, shouldSkipDemandIndexPhase } from '@/lib/companyTireRules';
 import {
   getStandardsDatabaseAccessIcons,
   getStandardsProtocolLogos,
@@ -208,11 +208,14 @@ export function getHoodStandardsMessages(report: WrappedReport): {
 type TireReadoutSecondary =
   | { type: 'percent'; value: number; suffix: string }
   | { type: 'overTotal'; total: number; suffix: string }
-  | { type: 'count'; value: number; suffix: string };
+  | { type: 'count'; value: number; suffix: string }
+  | { type: 'text'; text: string };
 
 export type TireReadoutConfig = {
   measuring: string;
   primaryValue: number;
+  /** Shown in place of the animated `primaryValue` count (e.g. "Thank you"). */
+  primaryText?: string;
   primaryLabel: string;
   secondary: TireReadoutSecondary;
   upsellMessage?: string;
@@ -281,8 +284,12 @@ export function getPrevTirePhaseForReport(
   return order[i - 1];
 }
 
+export function isTireReadoutEmpty(config: TireReadoutConfig): boolean {
+  return config.primaryText == null && config.primaryValue === 0;
+}
+
 export function isTirePhaseEmpty(report: WrappedReport, phase: TirePhase): boolean {
-  return buildTireReadoutConfig(report)[phase].primaryValue === 0;
+  return isTireReadoutEmpty(buildTireReadoutConfig(report)[phase]);
 }
 
 export function getAcademyCtaMessage(academyUsers: number): string {
@@ -313,20 +320,31 @@ export function buildTireReadoutConfig(
           ? 'Get market insights with TrendLens — invite your team to explore trends.'
           : undefined,
     },
-    demandindex: {
-      measuring: 'measuring demandindex usage..',
-      primaryValue: products.demandIndexGroups,
-      primaryLabel: 'product groups',
-      secondary: {
-        type: 'overTotal',
-        total: DEMAND_INDEX_AVAILABLE_PRODUCT_GROUPS,
-        suffix: 'available product groups',
-      },
-      upsellMessage:
-        products.demandIndexGroups === 0
-          ? 'Discover demand patterns across product groups with DemandIndex.'
-          : undefined,
-    },
+    demandindex: isDataContributor(report)
+      ? {
+          measuring: 'measuring demandindex usage..',
+          primaryValue: products.demandIndexGroups,
+          primaryText: 'Thank you',
+          primaryLabel: 'For being a Data Contributor!',
+          secondary: {
+            type: 'text',
+            text: `With your support, we have over ${DEMAND_INDEX_AVAILABLE_PRODUCT_GROUPS} product groups in Demand Index`,
+          },
+        }
+      : {
+          measuring: 'measuring demandindex usage..',
+          primaryValue: products.demandIndexGroups,
+          primaryLabel: 'product groups',
+          secondary: {
+            type: 'overTotal',
+            total: DEMAND_INDEX_AVAILABLE_PRODUCT_GROUPS,
+            suffix: 'available product groups',
+          },
+          upsellMessage:
+            products.demandIndexGroups === 0
+              ? 'Discover demand patterns across product groups with DemandIndex.'
+              : undefined,
+        },
     factbook: {
       measuring: 'measuring factbook usage..',
       primaryValue: report.factbook.users,

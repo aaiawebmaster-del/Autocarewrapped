@@ -8,6 +8,8 @@ export type WrappedReport = {
     recordNumber?: number;
     /** Retailers omit DemandIndex from Kick the Tires and Full Diagnostics. */
     marketSegment?: 'retailer';
+    /** Demand Index Data Contributor — Kick the Tires shows a thank-you instead of the group count. */
+    dataContributor?: boolean;
   };
   journey: {
     /**

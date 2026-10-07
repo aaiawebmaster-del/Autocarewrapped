@@ -53,6 +53,7 @@ import {
   getNextTirePhaseForReport,
   getPrevTirePhaseForReport,
   isTirePhaseEmpty,
+  isTireReadoutEmpty,
   type TireReadoutConfig,
 } from '@/lib/contentVariants';
 import { EXTERNAL_CTA_LINKS } from '@/lib/externalCtaLinks';
@@ -1642,6 +1643,8 @@ function renderTireSecondaryStatContent(
           {secondary.suffix}
         </>
       );
+    case 'text':
+      return secondary.text;
   }
 }
 
@@ -1838,7 +1841,7 @@ function HoodTireHubReadout({
   const showCtaListVisual = showDemandIndexCtaList || showAcademyCtaList;
   const showCtaGaugeVisual =
     showFactbookCtaArt || showTrendlensCtaArt || showCtaListVisual;
-  const gaugeCheckVariant = config.primaryValue === 0 ? 'fail' : 'success';
+  const gaugeCheckVariant = isTireReadoutEmpty(config) ? 'fail' : 'success';
   const showStatsCheck =
     !showCtaGaugeVisual &&
     ((tabletShowsTireArt &&
@@ -1984,11 +1987,13 @@ function HoodTireHubReadout({
                   <p className="hood-tire-hub__line hood-tire-hub__line--primary">
                     <span
                       className={`hood-tire-hub__stat-value${
-                        statsPlaceholderActive ? ' hood-tire-hub__line--invisible' : ''
-                      }`}
+                        config.primaryText != null ? ' hood-tire-hub__stat-value--text' : ''
+                      }${statsPlaceholderActive ? ' hood-tire-hub__line--invisible' : ''}`}
                       aria-hidden={statsPlaceholderActive || undefined}
                     >
-                      {statsPlaceholderActive ? (
+                      {config.primaryText != null ? (
+                        config.primaryText
+                      ) : statsPlaceholderActive ? (
                         config.primaryValue
                       ) : (
                         <HoodCountUp value={config.primaryValue} active={counting} />
